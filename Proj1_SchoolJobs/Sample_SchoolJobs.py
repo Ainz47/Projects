@@ -59,3 +59,13 @@ if __name__ == "__main__":
     
     # Step 2: Let the fast robot grab the data
     fast_api_scrape(stolen_keys)
+
+# 1. Load your existing CSV
+df = pd.read_csv('ultimate_hybrid_jobs.csv')
+
+# 2. Push it into a local SQL database
+conn = sqlite3.connect('school_data.db')
+df.to_sql('job_leads', conn, if_exists='replace', index=False)
+conn.close()
+
+print("✅ Successfully migrated CSV data to SQLite!")

@@ -83,4 +83,7 @@ def hijack_shopee_pages(keyword, max_pages=3):
 
 if __name__ == "__main__":
     # You can change the '3' to '5' if you want 5 pages of data!
-    hijack_shopee_pages("mechanical keyboard", max_pages=3)
+    search_item=input("Enter the product keyword to hijack (e.g., 'mechanical keyboard'): ")
+    max_page=int(input("Enter the number of pages to hijack (e.g., 3): "))
+    hijack_shopee_pages(search_item, max_pages=max_page)
+    
