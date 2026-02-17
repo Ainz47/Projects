@@ -1,0 +1,58 @@
+SchoolSpring-Hybrid-Extractor ⚡
+Session Bridging: Playwright + Requests API Scraper
+A high-performance Data Engineering pipeline designed to bypass enterprise-grade Web Application Firewalls (WAF) by bridging browser-based session authentication with low-overhead HTTP requests.
+
+🏗️ Architecture Overview
+Most modern Applicant Tracking Systems (ATS) like SchoolSpring/PowerSchool utilize security layers (e.g., Incapsula/Imperva) that block standard headless scrapers.
+
+This project implements a Hybrid Extraction Strategy:
+
+Session Initiation (The Handshake): Uses Playwright to launch a headless Chromium instance, navigating the front-end to solve the WAF challenge and generate valid security cookies.
+
+State Transfer (The Bridge): Programmatically extracts the raw_cookies from the Playwright browser context and maps them into a Python dictionary.
+
+High-Speed Ingestion (The Extraction): Injects the "stolen" cookies into a Requests session to hit the backend API directly. This bypasses the need to render DOM elements, allowing for near-instantaneous data retrieval of 1,000+ records in a single network call.
+
+🛠️ Tech Stack
+Automation: Playwright (Chromium)
+
+Networking: Requests (Session-based)
+
+Data Processing: Pandas
+
+Target: SchoolSpring/PowerSchool API (GetPagedJobsWithSearch)
+
+🚀 Key Engineering Features
+WAF Persistence: Successfully navigates the Incapsula firewall that typically triggers 403 Forbidden errors for standard bots.
+
+API Reverse-Engineering: Instead of "scraping" HTML elements, this script targets the JSON backend directly via the size=1000 parameter hack, drastically reducing bandwidth and execution time.
+
+Headless-First: Optimized to run in a Linux/CI environment (GitHub Actions ready).
+
+Data Normalization: Automatically converts the nested JSON API response into a flattened CSV for immediate business analysis.
+
+📥 Installation & Usage
+Clone the repository:
+
+git clone https://github.com/JhuraldHilary/School-ATS-API-Scraper.git
+cd School-ATS-API-Scraper
+
+Install dependencies:
+
+git clone https://github.com/JhuraldHilary/School-ATS-API-Scraper.git
+
+Run the pipeline:
+
+python hybrid_scraper.py
+
+📊 Output
+The script generates ultimate_hybrid_jobs.csv, containing structured data including:
+
+JobId, Title, Organization
+
+Location, SalaryRange
+
+PostDate, Category
+
+🛡️ Disclaimer
+This project was developed for educational purposes and to demonstrate advanced data extraction techniques. Always ensure compliance with the target website's robots.txt and Terms of Service.

@@ -51,16 +51,19 @@ def hijack_shopee_pages(keyword, max_pages=3):
                 # Shopee counts starting at 0! Page 1 is &page=0. Page 2 is &page=1.
                 search_url = f"https://shopee.ph/search?keyword={keyword.replace(' ', '%20')}&page={current_page}"
                 
-                print(f"\n🌐 Forcing browser to Page {current_page + 1}: {search_url}")
-                page.goto(search_url)
+                try:
+                    with page.expect_response(lambda r: "api/v4/search/search" in r.url, timeout=15000) as response_info:
+                        page.goto(search_url)
+            
+                    # The moment that specific API call finishes, the script continues immediately
+                    print(f"✅ Data received for page {current_page + 1}")
+        
+                    # Optional: A small scroll to trigger any lazy-loaded secondary APIs
+                    page.mouse.wheel(0, 2000)
+                    page.wait_for_timeout(1000) 
 
-                print("⏳ Waiting 8 seconds for API data...")
-                page.wait_for_timeout(8000)
-                
-                # Scroll down in stages to make sure the page loads everything
-                for _ in range(3):
-                    page.mouse.wheel(0, 3000)
-                    page.wait_for_timeout(2000)
+                except Exception as e:
+                    print(f"⚠️ Page {current_page + 1} timed out or failed to load data.")
 
             # 3. Clean and Save Data
             if product_list:
