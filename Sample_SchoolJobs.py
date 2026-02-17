@@ -3,7 +3,7 @@ import requests
 import pandas as pd
 
 def harvest_cookies():
-    print("🤖 Playwright: Opening browser to solve the firewall...")
+    print("Playwright: Opening browser to solve the firewall...")
     with sync_playwright() as p:
         # We can even run it "headless" (invisible) now!
         browser = p.chromium.launch(headless=True)
@@ -14,10 +14,10 @@ def harvest_cookies():
         page.goto("https://tcisd.tedk12.com/hire/index.aspx")
         page.wait_for_timeout(5000) # Give it 5 seconds to pass the security check
 
-        # 🍪 STEAL THE COOKIES!
+        # STEAL THE COOKIES!
         raw_cookies = context.cookies()
         browser.close()
-        print("✅ Playwright: Cookies stolen! Closing browser.")
+        print("Playwright: Cookies stolen! Closing browser.")
 
         # Reformat the cookies into a dictionary that 'requests' can understand
         cookie_dict = {}
@@ -27,7 +27,7 @@ def harvest_cookies():
         return cookie_dict
 
 def fast_api_scrape(cookies):
-    print("⚡ Requests: Using stolen cookies to download all data instantly...")
+    print("Requests: Using stolen cookies to download all data instantly...")
     
     # Notice we can use our size=1000 cheat code again!
     api_url = "https://api.schoolspring.com/api/Jobs/GetPagedJobsWithSearch?domainName=&keyword=&location=&category=&gradelevel=&jobtype=&organization=&swLat=&swLon=&neLat=&neLon=&page=1&size=1000&sortDateAscending=false"
@@ -49,7 +49,7 @@ def fast_api_scrape(cookies):
     if actual_jobs_list:
         df = pd.DataFrame(actual_jobs_list)
         df.to_csv('ultimate_hybrid_jobs.csv', index=False)
-        print(f"\n🏆 SUCCESS! Instant downloaded {len(df)} jobs using the Hybrid Method.")
+        print(f"\nSUCCESS! Instant downloaded {len(df)} jobs using the Hybrid Method.")
     else:
         print("Failed to get data. The firewall might need more time to load.")
 
