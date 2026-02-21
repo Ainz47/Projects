@@ -39,17 +39,17 @@ Handling thousands of PDFs manually is a bottleneck. This pipeline implements a 
 
 1. **Clone the repository:**
    ```bash
-   git clone [https://github.com/JhuraldHilary/Automated-PDF-Intelligence.git](https://github.com/JhuraldHilary/Automated-PDF-Intelligence.git)
-   cd Automated-PDF-Intelligence
-
+   git clone https://github.com/Ainz47/Projects.git
+   cd Proj3_PDFExtractor
+   
 2. Install dependencies:
-
-pip install playwright requests pdfplumber pandas
-playwright install chromium
+   ```bash
+   pip install playwright requests pdfplumber pandas
+   playwright install chromium
 
 3. Initialize the Database & Run:
-
-python pdf_pipeline.py
+   ```bash
+   python pdf_pipeline.py
 
 📊 SQL Schema Example
 The pipeline populates a school_data.db with the following structure:
@@ -68,3 +68,4 @@ source_url: Traceability back to the original document
 
 🛡️ Disclaimer
 This project was developed for educational and professional demonstration purposes. It demonstrates advanced technical troubleshooting and systems logic applied to data extraction.
+
