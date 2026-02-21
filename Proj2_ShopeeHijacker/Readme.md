@@ -49,17 +49,21 @@ chrome.exe --remote-debugging-port=9222
 
 # macOS
 /Applications/Google\ Chrome.app/Contents/MacOS/Google\ Chrome --remote-debugging-port=9222
-2. Clone and Install
-Bash
+```
 
+2. Clone and Install
+
+```bash
 git clone [https://github.com/JhuraldHilary/Shopee-CDP-Interceptor.git](https://github.com/JhuraldHilary/Shopee-CDP-Interceptor.git)
 cd Shopee-CDP-Interceptor
 pip install playwright pandas
+```
+
 3. Run the Interceptor
 Ensure you are logged into Shopee in the debug window, then execute:
 
-Bash
-
+```bash
 python shopee_hijack.py
+```
 🛡️ Disclaimer
 This project is for educational use and technical demonstration of CDP-based data pipelines. Always adhere to the platform's Terms of Service and Robot.txt guidelines. The authors are not responsible for any misuse of this tool.
