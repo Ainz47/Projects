@@ -50,11 +50,15 @@ cd School-ATS-API-Scraper
 ```bash
 pip install playwright pandas requests
 playwright install chromium
+```
 
 3. Run the Pipeline
-Bash
+
+```Bash
 
 python hybrid_scraper.py
+```
+
 📊 Output
 The script generates ultimate_hybrid_jobs.csv, containing structured data including:
 
@@ -66,3 +70,4 @@ Metadata: PostDate, Category
 
 🛡️ Disclaimer
 This project was developed for educational purposes and to demonstrate advanced data extraction techniques. Always ensure compliance with the target website's robots.txt and Terms of Service.
+
