@@ -43,21 +43,16 @@ This project demonstrates a complete hardware-to-cloud data pipeline:
 
 ## 📥 Installation & Setup
 
-### 1. Clone the Repository
-  ```bash
-  git clone https://github.com/Ainz47/Projects.git
-  cd Projects/Proj4_SmartParkingIoT
-  ```
-### 2. Firmware Configuration
+### 1. Firmware Configuration
 Open the .ino files in the Arduino IDE.
 
 Install the Heltec ESP32 and Blynk libraries.
 
 Input your BLYNK_AUTH_TOKEN and Wi-Fi credentials in the Gateway script.
 
-##📄 Full Documentation
+## 📄 Full Documentation
 For a deep dive into the system schematics, latency statistical analysis, and C++ firmware code, please view the full academic paper included in this repository:
 SMART PARK IoT Sensor Fusion & LoRa Data Pipeline
 
-##🛡️ Disclaimer
+## 🛡️ Disclaimer
 This project was developed for academic research purposes. Always ensure compliance with local radio frequency regulations (e.g., 915MHz ISM band usage) when deploying LoRa hardware.
