@@ -56,7 +56,7 @@ playwright install chromium
 
 ```Bash
 
-python hybrid_scraper.py
+python Sample_SchoolJobs.py
 ```
 
 ### 📊 Output
@@ -70,6 +70,7 @@ Metadata: PostDate, Category
 
 ### 🛡️ Disclaimer
 This project was developed for educational purposes and to demonstrate advanced data extraction techniques. Always ensure compliance with the target website's robots.txt and Terms of Service.
+
 
 
 
