@@ -41,8 +41,8 @@ Most modern Applicant Tracking Systems (ATS) like SchoolSpring/PowerSchool utili
 ### 1. Clone the Repository
 
 ```bash
-git clone [https://github.com/JhuraldHilary/School-ATS-API-Scraper.git](https://github.com/JhuraldHilary/School-ATS-API-Scraper.git)
-cd School-ATS-API-Scraper
+git clone https://github.com/Ainz47/Projects.git
+cd Projects/Proj1_SchoolJobs
 ```
 
 ### 2. Install Dependencies
@@ -70,5 +70,6 @@ Metadata: PostDate, Category
 
 ### 🛡️ Disclaimer
 This project was developed for educational purposes and to demonstrate advanced data extraction techniques. Always ensure compliance with the target website's robots.txt and Terms of Service.
+
 
 
