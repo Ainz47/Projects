@@ -49,7 +49,7 @@ Handling thousands of PDFs manually is a bottleneck. This pipeline implements a 
 
 3. Initialize the Database & Run:
    ```bash
-   python pdf_pipeline.py
+   python PDFExtractor.py
 
 📊 SQL Schema Example
 The pipeline populates a school_data.db with the following structure:
@@ -68,4 +68,5 @@ source_url: Traceability back to the original document
 
 🛡️ Disclaimer
 This project was developed for educational and professional demonstration purposes. It demonstrates advanced technical troubleshooting and systems logic applied to data extraction.
+
 
