@@ -45,21 +45,21 @@ git clone [https://github.com/JhuraldHilary/School-ATS-API-Scraper.git](https://
 cd School-ATS-API-Scraper
 ```
 
-2. Install Dependencies
+### 2. Install Dependencies
 
 ```bash
 pip install playwright pandas requests
 playwright install chromium
 ```
 
-3. Run the Pipeline
+### 3. Run the Pipeline
 
 ```Bash
 
 python hybrid_scraper.py
 ```
 
-📊 Output
+### 📊 Output
 The script generates ultimate_hybrid_jobs.csv, containing structured data including:
 
 Identifiers: JobId, Title, Organization
@@ -68,6 +68,7 @@ Details: Location, SalaryRange
 
 Metadata: PostDate, Category
 
-🛡️ Disclaimer
+### 🛡️ Disclaimer
 This project was developed for educational purposes and to demonstrate advanced data extraction techniques. Always ensure compliance with the target website's robots.txt and Terms of Service.
+
 
