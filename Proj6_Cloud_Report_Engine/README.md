@@ -48,7 +48,7 @@ Proj6_Cloud_Report_Engine/
 1. Clone the Repository
 
 ```bash
-git clone [https://github.com/Ainz47/Projects.git](https://github.com/Ainz47/Projects.git)
+git clone https://github.com/Ainz47/Projects.git
 cd Projects/Proj6_Cloud_Report_Engine
 ```
 2. Install Dependencies
