@@ -54,8 +54,7 @@ cd Projects/Proj6_Cloud_Report_Engine
 2. Install Dependencies
 
 ```bash
-git clone https://github.com/Ainz47/Projects.git
-cd Projects/Proj6_Cloud_Report_Engine
+pip install weasyprint supabase python-dotenv jinja2
 ```
 
 3. Configure Environment
