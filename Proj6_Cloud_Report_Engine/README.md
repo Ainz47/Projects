@@ -42,7 +42,7 @@ Proj6_Cloud_Report_Engine/
 ├── pdf_generator.py      # WeasyPrint PDF renderer
 └── templates/
     └── report.html       # Jinja2 HTML layout
-
+```
 📥 Installation & Usage
 
 1. Clone the Repository
