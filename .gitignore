@@ -1,1 +1,4 @@
 .env
+__pycache__/
+*.pdf
+!Sample_Dominance_Report.pdf
