@@ -1,0 +1,13 @@
+services:
+  metabase:
+    build: .
+    ports:
+      - "3000:3000"
+    environment:
+      # Explicitly tell Metabase to look in the /plugins folder we created in the Dockerfile
+      - MB_PLUGINS_DIR=/plugins
+    volumes:
+      # Map your local plugins folder to the container's plugins folder
+      - ./plugins:/plugins
+      # Map your data folder so the H2 database survives restarts
+      - ./metabase-data:/metabase-data

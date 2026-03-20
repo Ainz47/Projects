@@ -1,0 +1,12 @@
+# profiles.yml
+arxiv_transform:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: 'md:arxiv_dev'
+      extensions:
+        - azure
+        - motherduck
+      settings:
+        azure_storage_connection_string: "{{ env_var('AZURE_CONN_STRING') }}"

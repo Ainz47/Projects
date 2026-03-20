@@ -1,0 +1,15 @@
+
+services:
+  kestra:
+    image: kestra/kestra:latest
+    container_name: kestra_server
+    user: root
+    command: server local
+    ports:
+      - "9000:8080"
+    volumes:
+      #allows kestra to talk to Docker
+      - /var/run/docker.sock:/var/run/docker.sock
+      - kestra-data:/app/data
+volumes:
+  kestra-data:
