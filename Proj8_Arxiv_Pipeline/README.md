@@ -2,6 +2,7 @@
 
 ## 📖 1. Problem Description
 **The Problem:** The arXiv repository contains millions of academic papers, but tracking the explosive growth of specific mathematical sub-disciplines over the last 30 years is difficult. 
+
 **The Solution:** This project builds a batch-processed, end-to-end Data Engineering pipeline that extracts historical Mathematics and Physics research papers (1992–Present) from the arXiv API, loads them into an Azure Data Lake, transforms them into a dimensional model, and serves them to an interactive dashboard for trend analysis.
 
 ## ☁️ 2. Cloud & Infrastructure as Code (IaC)
