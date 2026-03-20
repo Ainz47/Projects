@@ -78,20 +78,20 @@ docker compose up -d --build
 Navigate to localhost:3000 to view the dashboard.
 
 ## 📈 8. Scalability & Future Work
-While the current MVP successfully processes 10,000 records to validate the architecture, the system is designed to scale to the full 2M+ arXiv archive.
+- While the current MVP successfully processes 10,000 records to validate the architecture, the system is designed to scale to the full 2M+ arXiv archive.
 
-🚀 Scaling the Pipeline
-Full Backfill Strategy: The extraction script is built with pagination. To ingest the entire historical dataset, the Kestra trigger can be updated to run a distributed loop. Given the arXiv API's 3-second rate limit, a full backfill of 500k math papers would take ~42 hours; the pipeline is designed to be resumable to handle potential network interruptions during this window.
+### 🚀 Scaling the Pipeline
+- Full Backfill Strategy: The extraction script is built with pagination. To ingest the entire historical dataset, the Kestra trigger can be updated to run a distributed loop. Given the arXiv API's 3-second rate limit, a full backfill of 500k math papers would take ~42 hours; the pipeline is designed to be resumable to handle potential network interruptions during this window.
 
-Horizontal Scaling: By moving the Python extraction runtime from a local Docker container to Azure Kubernetes Service (AKS) or Azure Functions, the ingestion layer can scale horizontally to handle multiple categories (Physics, CS, Bio) in parallel.
+- Horizontal Scaling: By moving the Python extraction runtime from a local Docker container to Azure Kubernetes Service (AKS) or Azure Functions, the ingestion layer can scale horizontally to handle multiple categories (Physics, CS, Bio) in parallel.
 
-Incremental Loads: The next phase involves implementing "Incremental" logic in dbt. Instead of rebuilding the fact_math_papers table daily, dbt would only process new papers published in the last 24 hours, drastically reducing compute costs in MotherDuck.
+- Incremental Loads: The next phase involves implementing "Incremental" logic in dbt. Instead of rebuilding the fact_math_papers table daily, dbt would only process new papers published in the last 24 hours, drastically reducing compute costs in MotherDuck.
 
-🛠️ Future Improvements
-Automated Data Quality (dbt tests): Implementing generic and singular tests (e.g., not_null, unique) on the paper_sk to ensure 100% data integrity as the volume grows.
+### 🛠️ Future Improvements
+- Automated Data Quality (dbt tests): Implementing generic and singular tests (e.g., not_null, unique) on the paper_sk to ensure 100% data integrity as the volume grows.
 
-CI/CD Integration: Adding GitHub Actions to automatically run dbt test and terraform plan whenever code is pushed to the main branch.
+- CI/CD Integration: Adding GitHub Actions to automatically run dbt test and terraform plan whenever code is pushed to the main branch.
 
-Enhanced Monitoring: Integrating Kestra with an alerting system (like Slack or Discord) to notify the engineer immediately if an extraction batch fails.
+- Enhanced Monitoring: Integrating Kestra with an alerting system (like Slack or Discord) to notify the engineer immediately if an extraction batch fails.
 
-Semantic Search: Implementing a Vector Database (like LanceDB or Pinecone) to allow for AI-powered semantic search over paper abstracts, moving beyond simple categorical filtering.
+* Semantic Search: Implementing a Vector Database (like LanceDB or Pinecone) to allow for AI-powered semantic search over paper abstracts, moving beyond simple categorical filtering.
