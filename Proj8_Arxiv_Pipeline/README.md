@@ -29,7 +29,8 @@
   2. **Categorical:** Bar chart detailing the most popular mathematical sub-categories (e.g., High Energy Physics, Combinatorics).
   3. **Scorecard:** Total volume of papers successfully processed.
 
-*<img width="1874" height="923" alt="image" src="https://github.com/user-attachments/assets/f23371b2-8e2b-45a1-b7a7-702dd825c81a" />*
+*<img width="1879" height="926" alt="image" src="https://github.com/user-attachments/assets/0ba8ca8e-e837-4cd8-bd92-2b9c899f9b8c" />
+*
 
 ---
 
