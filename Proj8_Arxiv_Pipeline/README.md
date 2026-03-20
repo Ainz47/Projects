@@ -78,6 +78,8 @@ docker compose up -d --build
 ```
 Navigate to localhost:3000 to view the dashboard.
 
+"For a detailed breakdown of the technical stack and system requirements, see the [Project Dependencies](./dependencies.md)."
+
 ## 📈 8. Scalability & Future Work
 - While the current MVP successfully processes 10,000 records to validate the architecture, the system is designed to scale to the full 2M+ arXiv archive.
 
@@ -96,3 +98,5 @@ Navigate to localhost:3000 to view the dashboard.
 - Enhanced Monitoring: Integrating Kestra with an alerting system (like Slack or Discord) to notify the engineer immediately if an extraction batch fails.
 
 * Semantic Search: Implementing a Vector Database (like LanceDB or Pinecone) to allow for AI-powered semantic search over paper abstracts, moving beyond simple categorical filtering.
+
+* 
