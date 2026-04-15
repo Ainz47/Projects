@@ -1,53 +1,61 @@
-# JHURALD HILARY A. LANTAPE
-### Full-Stack Data Engineer | Systems Architect
-📍 Davao Region, Philippines | ✉️ jhuraldhilary@gmail.com  
+# JHURALD HILARY A. LANTAPE (Larz)
+### Full-Stack Data Engineer | Systems Architect (ECE)
+📍 Santa Cruz, Davao del Sur, Philippines | ✉️ jhuraldhilary@gmail.com  
 🔗 **GitHub:** [Ainz47/Projects](https://github.com/Ainz47/Projects) | 🔗 **LinkedIn:** [jhuraldhilarylantape](https://linkedin.com/in/jhuraldhilarylantape/)
 
 ---
 
 ## 🚀 PROFESSIONAL SUMMARY
-Full-Stack Data Engineer and Electronics Engineering (ECE) student at the University of Southeastern Philippines (USeP). Specializing in **decoupled backend architecture**, **event-driven ETL pipelines**, and **real-time operational intelligence**. Expert in replacing fragmented manual workflows with secure, automated cloud systems that maintain strict data integrity.
+Third-year Electronics Engineering (ECE) student and aspiring Data Engineer with a focus on **Infrastructure as Code (IaC)**, **cloud-native data warehousing**, and **decoupled systems architecture**. Proven ability to build resilient, end-to-end data pipelines and resolve complex system dependency conflicts in containerized environments. Dedicated to engineering high-availability solutions for remote-first international teams.
 
 ---
 
 ## 🛠️ TECHNICAL SKILLS
-* **Backend & Data:** Python (Advanced), FastAPI, PostgreSQL, Supabase, ETL, Idempotent Logic, Pydantic, Pandas.
-* **Automation & Extraction:** API Reverse-Engineering, CDP Session Hijacking, WAF Bypass, Playwright, Requests.
-* **Engineering & Tools:** Git/GitHub, LoRa, ESP32, SQLite, Regular Expressions (Regex), Excel (Advanced), Video/Audio Transcoding.
+* **Cloud & Data Warehousing:** Azure (Blob Storage), MotherDuck (Cloud DuckDB), Terraform (IaC).
+* **Data Engineering:** dbt-core (Modeling/Testing), Kestra (Orchestration), Python (Advanced), PostgreSQL, Idempotent Logic, MD5 Surrogate Keys.
+* **Systems & Linux:** Docker/Docker Compose, Linux Internals (glibc/musl troubleshooting), Obsidian for knowledge management.
+* **Extraction:** API Reverse-Engineering, Playwright, Requests, JSON Payload processing.
+* **Hardware & Electronics:** ESP32 microcontrollers, circuit design, digital logic, and electronics repair.
 
 ---
 
 ## 💻 TECHNICAL PROJECTS
 
-**Restaurant OS: Event-Driven ETL Microservice (Proj 7)** | `FastAPI` `PostgreSQL` `Webhooks`
+**End-to-End Research Data Warehouse (arXiv)** | `Terraform` `Azure` `Kestra` `dbt` `MotherDuck`
+* Architected a scalable batch-processing pipeline to extract and warehouse ~500,000 academic papers (validated on 10k+ records).
+* Developed an **OOM-resilient ingestion layer** using Python-based streaming and compressed Parquet chunking to minimize memory overhead.
+* Engineered a dimensional model in **dbt** utilizing **MD5 hashing** for surrogate keys to ensure 100% pipeline idempotency and deduplication.
+* Optimized warehouse performance in **MotherDuck** by implementing physical clustering (`order_by`) on temporal and categorical columns, reducing BI query latency.
+* **System Integration Win:** Authored a custom Ubuntu-based Dockerfile to resolve native C++ library conflicts (`glibc`) for the DuckDB JDBC driver, enabling stable Metabase visualization.
+
+**Restaurant OS: Event-Driven ETL Microservice** | `FastAPI` `PostgreSQL` `Webhooks`
 * Architected a high-speed FastAPI microservice to ingest asynchronous JSON payloads from fragmented SaaS silos (Toast POS & 7shifts).
 * Implemented **FastAPI BackgroundTasks** to compute real-time KPIs (CPLH, Contribution Margins) without blocking upstream API services.
-* Engineered **idempotent UPSERT logic** in a PostgreSQL (Supabase) environment to ensure 100% data integrity during out-of-order data events.
+* Engineered **idempotent UPSERT logic** in a PostgreSQL environment to ensure data integrity during out-of-order data events.
 
-**Cloud-Native Report Engine (Proj 6)** | `Python` `Jinja2` `WeasyPrint`
-* Designed a decoupled backend pipeline that processes raw payloads through a custom mathematical diagnostic rules engine.
-* Automated high-fidelity, branded PDF generation using WeasyPrint and a memory-efficient "No-Disk" ingestion layer.
-* Secured all cloud persistence layers and API endpoints using professional `.env` masking and version control protocols.
-
-**WordPress REST API Data Pipeline (Proj 5)** | `Python` `WordPress API`
-* Developed a production-grade ETL pipeline bridging raw data scraping with structured CMS ingestion via direct REST API mapping.
-* Implemented deterministic MD5 hashing to create unique data fingerprints, ensuring complete idempotency during high-volume reruns.
-
-**Enterprise Data Acquisition & IoT Suite (Proj 1–4)** | `LoRa` `ESP32` `Playwright` `Pandas`
-* **Smart Park:** Engineered a dual-sensor fusion system using Magnetometers and Ultrasonic sensors on ESP32 nodes to detect vehicle occupancy using hardware-level "AND" logic.
-* **Hybrid API Extractor (SchoolSpring):** Built a pipeline to bypass enterprise WAFs (Incapsula) by bridging browser sessions to high-speed API requests.
-* **CDP Session Interceptor (Shopee):** Utilized Chrome DevTools Protocol (CDP) to hijack live sessions and bypass anti-bot detections for high-fidelity market intelligence.
-* **PDF Intelligence Pipeline:** Built an ETL layer to automate unstructured data extraction from procurement portals into relational SQLite databases.
+**Smart Park: IoT Sensor Fusion** | `ESP32` `Hardware Logic`
+* Engineered a dual-sensor fusion system using Magnetometers and Ultrasonic sensors on ESP32 nodes to detect vehicle occupancy using hardware-level "AND" logic.
 
 ---
 
 ## 🎓 EDUCATION
-**Bachelor of Science: Electronics Engineering (ECE)** | Expected Jun 2027
-*University of Southeastern Philippines (USeP) - Obrero, Davao City*
-* **Leadership:** Technical Head, AECES (2025-2026). Leading system logic and technical troubleshooting initiatives.
+**Bachelor of Science: Electronics Engineering (ECE)** | 2023 – Present (Expected 2028)
+*Davao del Sur State College (DSSC)*
+* Currently in **3rd Year** of a 5-year program.
+* Focus on digital logic, signals and systems, and assembly language programming for DOSBox.
 
 ---
 
-## 💼 OTHER EXPERIENCE
-**Digital Asset & Video Editor (Volunteer)** | *Global Impact & FNHS* | 2018 – 2021
-* Managed heavy digital asset workloads, transcoding, and backups in digital asset management systems.
+## 💼 LEADERSHIP & OTHER EXPERIENCE
+**Family Church Preacher & Devotional Lead** | 2025 – Present
+* Assigned monthly preaching and devotional duties, developing strong public speaking and communication skills.
+
+**Digital Asset & Video Editor** | 2018 – 2021
+* Managed heavy digital asset workloads and backups in professional video editing environments.
+
+---
+
+## 🔧 TOOLS & INTERESTS
+* **Note-taking:** Obsidian.
+* **Calculator:** Canon F-789SGA (Complex number calculations).
+* **Interests:** Sourdough baking, beekeeping (native *Apis cerana*), and troubleshooting consumer electronics.
