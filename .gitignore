@@ -14,3 +14,4 @@ __pycache__/
 *.pdf
 !Sample_Dominance_Report.pdf
 *.jar
+node_modules/

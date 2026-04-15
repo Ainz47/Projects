@@ -1,0 +1,24 @@
+{
+    "place_id": "01f4b64f76e0dff49eb749109c799f39",
+    "title": "Allegory",
+    "content": "A premium local destination offering an unforgettable experience.",
+    "acf_fields": {
+        "business_address": "\ue0c8\n224 S Main St, Naperville, IL 60540, United States",
+        "business_category": "Restaurant",
+        "amenities": [
+            "Outdoor Seating",
+            "Craft Cocktails",
+            "Farm-to-Table"
+        ],
+        "opening_hours": {
+            "monday": "Closed",
+            "tuesday_thursday": "11:00 AM - 9:00 PM",
+            "friday_saturday": "11:00 AM - 10:00 PM",
+            "sunday": "11:00 AM - 8:00 PM"
+        },
+        "gallery_images": [
+            "demo_allegory_exterior_ai_hero.jpg",
+            "demo_allegory_interior_ai_hero.jpg"
+        ]
+    }
+}
