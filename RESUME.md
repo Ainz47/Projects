@@ -1,61 +1,71 @@
-# JHURALD HILARY A. LANTAPE (Larz)
-### Full-Stack Data Engineer | Systems Architect (ECE)
-📍 Santa Cruz, Davao del Sur, Philippines | ✉️ jhuraldhilary@gmail.com  
-🔗 **GitHub:** [Ainz47/Projects](https://github.com/Ainz47/Projects) | 🔗 **LinkedIn:** [jhuraldhilarylantape](https://linkedin.com/in/jhuraldhilarylantape/)
+# [cite_start]JHURALD HILARY A. LANTAPE [cite: 1]
+### Data Engineer | [cite_start]Electronics Engineering (ECE) Student [cite: 4]
+📍 Davao del Sur, Philippines | [cite_start]✉️ jhuraldhilary@gmail.com [cite: 2]  
+🔗 **GitHub:** [Ainz47/Projects](https://github.com/Ainz47/Projects) | [cite_start]🔗 **LinkedIn:** [jhuraldhilarylantape](https://linkedin.com/in/jhuraldhilarylantape/) [cite: 3]
 
 ---
 
 ## 🚀 PROFESSIONAL SUMMARY
-Third-year Electronics Engineering (ECE) student and aspiring Data Engineer with a focus on **Infrastructure as Code (IaC)**, **cloud-native data warehousing**, and **decoupled systems architecture**. Proven ability to build resilient, end-to-end data pipelines and resolve complex system dependency conflicts in containerized environments. Dedicated to engineering high-availability solutions for remote-first international teams.
+[cite_start]Data Engineer Electronics Engineering (ECE) Student at the University of Southeastern Philippines (USeP)[cite: 4]. [cite_start]Specializing in decoupled backend architecture, event-driven ETL pipelines, and real-time operational intelligence[cite: 4]. [cite_start]Expert in replacing fragmented manual workflows with secure, automated cloud systems that maintain strict data integrity[cite: 4].
 
 ---
 
 ## 🛠️ TECHNICAL SKILLS
-* **Cloud & Data Warehousing:** Azure (Blob Storage), MotherDuck (Cloud DuckDB), Terraform (IaC).
-* **Data Engineering:** dbt-core (Modeling/Testing), Kestra (Orchestration), Python (Advanced), PostgreSQL, Idempotent Logic, MD5 Surrogate Keys.
-* **Systems & Linux:** Docker/Docker Compose, Linux Internals (glibc/musl troubleshooting), Obsidian for knowledge management.
-* **Extraction:** API Reverse-Engineering, Playwright, Requests, JSON Payload processing.
-* **Hardware & Electronics:** ESP32 microcontrollers, circuit design, digital logic, and electronics repair.
+* [cite_start]**Backend & Data:** Python (Adv), FastAPI, PostgreSQL, Supabase, ETL, Idempotent Logic, Pydantic, Pandas[cite: 4].
+* [cite_start]**Cloud & Data Engineering:** Azure Blob Storage, MotherDuck (DuckDB), Kestra, dbt (Core), Terraform, Parquet[cite: 4].
+* [cite_start]**Automation & Web Scraping:** Browser Automation, Anti-Bot Mitigation, API Reverse-Engineering, Playwright, Requests[cite: 4].
+* [cite_start]**Engineering & Tools:** Git/GitHub, LoRa, ESP32, SQLite, Regex, Excel (Adv), Video/Audio Transcoding[cite: 4].
+
+---
+
+## 📜 CERTIFICATIONS
+**Data Engineering Zoomcamp 2026 | DataTalks.Club** | [cite_start]*April 2026* [cite: 4]
+* [cite_start]Intensive 9-week program covering the Modern Data Stack: Docker, Terraform, Airflow, dbt, BigQuery, and Spark[cite: 4]. 
+* [cite_start]Passed Final Capstone project[cite: 4].
 
 ---
 
 ## 💻 TECHNICAL PROJECTS
 
-**End-to-End Research Data Warehouse (arXiv)** | `Terraform` `Azure` `Kestra` `dbt` `MotherDuck`
-* Architected a scalable batch-processing pipeline to extract and warehouse ~500,000 academic papers (validated on 10k+ records).
-* Developed an **OOM-resilient ingestion layer** using Python-based streaming and compressed Parquet chunking to minimize memory overhead.
-* Engineered a dimensional model in **dbt** utilizing **MD5 hashing** for surrogate keys to ensure 100% pipeline idempotency and deduplication.
-* Optimized warehouse performance in **MotherDuck** by implementing physical clustering (`order_by`) on temporal and categorical columns, reducing BI query latency.
-* **System Integration Win:** Authored a custom Ubuntu-based Dockerfile to resolve native C++ library conflicts (`glibc`) for the DuckDB JDBC driver, enabling stable Metabase visualization.
+**DE Zoomcamp Capstone: Mathematics Research Data Pipeline** | [cite_start]`Azure` `MotherDuck` `Kestra` `dbt` `Terraform` [cite: 4]
+* [cite_start]Architected an end-to-end batch pipeline ingesting 500k+ arXiv research papers (1992-Present) into Azure Data Lake using Terraform IaC[cite: 4]. 
+* [cite_start]Kestra DAG chunks records into 10,000-row compressed Parquet batches, eliminating OOM crashes across the full historical backfill[cite: 4].
+* [cite_start]Built a dbt dimensional model with idempotent MD5 surrogate keys ensuring 100% pipeline idempotency across reruns[cite: 4]. 
+* [cite_start]Optimized MotherDuck (DuckDB) query performance via native clustering on published_timestamp and primary_category, reducing dashboard load times significantly[cite: 4].
+* [cite_start]Deployed a Metabase dashboard (custom Ubuntu Dockerfile for DuckDB JDBC compatibility) visualizing exponential paper growth over 3 decades, top mathematical sub-disciplines, and total ingestion volume scorecard[cite: 4].
 
-**Restaurant OS: Event-Driven ETL Microservice** | `FastAPI` `PostgreSQL` `Webhooks`
-* Architected a high-speed FastAPI microservice to ingest asynchronous JSON payloads from fragmented SaaS silos (Toast POS & 7shifts).
-* Implemented **FastAPI BackgroundTasks** to compute real-time KPIs (CPLH, Contribution Margins) without blocking upstream API services.
-* Engineered **idempotent UPSERT logic** in a PostgreSQL environment to ensure data integrity during out-of-order data events.
+**Restaurant OS: Event-Driven ETL Microservice (Proj 7)** | [cite_start]`FastAPI` `PostgreSQL` `Webhooks` [cite: 4]
+* [cite_start]Architected a high-speed FastAPI microservice ingesting async JSON payloads from Toast POS & 7shifts[cite: 4]. 
+* [cite_start]Used Background Tasks to compute real-time KPIs (CPLH, Contribution Margins) without blocking upstream services, reducing manual reporting time to zero[cite: 4].
+* [cite_start]Engineered idempotent UPSERT logic in PostgreSQL (Supabase) guaranteeing 100% data integrity during out-of-order webhook events across concurrent SaaS data streams[cite: 4]. 
+* [cite_start]Defined complex schema mappings and synchronization rules to normalize fragmented POS data into a unified reporting layer[cite: 4].
 
-**Smart Park: IoT Sensor Fusion** | `ESP32` `Hardware Logic`
-* Engineered a dual-sensor fusion system using Magnetometers and Ultrasonic sensors on ESP32 nodes to detect vehicle occupancy using hardware-level "AND" logic.
+**Intelligent Directory ETL Pipeline (Proj 9)** | [cite_start]`Playwright` `Gemini API` `FastAPI` [cite: 4]
+* [cite_start]Architected an end-to-end AI-enriched ETL pipeline scraping business data (name, address, hi-res photos) from Google Maps via Playwright[cite: 4]. 
+* [cite_start]Leveraged Gemini API for LLM description generation and Vision-based image quality gates, discarding irrelevant assets before ingestion[cite: 4].
+* [cite_start]Engineered idempotent WordPress REST API ingestion using MD5(name+address) as a surrogate place_id to prevent duplicate CPT records[cite: 4]. 
+* [cite_start]Built intelligent fallback logic routing to original scraped assets on AI quota failures, ensuring zero pipeline breakage[cite: 4]. [cite_start]Validated end-to-end flow via a lightweight FastAPI mock WordPress server[cite: 4].
+
+**Cloud-Native Report Engine (Proj 6) & WordPress REST API Pipeline (Proj 5)** | [cite_start]`Python` `Jinja2` `WeasyPrint` [cite: 4]
+* [cite_start]Designed a decoupled pipeline processing raw payloads through a custom diagnostic rules engine[cite: 4]. 
+* [cite_start]Automated branded PDF report generation via WeasyPrint with a No-Disk ingestion layer, eliminating manual report creation entirely[cite: 4].
+* [cite_start]Built a production-grade ETL pipeline bridging raw data scraping to structured CMS ingestion via REST API mapping[cite: 4]. 
+* [cite_start]Applied MD5 fingerprinting to ensure full idempotency during high-volume reruns[cite: 4].
+
+**Enterprise Data Acquisition & IoT Suite (Proj 1-4)** | [cite_start]`LoRa` `ESP32` `Playwright` `Pandas` [cite: 4]
+* [cite_start]**Smart Park & LoRa Gateway:** Engineered dual-sensor fusion (Magnetometer + Ultrasonic) on ESP32 for real-time vehicle occupancy detection[cite: 4]. [cite_start]Built a LoRa-to-Cloud gateway streaming live data to Blynk IoT Cloud for remote monitoring[cite: 4].
+* [cite_start]**API Extractors:** Developed an antibot-mitigation pipeline bypassing enterprise WAFs (Incapsula) via session bridging, and a Chrome DevTools Protocol (CDP) session interceptor for high-fidelity Shopee market intelligence[cite: 4].
 
 ---
 
 ## 🎓 EDUCATION
-**Bachelor of Science: Electronics Engineering (ECE)** | 2023 – Present (Expected 2028)
-*Davao del Sur State College (DSSC)*
-* Currently in **3rd Year** of a 5-year program.
-* Focus on digital logic, signals and systems, and assembly language programming for DOSBox.
+**Bachelor of Science: Electrical, Electronics and Communications Engineering** | [cite_start]*Expected Jun 2027* [cite: 4]
+[cite_start]*University of Southeastern Philippines Obrero, Davao City* [cite: 4]
+* [cite_start]**Leadership:** Technical Head, AECES (2025-2026) overseeing technical initiatives for the engineering student body[cite: 4].
+* [cite_start]**Relevant Coursework:** Systems Logic, Advanced Mathematics, Technical Troubleshooting[cite: 4].
 
 ---
 
-## 💼 LEADERSHIP & OTHER EXPERIENCE
-**Family Church Preacher & Devotional Lead** | 2025 – Present
-* Assigned monthly preaching and devotional duties, developing strong public speaking and communication skills.
-
-**Digital Asset & Video Editor** | 2018 – 2021
-* Managed heavy digital asset workloads and backups in professional video editing environments.
-
----
-
-## 🔧 TOOLS & INTERESTS
-* **Note-taking:** Obsidian.
-* **Calculator:** Canon F-789SGA (Complex number calculations).
-* **Interests:** Sourdough baking, beekeeping (native *Apis cerana*), and troubleshooting consumer electronics.
+## 💼 OTHER PROFESSIONAL EXPERIENCE
+**Digital Asset & Video Editor (Volunteer)** | *Global Impact, Davao City* | [cite_start]*Apr 2021 - Dec 2021* [cite: 4]
+* [cite_start]Managed high-volume digital asset workloads for a global organization transcoding video/audio files, maintaining organized backups in a DAM system, and delivering production-ready media assets on tight deadlines[cite: 5].
