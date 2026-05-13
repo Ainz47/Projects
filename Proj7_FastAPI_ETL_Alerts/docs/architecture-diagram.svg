@@ -1,0 +1,105 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Proj7 FastAPI ETL Alerts Architecture Diagram</title>
+  <desc id="desc">Simplified architecture diagram for the restaurant ETL and alerting microservice showing Toast POS and 7shifts feeding FastAPI webhooks, database persistence in Supabase, background metric calculation, and Discord or Slack alert delivery.</desc>
+  <defs>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #18324a; }
+      .title { font-size: 32px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #5c7289; }
+      .section { font-size: 14px; font-weight: 700; fill: #2f5d88; letter-spacing: 0.06em; }
+      .node-title { font-size: 17px; font-weight: 700; }
+      .node-body { font-size: 13px; fill: #567089; }
+      .main-node { fill: #ffffff; stroke: #4c86b8; stroke-width: 2.5; rx: 22; }
+      .support-node { fill: #f4f8fc; stroke: #92b4d3; stroke-width: 2; rx: 20; }
+      .secret-node { fill: #f7f0ff; stroke: #8c75da; stroke-width: 2; rx: 20; }
+      .band { fill: #eef6fc; stroke: #d7e5f1; stroke-width: 2; rx: 30; }
+      .arrow { stroke: #2f6ea5; stroke-width: 4; fill: none; }
+      .dash-arrow { stroke: #7d6ac8; stroke-width: 2.5; stroke-dasharray: 10 8; fill: none; }
+      .label { font-size: 12px; fill: #456684; }
+      .note { font-size: 12px; fill: #6a7f95; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#2f6ea5"/>
+    </marker>
+    <marker id="dashhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#7d6ac8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="#edf5fb"/>
+  <rect x="34" y="28" width="1532" height="844" rx="32" fill="#ffffff" stroke="#d8e5f0" stroke-width="2"/>
+
+  <text x="68" y="82" class="title">Proj7 FastAPI ETL Alerts</text>
+  <text x="68" y="112" class="subtitle">A simplified view of the webhook ingestion, metric calculation, and alerting flow</text>
+
+  <rect x="70" y="170" width="1460" height="330" class="band"/>
+  <text x="96" y="205" class="section">CORE DATA FLOW</text>
+
+  <rect x="96" y="270" width="170" height="110" class="main-node"/>
+  <text x="181" y="314" text-anchor="middle" class="node-title">Toast POS</text>
+  <text x="181" y="340" text-anchor="middle" class="node-body">sales payloads</text>
+
+  <rect x="306" y="270" width="170" height="110" class="main-node"/>
+  <text x="391" y="314" text-anchor="middle" class="node-title">7shifts</text>
+  <text x="391" y="340" text-anchor="middle" class="node-body">labor payloads</text>
+
+  <rect x="556" y="270" width="210" height="110" class="main-node"/>
+  <text x="661" y="304" text-anchor="middle" class="node-title">FastAPI Webhooks</text>
+  <text x="661" y="330" text-anchor="middle" class="node-body">validate + accept JSON</text>
+  <text x="661" y="352" text-anchor="middle" class="node-body">respond quickly</text>
+
+  <rect x="846" y="270" width="210" height="110" class="main-node"/>
+  <text x="951" y="304" text-anchor="middle" class="node-title">Supabase</text>
+  <text x="951" y="330" text-anchor="middle" class="node-body">PostgreSQL state store</text>
+  <text x="951" y="352" text-anchor="middle" class="node-body">idempotent updates</text>
+
+  <rect x="1136" y="270" width="200" height="110" class="main-node"/>
+  <text x="1236" y="304" text-anchor="middle" class="node-title">ETL Logic</text>
+  <text x="1236" y="330" text-anchor="middle" class="node-body">calculate CPLH</text>
+  <text x="1236" y="352" text-anchor="middle" class="node-body">calculate labor %</text>
+
+  <rect x="1396" y="270" width="100" height="110" class="main-node"/>
+  <text x="1446" y="314" text-anchor="middle" class="node-title">Alerts</text>
+  <text x="1446" y="340" text-anchor="middle" class="node-body">webhook push</text>
+
+  <path d="M 266 325 L 556 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 476 325 L 556 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 766 325 L 846 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 1056 325 L 1136 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 1336 325 L 1396 325" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <text x="515" y="300" text-anchor="middle" class="label">ingest</text>
+  <text x="806" y="305" text-anchor="middle" class="label">upsert</text>
+  <text x="1096" y="305" text-anchor="middle" class="label">process</text>
+  <text x="1366" y="305" text-anchor="middle" class="label">notify</text>
+
+  <path d="M 951 380 L 951 430 L 1236 430 L 1236 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <text x="1094" y="418" text-anchor="middle" class="label">read complete daily record</text>
+
+  <rect x="70" y="545" width="1460" height="250" class="band"/>
+  <text x="96" y="580" class="section">SUPPORTING COMPONENTS</text>
+
+  <rect x="290" y="628" width="220" height="92" class="support-node"/>
+  <text x="400" y="662" text-anchor="middle" class="node-title">Pydantic Models</text>
+  <text x="400" y="688" text-anchor="middle" class="node-body">strict payload validation</text>
+
+  <rect x="690" y="628" width="240" height="92" class="support-node"/>
+  <text x="810" y="662" text-anchor="middle" class="node-title">BackgroundTasks</text>
+  <text x="810" y="688" text-anchor="middle" class="node-body">run ETL after HTTP response</text>
+
+  <rect x="1110" y="628" width="240" height="92" class="secret-node"/>
+  <text x="1230" y="662" text-anchor="middle" class="node-title">`.env` Secrets</text>
+  <text x="1230" y="688" text-anchor="middle" class="node-body">Supabase keys + alert webhook URL</text>
+
+  <path d="M 400 628 L 661 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 810 628 L 661 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 1180 628 L 951 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+  <path d="M 1230 628 L 661 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+  <path d="M 1280 628 L 1446 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+
+  <text x="455" y="512" class="label">request schema</text>
+  <text x="740" y="512" class="label">async execution</text>
+  <text x="1085" y="512" class="label">credentials</text>
+
+  <text x="70" y="835" class="note">This version focuses on the main webhook-driven path and keeps lower-level implementation details out of the image so it stays easy to scan.</text>
+</svg>

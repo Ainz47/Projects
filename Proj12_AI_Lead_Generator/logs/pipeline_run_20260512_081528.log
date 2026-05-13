@@ -1,0 +1,12 @@
+2026-05-12 08:15:28,820 [INFO] __main__ — Starting pipeline for plumber in Denver, CO
+2026-05-12 08:15:28,820 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 08:15:28,820 [WARNING] scraper — No APIFY_API_TOKEN provided, using mock data
+2026-05-12 08:15:28,820 [INFO] __main__ — Scraped 2 leads
+2026-05-12 08:15:28,820 [INFO] __main__ — Evaluating https://www.abcbathrooms.com
+2026-05-12 08:15:28,820 [INFO] __main__ — Evaluating https://www.modernbath.com
+2026-05-12 08:15:28,820 [INFO] __main__ — Generating preview for ABC Bathroom Remodelers
+2026-05-12 08:15:28,820 [INFO] __main__ — Generating outreach email for ABC Bathroom Remodelers
+2026-05-12 08:15:28,820 [INFO] __main__ — Generating preview for Modern Bath Solutions
+2026-05-12 08:15:28,821 [INFO] __main__ — Generating outreach email for Modern Bath Solutions
+2026-05-12 08:15:28,824 [INFO] __main__ — Saved 2 qualified leads to /workspaces/webpulse-demo-engine/data/leads_plumber_Denver_CO_20260512_081528.csv
+2026-05-12 08:15:28,825 [INFO] __main__ — Pipeline completed

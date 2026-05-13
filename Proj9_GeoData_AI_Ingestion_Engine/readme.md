@@ -6,6 +6,8 @@ This project demonstrates robust data engineering principles, including pipeline
 
 ## 🏗 System Architecture
 
+Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md) | [docs/architecture-diagram.svg](./docs/architecture-diagram.svg) | [docs/architecture-diagram.png](./docs/architecture-diagram.png)
+
 The pipeline follows a structured three-phase ETL workflow:
 
 1.  **Extraction (Scraping):** Utilizes Playwright to dynamically scrape "ground truth" data (name, address, high-resolution cover photos) directly from Google Maps.

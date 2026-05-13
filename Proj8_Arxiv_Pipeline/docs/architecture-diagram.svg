@@ -1,0 +1,103 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Proj8 Arxiv Pipeline Architecture Diagram</title>
+  <desc id="desc">Simplified architecture diagram for the Arxiv pipeline showing arXiv API, extraction, Azure Blob Storage, dbt, MotherDuck, and Metabase, with Kestra, Terraform, and environment secrets as supporting components.</desc>
+  <defs>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #18324a; }
+      .title { font-size: 32px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #5c7289; }
+      .section { font-size: 14px; font-weight: 700; fill: #2f5d88; letter-spacing: 0.06em; }
+      .node-title { font-size: 17px; font-weight: 700; }
+      .node-body { font-size: 13px; fill: #567089; }
+      .main-node { fill: #ffffff; stroke: #4c86b8; stroke-width: 2.5; rx: 22; }
+      .support-node { fill: #f4f8fc; stroke: #92b4d3; stroke-width: 2; rx: 20; }
+      .secret-node { fill: #f7f0ff; stroke: #8c75da; stroke-width: 2; rx: 20; }
+      .band { fill: #eef6fc; stroke: #d7e5f1; stroke-width: 2; rx: 30; }
+      .arrow { stroke: #2f6ea5; stroke-width: 4; fill: none; }
+      .dash-arrow { stroke: #7d6ac8; stroke-width: 2.5; stroke-dasharray: 10 8; fill: none; }
+      .label { font-size: 12px; fill: #456684; }
+      .note { font-size: 12px; fill: #6a7f95; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#2f6ea5"/>
+    </marker>
+    <marker id="dashhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#7d6ac8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="#edf5fb"/>
+  <rect x="34" y="28" width="1532" height="844" rx="32" fill="#ffffff" stroke="#d8e5f0" stroke-width="2"/>
+
+  <text x="68" y="82" class="title">Proj8 Arxiv Pipeline</text>
+  <text x="68" y="112" class="subtitle">A simplified view of the batch data flow from arXiv to the analytics dashboard</text>
+
+  <rect x="70" y="170" width="1460" height="330" class="band"/>
+  <text x="96" y="205" class="section">CORE DATA FLOW</text>
+
+  <rect x="96" y="270" width="180" height="110" class="main-node"/>
+  <text x="186" y="314" text-anchor="middle" class="node-title">arXiv API</text>
+  <text x="186" y="340" text-anchor="middle" class="node-body">paper metadata source</text>
+
+  <rect x="336" y="270" width="190" height="110" class="main-node"/>
+  <text x="431" y="304" text-anchor="middle" class="node-title">Python Extractor</text>
+  <text x="431" y="330" text-anchor="middle" class="node-body">paginate + chunk</text>
+  <text x="431" y="352" text-anchor="middle" class="node-body">write parquet files</text>
+
+  <rect x="586" y="270" width="210" height="110" class="main-node"/>
+  <text x="691" y="304" text-anchor="middle" class="node-title">Azure Blob Storage</text>
+  <text x="691" y="330" text-anchor="middle" class="node-body">`raw-parquet-chunks`</text>
+  <text x="691" y="352" text-anchor="middle" class="node-body">raw parquet landing zone</text>
+
+  <rect x="856" y="270" width="170" height="110" class="main-node"/>
+  <text x="941" y="314" text-anchor="middle" class="node-title">dbt</text>
+  <text x="941" y="340" text-anchor="middle" class="node-body">stage + fact models</text>
+
+  <rect x="1086" y="270" width="200" height="110" class="main-node"/>
+  <text x="1186" y="304" text-anchor="middle" class="node-title">MotherDuck</text>
+  <text x="1186" y="330" text-anchor="middle" class="node-body">analytics warehouse</text>
+  <text x="1186" y="352" text-anchor="middle" class="node-body">`fact_math_papers`</text>
+
+  <rect x="1346" y="270" width="150" height="110" class="main-node"/>
+  <text x="1421" y="314" text-anchor="middle" class="node-title">Metabase</text>
+  <text x="1421" y="340" text-anchor="middle" class="node-body">dashboard + charts</text>
+
+  <path d="M 276 325 L 336 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 526 325 L 586 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 796 325 L 856 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 1026 325 L 1086 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 1286 325 L 1346 325" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <text x="306" y="305" text-anchor="middle" class="label">fetch</text>
+  <text x="556" y="305" text-anchor="middle" class="label">upload</text>
+  <text x="826" y="305" text-anchor="middle" class="label">read raw</text>
+  <text x="1056" y="305" text-anchor="middle" class="label">materialize</text>
+  <text x="1316" y="305" text-anchor="middle" class="label">query</text>
+
+  <rect x="70" y="545" width="1460" height="250" class="band"/>
+  <text x="96" y="580" class="section">SUPPORTING COMPONENTS</text>
+
+  <rect x="290" y="628" width="180" height="92" class="support-node"/>
+  <text x="380" y="662" text-anchor="middle" class="node-title">Kestra</text>
+  <text x="380" y="688" text-anchor="middle" class="node-body">schedules and runs extraction</text>
+
+  <rect x="710" y="628" width="180" height="92" class="support-node"/>
+  <text x="800" y="662" text-anchor="middle" class="node-title">Terraform</text>
+  <text x="800" y="688" text-anchor="middle" class="node-body">provisions Azure storage</text>
+
+  <rect x="1130" y="628" width="220" height="92" class="secret-node"/>
+  <text x="1240" y="662" text-anchor="middle" class="node-title">`.env` Secrets</text>
+  <text x="1240" y="688" text-anchor="middle" class="node-body">Azure connection string + MD token</text>
+
+  <path d="M 380 628 L 431 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 800 628 L 691 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 1210 628 L 941 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+  <path d="M 1270 628 L 1186 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+  <path d="M 1330 628 L 1421 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+
+  <text x="412" y="515" class="label">trigger job</text>
+  <text x="760" y="520" class="label">create storage</text>
+  <text x="1080" y="520" class="label">credentials</text>
+
+  <text x="70" y="835" class="note">This simplified image focuses on the main batch path and omits lower-level implementation details to keep the diagram readable.</text>
+</svg>

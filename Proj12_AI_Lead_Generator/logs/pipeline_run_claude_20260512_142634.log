@@ -1,0 +1,18 @@
+2026-05-12 14:26:34,375 [INFO] __main__ — Starting CLAUDE pipeline for bathroom remodeler in Farmington Hills, MI
+2026-05-12 14:26:34,375 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 14:26:35,684 [INFO] scraper — Apify run started: 3LbifDOX9EGu7HOD5
+2026-05-12 14:26:35,684 [INFO] scraper — Waiting for Apify run to start...
+2026-05-12 14:26:35,932 [INFO] scraper — Apify run has started with status: RUNNING
+2026-05-12 14:26:35,932 [INFO] scraper — Monitoring dataset for new leads...
+2026-05-12 14:26:44,374 [INFO] scraper — Reached 1 results with websites. Aborting Apify run...
+2026-05-12 14:26:44,797 [INFO] scraper — Finished scraping with 1 items from Apify.
+2026-05-12 14:26:44,797 [INFO] __main__ — Scraped 1 leads
+2026-05-12 14:26:44,797 [INFO] __main__ — Evaluating 1 websites concurrently...
+2026-05-12 14:26:45,394 [INFO] httpx — HTTP Request: GET https://www.premier-homepros.com/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 14:26:45,874 [INFO] httpx — HTTP Request: GET https://premier-homepros.com/ "HTTP/1.1 200 OK"
+2026-05-12 14:26:46,271 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 14:26:46,272 [ERROR] evaluator — Error evaluating https://www.premier-homepros.com/: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011Caxq7h5FYHv4BBRWhKxS1'}
+2026-05-12 14:26:46,272 [INFO] __main__ — All evaluations complete.
+2026-05-12 14:26:46,275 [INFO] __main__ — Saved 1 evaluated leads to /workspaces/webpulse-demo-engine/data/leads_claude_bathroom_remodeler_Farmington Hills_MI_20260512_142634.csv
+2026-05-12 14:26:46,276 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_claude_bathroom_remodeler_Farmington Hills_MI_20260512_142634.json
+2026-05-12 14:26:46,276 [INFO] __main__ — Pipeline completed

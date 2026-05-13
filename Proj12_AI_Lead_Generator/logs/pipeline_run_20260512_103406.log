@@ -1,0 +1,7 @@
+2026-05-12 10:34:06,866 [INFO] __main__ — Starting pipeline for Bathroom Remodeler in Farmington Hills, MI
+2026-05-12 10:34:06,866 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 10:34:07,844 [ERROR] scraper — Error scraping with Apify: Actor with this name was not found
+2026-05-12 10:34:07,844 [INFO] __main__ — Scraped 0 leads
+2026-05-12 10:34:07,855 [INFO] __main__ — Saved 0 qualified leads to /workspaces/webpulse-demo-engine/data/leads_Bathroom_Remodeler_Farmington Hills_MI_20260512_103406.csv
+2026-05-12 10:34:07,855 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_Bathroom_Remodeler_Farmington Hills_MI_20260512_103406.json
+2026-05-12 10:34:07,855 [INFO] __main__ — Pipeline completed

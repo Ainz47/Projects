@@ -1,0 +1,52 @@
+[
+  {
+    "borough": "Brooklyn",
+    "bin": "3191322",
+    "address": "244 Van Sicklen Street",
+    "violation_number": "26-01042",
+    "violation_type": "Construction",
+    "issue_date": "2026-04-14",
+    "status": "Active",
+    "source_page_link": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?$query=select%20boro%2C%20bin%2C%20house_number%2C%20street%2C%20violation_number%2C%20issue_date%2C%20violation_type%2C%20violation_category%2C%20disposition_date%2C%20disposition_comments%2C%20description%20where%20bin%3D%273191322%27%20and%20violation_number%3D%2726-01042%27%20limit%201"
+  },
+  {
+    "borough": "Brooklyn",
+    "bin": "3164833",
+    "address": "8424 12 Avenue",
+    "violation_number": "20167",
+    "violation_type": "Immediate Emergency",
+    "issue_date": "2026-04-14",
+    "status": "Active",
+    "source_page_link": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?$query=select%20boro%2C%20bin%2C%20house_number%2C%20street%2C%20violation_number%2C%20issue_date%2C%20violation_type%2C%20violation_category%2C%20disposition_date%2C%20disposition_comments%2C%20description%20where%20bin%3D%273164833%27%20and%20violation_number%3D%2720167%27%20limit%201"
+  },
+  {
+    "borough": "Brooklyn",
+    "bin": "3127157",
+    "address": "740 East 5 Street",
+    "violation_number": "26-01046",
+    "violation_type": "Construction",
+    "issue_date": "2026-04-14",
+    "status": "Active",
+    "source_page_link": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?$query=select%20boro%2C%20bin%2C%20house_number%2C%20street%2C%20violation_number%2C%20issue_date%2C%20violation_type%2C%20violation_category%2C%20disposition_date%2C%20disposition_comments%2C%20description%20where%20bin%3D%273127157%27%20and%20violation_number%3D%2726-01046%27%20limit%201"
+  },
+  {
+    "borough": "Bronx",
+    "bin": "2059020",
+    "address": "912 East 219 Street",
+    "violation_number": "26-01049",
+    "violation_type": "Construction",
+    "issue_date": "2026-04-14",
+    "status": "Active",
+    "source_page_link": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?$query=select%20boro%2C%20bin%2C%20house_number%2C%20street%2C%20violation_number%2C%20issue_date%2C%20violation_type%2C%20violation_category%2C%20disposition_date%2C%20disposition_comments%2C%20description%20where%20bin%3D%272059020%27%20and%20violation_number%3D%2726-01049%27%20limit%201"
+  },
+  {
+    "borough": "Bronx",
+    "bin": "2065432",
+    "address": "3359 Baychester Avenue",
+    "violation_number": "26-01039",
+    "violation_type": "Construction",
+    "issue_date": "2026-04-13",
+    "status": "Active",
+    "source_page_link": "https://data.cityofnewyork.us/resource/3h2n-5cm9.json?$query=select%20boro%2C%20bin%2C%20house_number%2C%20street%2C%20violation_number%2C%20issue_date%2C%20violation_type%2C%20violation_category%2C%20disposition_date%2C%20disposition_comments%2C%20description%20where%20bin%3D%272065432%27%20and%20violation_number%3D%2726-01039%27%20limit%201"
+  }
+]

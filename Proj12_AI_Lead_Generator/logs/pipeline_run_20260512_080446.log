@@ -1,0 +1,12 @@
+2026-05-12 08:04:46,887 [INFO] __main__ — Starting pipeline for bathroom remodeler in Farmington Hills, MI
+2026-05-12 08:04:46,887 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 08:04:46,888 [WARNING] scraper — No APIFY_API_TOKEN provided, using mock data
+2026-05-12 08:04:46,888 [INFO] __main__ — Scraped 2 leads
+2026-05-12 08:04:46,888 [INFO] __main__ — Evaluating https://www.abcbathrooms.com
+2026-05-12 08:04:46,888 [INFO] __main__ — Evaluating https://www.modernbath.com
+2026-05-12 08:04:46,888 [INFO] __main__ — Generating preview for ABC Bathroom Remodelers
+2026-05-12 08:04:46,888 [INFO] __main__ — Generating outreach email for ABC Bathroom Remodelers
+2026-05-12 08:04:46,888 [INFO] __main__ — Generating preview for Modern Bath Solutions
+2026-05-12 08:04:46,888 [INFO] __main__ — Generating outreach email for Modern Bath Solutions
+2026-05-12 08:04:46,892 [INFO] __main__ — Saved 2 qualified leads to /workspaces/webpulse-demo-engine/data/leads_bathroom_remodeler_Farmington Hills_MI_20260512_080446.csv
+2026-05-12 08:04:46,892 [INFO] __main__ — Pipeline completed

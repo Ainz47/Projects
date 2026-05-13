@@ -1,0 +1,104 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Proj9 GeoData AI Ingestion Engine Architecture Diagram</title>
+  <desc id="desc">Simplified architecture diagram for the geo data AI ingestion engine showing Google Maps scraping, AI enrichment with Gemini, WordPress ingestion, and support components for quality gates, fallbacks, environment configuration, and mock API testing.</desc>
+  <defs>
+    <style>
+      text { font-family: "Segoe UI", Arial, sans-serif; fill: #18324a; }
+      .title { font-size: 32px; font-weight: 700; }
+      .subtitle { font-size: 16px; fill: #5c7289; }
+      .section { font-size: 14px; font-weight: 700; fill: #2f5d88; letter-spacing: 0.06em; }
+      .node-title { font-size: 17px; font-weight: 700; }
+      .node-body { font-size: 13px; fill: #567089; }
+      .main-node { fill: #ffffff; stroke: #4c86b8; stroke-width: 2.5; rx: 22; }
+      .support-node { fill: #f4f8fc; stroke: #92b4d3; stroke-width: 2; rx: 20; }
+      .secret-node { fill: #f7f0ff; stroke: #8c75da; stroke-width: 2; rx: 20; }
+      .band { fill: #eef6fc; stroke: #d7e5f1; stroke-width: 2; rx: 30; }
+      .arrow { stroke: #2f6ea5; stroke-width: 4; fill: none; }
+      .dash-arrow { stroke: #7d6ac8; stroke-width: 2.5; stroke-dasharray: 10 8; fill: none; }
+      .label { font-size: 12px; fill: #456684; }
+      .note { font-size: 12px; fill: #6a7f95; }
+    </style>
+    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#2f6ea5"/>
+    </marker>
+    <marker id="dashhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
+      <path d="M 0 0 L 12 6 L 0 12 z" fill="#7d6ac8"/>
+    </marker>
+  </defs>
+
+  <rect x="0" y="0" width="1600" height="900" fill="#edf5fb"/>
+  <rect x="34" y="28" width="1532" height="844" rx="32" fill="#ffffff" stroke="#d8e5f0" stroke-width="2"/>
+
+  <text x="68" y="82" class="title">Proj9 GeoData AI Ingestion Engine</text>
+  <text x="68" y="112" class="subtitle">A simplified view of the scrape, enrich, and ingest pipeline</text>
+
+  <rect x="70" y="170" width="1460" height="330" class="band"/>
+  <text x="96" y="205" class="section">CORE DATA FLOW</text>
+
+  <rect x="110" y="270" width="180" height="110" class="main-node"/>
+  <text x="200" y="314" text-anchor="middle" class="node-title">Google Maps</text>
+  <text x="200" y="340" text-anchor="middle" class="node-body">business source data</text>
+
+  <rect x="360" y="270" width="190" height="110" class="main-node"/>
+  <text x="455" y="304" text-anchor="middle" class="node-title">Playwright Scraper</text>
+  <text x="455" y="330" text-anchor="middle" class="node-body">extract name, address,</text>
+  <text x="455" y="352" text-anchor="middle" class="node-body">and image URL</text>
+
+  <rect x="620" y="270" width="220" height="110" class="main-node"/>
+  <text x="730" y="304" text-anchor="middle" class="node-title">AI Enrichment</text>
+  <text x="730" y="330" text-anchor="middle" class="node-body">generate story + place_id</text>
+  <text x="730" y="352" text-anchor="middle" class="node-body">prepare payload</text>
+
+  <rect x="910" y="270" width="220" height="110" class="main-node"/>
+  <text x="1020" y="304" text-anchor="middle" class="node-title">WordPress Importer</text>
+  <text x="1020" y="330" text-anchor="middle" class="node-body">upload media + map IDs</text>
+  <text x="1020" y="352" text-anchor="middle" class="node-body">create or update post</text>
+
+  <rect x="1200" y="270" width="220" height="110" class="main-node"/>
+  <text x="1310" y="304" text-anchor="middle" class="node-title">WordPress REST API</text>
+  <text x="1310" y="330" text-anchor="middle" class="node-body">directory listings + media</text>
+  <text x="1310" y="352" text-anchor="middle" class="node-body">idempotent sync target</text>
+
+  <path d="M 290 325 L 360 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 550 325 L 620 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 840 325 L 910 325" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 1130 325 L 1200 325" class="arrow" marker-end="url(#arrowhead)"/>
+
+  <text x="325" y="304" text-anchor="middle" class="label">scrape</text>
+  <text x="585" y="304" text-anchor="middle" class="label">structure</text>
+  <text x="875" y="304" text-anchor="middle" class="label">ingest</text>
+  <text x="1165" y="304" text-anchor="middle" class="label">publish</text>
+
+  <rect x="70" y="545" width="1460" height="250" class="band"/>
+  <text x="96" y="580" class="section">SUPPORTING COMPONENTS</text>
+
+  <rect x="180" y="628" width="220" height="92" class="support-node"/>
+  <text x="290" y="662" text-anchor="middle" class="node-title">Gemini APIs</text>
+  <text x="290" y="688" text-anchor="middle" class="node-body">story, vision, image generation</text>
+
+  <rect x="500" y="628" width="250" height="92" class="support-node"/>
+  <text x="625" y="662" text-anchor="middle" class="node-title">Quality Gates + Fallbacks</text>
+  <text x="625" y="688" text-anchor="middle" class="node-body">relevance, resolution, resilience</text>
+
+  <rect x="860" y="628" width="220" height="92" class="secret-node"/>
+  <text x="970" y="662" text-anchor="middle" class="node-title">`.env` Secrets</text>
+  <text x="970" y="688" text-anchor="middle" class="node-body">Gemini key + WP credentials</text>
+
+  <rect x="1190" y="628" width="220" height="92" class="support-node"/>
+  <text x="1300" y="662" text-anchor="middle" class="node-title">Mock WordPress API</text>
+  <text x="1300" y="688" text-anchor="middle" class="node-body">local test target</text>
+
+  <path d="M 290 628 L 730 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 625 628 L 1020 380" class="arrow" marker-end="url(#arrowhead)"/>
+  <path d="M 930 628 L 455 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+  <path d="M 970 628 L 730 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+  <path d="M 1010 628 L 1020 380" class="dash-arrow" marker-end="url(#dashhead)"/>
+  <path d="M 1300 628 L 1200 430" class="dash-arrow" marker-end="url(#dashhead)"/>
+
+  <text x="430" y="512" class="label">AI services</text>
+  <text x="720" y="512" class="label">asset filtering</text>
+  <text x="900" y="512" class="label">credentials</text>
+  <text x="1230" y="512" class="label">local testing</text>
+
+  <text x="70" y="835" class="note">This version focuses on the main ETL path and keeps the AI sub-flows lightweight so the diagram stays readable.</text>
+</svg>

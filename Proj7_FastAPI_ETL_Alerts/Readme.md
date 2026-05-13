@@ -6,6 +6,8 @@ A high-performance backend microservice designed to ingest asynchronous data fro
 
 ### 🏗️ Architecture Overview
 
+Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md) | [docs/architecture-diagram.svg](./docs/architecture-diagram.svg) | [docs/architecture-diagram.png](./docs/architecture-diagram.png)
+
 Restaurant operators often struggle because their Sales data and Labor data live in separate silos. This microservice solves that by acting as a central Aggregator and Logic Engine:
 
 1. **Asynchronous Ingestion (The Webhooks):** FastAPI endpoints receive daily JSON payloads from POS and Labor scheduling systems.

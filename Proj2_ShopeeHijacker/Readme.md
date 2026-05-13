@@ -6,6 +6,8 @@ A stealth-focused data extraction tool that leverages the **Chrome DevTools Prot
 
 ## 🏗️ The Engineering Approach
 
+Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md) | [docs/architecture-diagram.svg](./docs/architecture-diagram.svg) | [docs/architecture-diagram.png](./docs/architecture-diagram.png)
+
 Scraping modern e-commerce platforms like Shopee is often hindered by aggressive rate-limiting, TLS fingerprinting, and complex JavaScript challenges. This project bypasses those hurdles using two primary architectural patterns:
 
 ### 1. CDP Session Hijacking

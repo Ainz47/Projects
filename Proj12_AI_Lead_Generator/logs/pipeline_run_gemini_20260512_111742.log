@@ -1,0 +1,40 @@
+2026-05-12 11:17:42,725 [INFO] __main__ — Starting GEMINI pipeline for Bathroom Remodeler in Farmington Hills, MI
+2026-05-12 11:17:42,725 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 11:18:03,786 [INFO] scraper — Apify run started: pnOm1cPRlUP9e18Rc
+2026-05-12 11:18:04,067 [INFO] scraper — Reached 10 results with websites. Aborting Apify run...
+2026-05-12 11:18:04,314 [INFO] scraper — Finished scraping with 10 items from Apify.
+2026-05-12 11:18:04,315 [INFO] __main__ — Scraped 10 leads
+2026-05-12 11:18:04,315 [INFO] __main__ — Evaluating 10 websites concurrently...
+2026-05-12 11:18:04,721 [INFO] httpx — HTTP Request: GET https://recbuilthomes.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:18:04,753 [INFO] httpx — HTTP Request: GET https://kitchentuneup.com/farmington-hills-mi/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:18:04,790 [INFO] httpx — HTTP Request: GET https://www.stoneworksremodeling.com/?utm_source=google&utm_medium=wix_google_business_profile&utm_campaign=163730709348126598 "HTTP/1.1 200 OK"
+2026-05-12 11:18:04,881 [ERROR] evaluator_gemini — Error evaluating https://recbuilthomes.com/ with Gemini: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-05-12 11:18:04,889 [INFO] httpx — HTTP Request: GET http://www.originalkitchenmaster.com/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:18:04,900 [INFO] httpx — HTTP Request: GET http://originalkitchenmaster.com/ "HTTP/1.1 307 Temporary Redirect"
+2026-05-12 11:18:04,928 [INFO] httpx — HTTP Request: GET https://originalkitchenmaster.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:18:04,948 [ERROR] evaluator_gemini — Error evaluating https://www.stoneworksremodeling.com/?utm_source=google&utm_medium=wix_google_business_profile&utm_campaign=163730709348126598 with Gemini: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-05-12 11:18:05,009 [ERROR] evaluator_gemini — Error evaluating http://www.originalkitchenmaster.com/ with Gemini: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-05-12 11:18:05,038 [INFO] httpx — HTTP Request: GET https://www.premier-homepros.com/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:18:05,131 [INFO] httpx — HTTP Request: GET https://premier-homepros.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:18:05,204 [INFO] httpx — HTTP Request: GET http://www.kajaconstruction.com/ "HTTP/1.1 403 Forbidden"
+2026-05-12 11:18:05,211 [INFO] httpx — HTTP Request: GET https://www.kitchentuneup.com/farmington-hills-mi/ "HTTP/1.1 200 OK"
+2026-05-12 11:18:05,227 [INFO] httpx — HTTP Request: GET http://www.newmyer.com/?utm_source=google&utm_medium=organic&utm_campaign=gbp "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:18:05,244 [ERROR] evaluator_gemini — Error evaluating https://www.premier-homepros.com/ with Gemini: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-05-12 11:18:05,385 [INFO] httpx — HTTP Request: GET http://www.gittleman.net/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:18:05,522 [ERROR] evaluator_gemini — Error evaluating https://kitchentuneup.com/farmington-hills-mi/ with Gemini: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-05-12 11:18:05,670 [ERROR] evaluator_gemini — Error fetching https://www.granitetransformations.com/location/granite-transformations-of-farmington-hills/: Server disconnected without sending a response.
+2026-05-12 11:18:05,678 [INFO] httpx — HTTP Request: GET http://luxurykitchenmi.com/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:18:05,757 [INFO] httpx — HTTP Request: GET http://www.newmyerkitchenandbath.com "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:18:05,881 [INFO] httpx — HTTP Request: GET https://www.gittleman.net/ "HTTP/1.1 307 Temporary Redirect"
+2026-05-12 11:18:06,362 [INFO] httpx — HTTP Request: GET https://www.newmyerkitchenandbath.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:18:06,565 [ERROR] evaluator_gemini — Error evaluating http://www.newmyer.com/?utm_source=google&utm_medium=organic&utm_campaign=gbp with Gemini: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-05-12 11:18:06,662 [INFO] httpx — HTTP Request: GET https://luxurykitchenmi.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:18:06,758 [INFO] httpx — HTTP Request: GET https://gittleman.net/ "HTTP/1.1 200 OK"
+2026-05-12 11:18:06,859 [ERROR] evaluator_gemini — Error evaluating http://www.gittleman.net/ with Gemini: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-05-12 11:18:06,980 [ERROR] evaluator_gemini — Error evaluating http://luxurykitchenmi.com/ with Gemini: 404 models/gemini-1.5-flash-latest is not found for API version v1beta, or is not supported for generateContent. Call ListModels to see the list of available models and their supported methods.
+2026-05-12 11:18:06,980 [ERROR] __main__ — Evaluation for http://www.kajaconstruction.com/ failed with an exception: Client error '403 Forbidden' for url 'http://www.kajaconstruction.com/'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403
+2026-05-12 11:18:06,981 [INFO] __main__ — All evaluations complete.
+2026-05-12 11:18:06,989 [INFO] __main__ — Saved 10 evaluated leads to /workspaces/webpulse-demo-engine/data/leads_gemini_Bathroom_Remodeler_Farmington Hills_MI_20260512_111742.csv
+2026-05-12 11:18:06,989 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_gemini_Bathroom_Remodeler_Farmington Hills_MI_20260512_111742.json
+2026-05-12 11:18:06,989 [INFO] __main__ — Pipeline completed

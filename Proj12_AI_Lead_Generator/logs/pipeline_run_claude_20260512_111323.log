@@ -1,0 +1,48 @@
+2026-05-12 11:13:23,850 [INFO] __main__ — Starting CLAUDE pipeline for Bathroom Remodeler in Farmington Hills, MI
+2026-05-12 11:13:23,850 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 11:13:38,638 [INFO] scraper — Apify run started: xMlLRrP3zOyQ5J313
+2026-05-12 11:13:38,956 [INFO] scraper — Reached 10 results with websites. Aborting Apify run...
+2026-05-12 11:13:39,197 [INFO] scraper — Finished scraping with 10 items from Apify.
+2026-05-12 11:13:39,197 [INFO] __main__ — Scraped 10 leads
+2026-05-12 11:13:39,197 [INFO] __main__ — Evaluating 10 websites concurrently...
+2026-05-12 11:13:39,497 [INFO] httpx — HTTP Request: GET https://www.stoneworksremodeling.com/?utm_source=google&utm_medium=wix_google_business_profile&utm_campaign=163730709348126598 "HTTP/1.1 200 OK"
+2026-05-12 11:13:39,600 [INFO] httpx — HTTP Request: GET http://www.originalkitchenmaster.com/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:13:39,626 [INFO] httpx — HTTP Request: GET http://originalkitchenmaster.com/ "HTTP/1.1 307 Temporary Redirect"
+2026-05-12 11:13:39,635 [INFO] httpx — HTTP Request: GET https://kitchentuneup.com/farmington-hills-mi/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:13:39,651 [INFO] httpx — HTTP Request: GET https://originalkitchenmaster.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:13:39,786 [INFO] httpx — HTTP Request: GET https://recbuilthomes.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:13:39,923 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 11:13:39,924 [ERROR] evaluator — Error evaluating https://www.stoneworksremodeling.com/?utm_source=google&utm_medium=wix_google_business_profile&utm_campaign=163730709348126598: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaxaPcd4N2bxgaeWyNWdg'}
+2026-05-12 11:13:39,943 [INFO] httpx — HTTP Request: GET https://www.premier-homepros.com/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:13:40,057 [INFO] httpx — HTTP Request: GET https://premier-homepros.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:13:40,095 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 11:13:40,096 [ERROR] evaluator — Error evaluating https://recbuilthomes.com/: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaxaPdPT3iHAznGvznqtf'}
+2026-05-12 11:13:40,125 [INFO] httpx — HTTP Request: GET http://www.gittleman.net/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:13:40,172 [INFO] httpx — HTTP Request: GET http://www.kajaconstruction.com/ "HTTP/1.1 403 Forbidden"
+2026-05-12 11:13:40,200 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 11:13:40,201 [ERROR] evaluator — Error evaluating http://www.originalkitchenmaster.com/: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaxaPdPhe25v7ChBfFrfR'}
+2026-05-12 11:13:40,262 [INFO] httpx — HTTP Request: GET https://www.kitchentuneup.com/farmington-hills-mi/ "HTTP/1.1 200 OK"
+2026-05-12 11:13:40,322 [INFO] httpx — HTTP Request: GET http://www.newmyer.com/?utm_source=google&utm_medium=organic&utm_campaign=gbp "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:13:40,364 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 11:13:40,365 [ERROR] evaluator — Error evaluating https://www.premier-homepros.com/: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaxaPeZtpfaNL8PwxuG5M'}
+2026-05-12 11:13:40,396 [INFO] httpx — HTTP Request: GET http://luxurykitchenmi.com/ "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:13:40,405 [ERROR] evaluator — Error fetching https://www.granitetransformations.com/location/granite-transformations-of-farmington-hills/: Server disconnected without sending a response.
+2026-05-12 11:13:40,785 [INFO] httpx — HTTP Request: GET https://www.gittleman.net/ "HTTP/1.1 307 Temporary Redirect"
+2026-05-12 11:13:41,008 [INFO] httpx — HTTP Request: GET http://www.newmyerkitchenandbath.com "HTTP/1.1 301 Moved Permanently"
+2026-05-12 11:13:41,074 [INFO] httpx — HTTP Request: GET https://luxurykitchenmi.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:13:41,274 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 11:13:41,275 [ERROR] evaluator — Error evaluating https://kitchentuneup.com/farmington-hills-mi/: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaxaPiT41tn7VvBssUFAQ'}
+2026-05-12 11:13:41,606 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 11:13:41,607 [ERROR] evaluator — Error evaluating http://luxurykitchenmi.com/: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaxaPjre2pSPe4p3MQtba'}
+2026-05-12 11:13:41,775 [INFO] httpx — HTTP Request: GET https://www.newmyerkitchenandbath.com/ "HTTP/1.1 200 OK"
+2026-05-12 11:13:41,990 [INFO] httpx — HTTP Request: GET https://gittleman.net/ "HTTP/1.1 200 OK"
+2026-05-12 11:13:42,234 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 11:13:42,235 [ERROR] evaluator — Error evaluating http://www.newmyer.com/?utm_source=google&utm_medium=organic&utm_campaign=gbp: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaxaPnYMwjHmKoZYGDGxW'}
+2026-05-12 11:13:42,400 [INFO] httpx — HTTP Request: POST https://api.anthropic.com/v1/messages "HTTP/1.1 400 Bad Request"
+2026-05-12 11:13:42,402 [ERROR] evaluator — Error evaluating http://www.gittleman.net/: Error code: 400 - {'type': 'error', 'error': {'type': 'invalid_request_error', 'message': 'Your credit balance is too low to access the Anthropic API. Please go to Plans & Billing to upgrade or purchase credits.'}, 'request_id': 'req_011CaxaPoFXNcAT9m6Ktfmm3'}
+2026-05-12 11:13:42,402 [ERROR] __main__ — Evaluation for http://www.kajaconstruction.com/ failed with an exception: Client error '403 Forbidden' for url 'http://www.kajaconstruction.com/'
+For more information check: https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/403
+2026-05-12 11:13:42,402 [INFO] __main__ — All evaluations complete.
+2026-05-12 11:13:42,409 [INFO] __main__ — Saved 10 evaluated leads to /workspaces/webpulse-demo-engine/data/leads_claude_Bathroom_Remodeler_Farmington Hills_MI_20260512_111323.csv
+2026-05-12 11:13:42,411 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_claude_Bathroom_Remodeler_Farmington Hills_MI_20260512_111323.json
+2026-05-12 11:13:42,412 [INFO] __main__ — Pipeline completed

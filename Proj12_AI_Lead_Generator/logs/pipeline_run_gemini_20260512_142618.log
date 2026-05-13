@@ -1,0 +1,17 @@
+2026-05-12 14:26:18,488 [INFO] __main__ — Starting GEMINI pipeline for bathroom remodeler in Farmington Hills, MI
+2026-05-12 14:26:18,489 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 14:26:20,017 [INFO] scraper — Apify run started: 7Gj0zzd8t5LWAWDjp
+2026-05-12 14:26:20,017 [INFO] scraper — Waiting for Apify run to start...
+2026-05-12 14:26:20,286 [INFO] scraper — Apify run has started with status: RUNNING
+2026-05-12 14:26:20,286 [INFO] scraper — Monitoring dataset for new leads...
+2026-05-12 14:26:28,169 [INFO] scraper — Reached 1 results with websites. Aborting Apify run...
+2026-05-12 14:26:28,869 [INFO] scraper — Finished scraping with 1 items from Apify.
+2026-05-12 14:26:28,869 [INFO] __main__ — Scraped 1 leads
+2026-05-12 14:26:28,869 [INFO] __main__ — Evaluating 1 websites concurrently...
+2026-05-12 14:26:29,133 [INFO] httpx — HTTP Request: GET https://detroitbaths.com/ "HTTP/1.1 308 Permanent Redirect"
+2026-05-12 14:26:29,266 [INFO] httpx — HTTP Request: GET https://www.detroitbaths.com/ "HTTP/1.1 200 OK"
+2026-05-12 14:26:29,336 [INFO] evaluator_gemini — Attempting evaluation for https://detroitbaths.com/ with Gemini model: gemini-3.1-flash-lite
+2026-05-12 14:26:30,852 [INFO] __main__ — All evaluations complete.
+2026-05-12 14:26:31,028 [INFO] __main__ — Saved 1 evaluated leads to /workspaces/webpulse-demo-engine/data/leads_gemini_bathroom_remodeler_Farmington Hills_MI_20260512_142618.csv
+2026-05-12 14:26:31,029 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_gemini_bathroom_remodeler_Farmington Hills_MI_20260512_142618.json
+2026-05-12 14:26:31,029 [INFO] __main__ — Pipeline completed

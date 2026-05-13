@@ -1,0 +1,9 @@
+2026-05-12 14:20:04,187 [INFO] __main__ — Starting GEMINI pipeline for bathroom remodeler in Farmington Hills, MI
+2026-05-12 14:20:04,187 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 14:20:05,491 [ERROR] scraper — Error during scraping with Apify: By launching this job you will exceed your remaining usage of $0.339112.  Please consider upgrading to a paid plan at https://console.apify.com/billing/subscription
+2026-05-12 14:20:05,492 [INFO] __main__ — Scraped 0 leads
+2026-05-12 14:20:05,493 [INFO] __main__ — Evaluating 0 websites concurrently...
+2026-05-12 14:20:05,493 [INFO] __main__ — All evaluations complete.
+2026-05-12 14:20:05,519 [INFO] __main__ — Saved 0 evaluated leads to /workspaces/webpulse-demo-engine/data/leads_gemini_bathroom_remodeler_Farmington Hills_MI_20260512_142004.csv
+2026-05-12 14:20:05,521 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_gemini_bathroom_remodeler_Farmington Hills_MI_20260512_142004.json
+2026-05-12 14:20:05,521 [INFO] __main__ — Pipeline completed

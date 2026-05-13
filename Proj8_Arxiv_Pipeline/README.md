@@ -30,6 +30,8 @@
   2. **Categorical:** Bar chart detailing the most popular mathematical sub-categories (e.g., High Energy Physics, Combinatorics).
   3. **Scorecard:** Total volume of papers successfully processed.
 
+Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md) | [docs/architecture-diagram.svg](./docs/architecture-diagram.svg) | [docs/architecture-diagram.png](./docs/architecture-diagram.png)
+
 *<img width="1879" height="926" alt="image" src="https://github.com/user-attachments/assets/0ba8ca8e-e837-4cd8-bd92-2b9c899f9b8c" />
 *
 

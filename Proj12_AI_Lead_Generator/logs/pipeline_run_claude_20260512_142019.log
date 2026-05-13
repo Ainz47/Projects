@@ -1,0 +1,9 @@
+2026-05-12 14:20:19,407 [INFO] __main__ — Starting CLAUDE pipeline for bathroom remodeler in Farmington Hills, MI
+2026-05-12 14:20:19,407 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 14:20:20,449 [ERROR] scraper — Error during scraping with Apify: By launching this job you will exceed your remaining usage of $0.339112.  Please consider upgrading to a paid plan at https://console.apify.com/billing/subscription
+2026-05-12 14:20:20,449 [INFO] __main__ — Scraped 0 leads
+2026-05-12 14:20:20,449 [INFO] __main__ — Evaluating 0 websites concurrently...
+2026-05-12 14:20:20,449 [INFO] __main__ — All evaluations complete.
+2026-05-12 14:20:20,452 [INFO] __main__ — Saved 0 evaluated leads to /workspaces/webpulse-demo-engine/data/leads_claude_bathroom_remodeler_Farmington Hills_MI_20260512_142019.csv
+2026-05-12 14:20:20,453 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_claude_bathroom_remodeler_Farmington Hills_MI_20260512_142019.json
+2026-05-12 14:20:20,454 [INFO] __main__ — Pipeline completed

@@ -1,0 +1,11 @@
+2026-05-12 11:49:55,427 [INFO] __main__ — Starting CLAUDE pipeline for Bathroom Remodeler in Farmington Hills, MI
+2026-05-12 11:49:55,427 [INFO] __main__ — Scraping Google Maps...
+2026-05-12 11:49:56,750 [INFO] scraper — Apify run started: EQp2k6LiNnOKgcGGn
+2026-05-12 11:49:56,751 [ERROR] scraper — Error during scraping with Apify: 'RunClientAsync' object has no attribute 'wait_for'
+2026-05-12 11:49:57,441 [INFO] scraper — Aborted Apify run due to an exception.
+2026-05-12 11:49:57,441 [INFO] __main__ — Scraped 0 leads
+2026-05-12 11:49:57,442 [INFO] __main__ — Evaluating 0 websites concurrently...
+2026-05-12 11:49:57,443 [INFO] __main__ — All evaluations complete.
+2026-05-12 11:49:57,446 [INFO] __main__ — Saved 0 evaluated leads to /workspaces/webpulse-demo-engine/data/leads_claude_Bathroom_Remodeler_Farmington Hills_MI_20260512_114955.csv
+2026-05-12 11:49:57,446 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_claude_Bathroom_Remodeler_Farmington Hills_MI_20260512_114955.json
+2026-05-12 11:49:57,446 [INFO] __main__ — Pipeline completed
