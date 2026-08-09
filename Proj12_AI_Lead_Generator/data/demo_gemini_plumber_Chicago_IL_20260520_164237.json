@@ -1,0 +1,63 @@
+{
+  "run_id": "20260520_164237",
+  "model": "gemini",
+  "category": "plumber",
+  "city": "Chicago",
+  "state": "IL",
+  "total_scraped": 3,
+  "evaluated_leads": 3,
+  "timestamp": "2026-05-20T16:42:37.849721",
+  "leads": [
+    {
+      "name": "Rescue Plumbing",
+      "address": "1137 W Webster Ave, Chicago, IL 60614",
+      "phone": "(773) 219-6071",
+      "website": "https://www.myrescueplumbing.com/",
+      "rating": "",
+      "reviews": "1531",
+      "category": "plumber",
+      "city": "Chicago",
+      "state": "IL",
+      "mobile_friendly": true,
+      "modern_design": true,
+      "overall_quality_score": 9,
+      "needs_redesign": false,
+      "summary": "The website is highly professional, conversion-focused, and well-optimized for local SEO, providing a clear user journey for emergency services.",
+      "has_website": true
+    },
+    {
+      "name": "Sinks-N-Sumps",
+      "address": null,
+      "phone": "(312) 500-0911",
+      "website": "http://www.sinksnsumps.com/",
+      "rating": "",
+      "reviews": "44",
+      "category": "plumber",
+      "city": "Chicago",
+      "state": "IL",
+      "mobile_friendly": true,
+      "modern_design": false,
+      "overall_quality_score": 4,
+      "needs_redesign": true,
+      "summary": "The website features a functional but outdated aesthetic that lacks modern visual hierarchy and engagement elements. While it conveys essential business information, a redesign is recommended to improve credibility and user experience.",
+      "has_website": true
+    },
+    {
+      "name": "Rescue Plumbing",
+      "address": "1137 W Webster Ave, Chicago, IL 60614",
+      "phone": "(773) 219-6071",
+      "website": "https://www.myrescueplumbing.com/",
+      "rating": "",
+      "reviews": "1531",
+      "category": "plumber",
+      "city": "Chicago",
+      "state": "IL",
+      "mobile_friendly": true,
+      "modern_design": true,
+      "overall_quality_score": 9,
+      "needs_redesign": false,
+      "summary": "The website is highly professional, conversion-optimized, and effectively utilizes local SEO signals and clear calls-to-action to instill trust in potential customers.",
+      "has_website": true
+    }
+  ]
+}

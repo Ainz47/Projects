@@ -1,3 +1,0 @@
-2026-05-12 08:40:46,948 [INFO] __main__ — Starting pipeline for bathroom remodeler in Farmington Hills, MI
-2026-05-12 08:40:46,956 [INFO] __main__ — Scraping Google Maps...
-2026-05-12 08:40:46,957 [ERROR] scraper — APIFY_API_TOKEN is not configured. Please set it in your .env file.

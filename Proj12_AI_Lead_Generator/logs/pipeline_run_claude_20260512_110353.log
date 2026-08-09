@@ -1,4 +1,0 @@
-2026-05-12 11:03:53,061 [INFO] __main__ — Starting CLAUDE pipeline for Bathroom Remodeler in Farmington Hills, MI
-2026-05-12 11:03:53,061 [INFO] __main__ — Scraping Google Maps...
-2026-05-12 11:06:19,568 [ERROR] asyncio — Task was destroyed but it is pending!
-task: <Task cancelling name='Task-1' coro=<run_pipeline() done, defined at /workspaces/webpulse-demo-engine/src/main_claude.py:41> wait_for=<Future pending cb=[Task.task_wakeup()]> cb=[gather.<locals>._done_callback() at /usr/local/python/3.12.1/lib/python3.12/asyncio/tasks.py:767]>

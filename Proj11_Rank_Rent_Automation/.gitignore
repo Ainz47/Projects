@@ -1,12 +1,7 @@
 .env
+cache/
+deployments.json
+logs/
 __pycache__/
 *.pyc
-.venv/
-venv/
-env/
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-*.log
-submission_repo/
-*.zip
+.deps_installed

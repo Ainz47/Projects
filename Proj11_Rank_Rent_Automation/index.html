@@ -1,0 +1,1123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rank & Rent Deployer</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; background: #f0f2f5; color: #1a1a1a; min-height: 100vh; }
+
+  .header { background: #1a1a1a; color: #fff; padding: 18px 32px; display: flex; align-items: center; gap: 14px; }
+  .header .logo { font-size: 20px; font-weight: 800; letter-spacing: -0.5px; }
+  .header .logo span { color: #ff5e14; }
+  .header .sub { font-size: 13px; color: rgba(255,255,255,.5); }
+
+  .container { max-width: 1100px; margin: 0 auto; padding: 32px 24px; display: grid; grid-template-columns: 1fr 400px; gap: 28px; }
+  @media(max-width: 900px) { .container { grid-template-columns: 1fr; } }
+
+  .card { background: #fff; border-radius: 8px; padding: 28px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .card h2 { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 20px; border-bottom: 2px solid #f0f0f0; padding-bottom: 10px; }
+
+  .field { margin-bottom: 16px; }
+  .field label { display: block; font-size: 13px; font-weight: 600; color: #444; margin-bottom: 6px; }
+  .field label span { color: #e53e3e; margin-left: 2px; }
+  .field input, .field select { width: 100%; padding: 10px 12px; border: 1px solid #ddd; border-radius: 5px; font-size: 14px; font-family: inherit; outline: none; transition: border-color .2s; }
+  .field input:focus, .field select:focus { border-color: #ff5e14; }
+  .field .hint { font-size: 11px; color: #999; margin-top: 4px; }
+
+  .field-row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media(max-width: 600px) { .field-row { grid-template-columns: 1fr; } }
+
+  .color-row { display: flex; gap: 10px; align-items: center; }
+  .color-row input[type="color"] { width: 44px; height: 38px; padding: 2px; border: 1px solid #ddd; border-radius: 5px; cursor: pointer; }
+  .color-row input[type="text"] { flex: 1; }
+
+  .preview-swatch { display: flex; gap: 8px; margin-top: 10px; align-items: center; }
+  .swatch { width: 32px; height: 32px; border-radius: 4px; border: 1px solid rgba(0,0,0,.1); }
+  .swatch-label { font-size: 11px; color: #888; }
+
+  /* Tag input */
+  .tag-input-wrap { border: 1px solid #ddd; border-radius: 5px; padding: 8px; display: flex; flex-wrap: wrap; gap: 6px; min-height: 44px; cursor: text; transition: border-color .2s; }
+  .tag-input-wrap:focus-within { border-color: #ff5e14; }
+  .tag { display: inline-flex; align-items: center; gap: 5px; background: #fff3ee; border: 1px solid #ffcbb0; border-radius: 4px; padding: 4px 8px; font-size: 13px; font-weight: 500; color: #1a1a1a; }
+  .tag .remove { cursor: pointer; color: #999; font-size: 15px; line-height: 1; border: none; background: none; padding: 0; }
+  .tag .remove:hover { color: #e53e3e; }
+  .tag-input { border: none; outline: none; font-size: 13px; font-family: inherit; min-width: 160px; flex: 1; padding: 2px 4px; background: transparent; }
+  .tag-hint { font-size: 11px; color: #aaa; margin-top: 5px; }
+
+  .btn-deploy { width: 100%; padding: 16px; background: #ff5e14; color: #fff; border: none; border-radius: 6px; font-size: 16px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; cursor: pointer; transition: background .2s; margin-top: 20px; }
+  .btn-deploy:hover { background: #e5530f; }
+  .btn-deploy:disabled { background: #ccc; cursor: not-allowed; }
+
+  /* Right panel */
+  .right-panel { display: flex; flex-direction: column; gap: 28px; }
+
+  .site-preview { border-radius: 8px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .preview-hero { padding: 28px 20px; text-align: center; transition: background .3s; }
+  .preview-hero h3 { color: #fff; font-size: 18px; font-weight: 800; margin-bottom: 6px; }
+  .preview-hero p { color: rgba(255,255,255,.7); font-size: 12px; }
+  .preview-btn { display: inline-block; margin-top: 12px; padding: 9px 20px; color: #fff; font-size: 12px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; border-radius: 3px; transition: background .3s; }
+  .preview-body { background: #fff; padding: 16px 20px; }
+  .preview-eyebrow { font-size: 10px; font-weight: 700; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 6px; transition: color .3s; }
+  .preview-h2 { font-size: 15px; font-weight: 800; color: #1a1a1a; margin-bottom: 8px; }
+  .preview-p { font-size: 12px; color: #666; line-height: 1.5; }
+  .preview-stat-row { display: flex; gap: 3px; margin-top: 12px; }
+  .preview-stat { flex: 1; padding: 10px 6px; text-align: center; background: #f7f7f7; border-radius: 3px; }
+  .preview-stat .n { font-size: 16px; font-weight: 800; display: block; transition: color .3s; }
+  .preview-stat .l { font-size: 9px; color: #888; text-transform: uppercase; letter-spacing: .5px; }
+
+  /* Terminal log */
+  .log-card { background: #111; border-radius: 8px; padding: 20px; box-shadow: 0 1px 4px rgba(0,0,0,.08); }
+  .log-card h2 { font-size: 13px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #555; margin-bottom: 14px; }
+  .log-output { font-family: 'Courier New', monospace; font-size: 12px; color: #a8d8a8; height: 340px; overflow-y: auto; line-height: 1.6; white-space: pre-wrap; word-break: break-all; }
+  .log-output .err { color: #ff8080; }
+  .log-output .ok { color: #90EE90; }
+  .log-output .info { color: #87CEEB; }
+
+  .progress-bar-wrap { height: 4px; background: #333; border-radius: 2px; margin-top: 12px; overflow: hidden; }
+  .progress-bar { height: 100%; width: 0%; background: #ff5e14; transition: width .4s ease; border-radius: 2px; }
+
+  #deployReport { display:none; background:#fff; border:1px solid #e5e7eb; border-radius:8px; padding:20px 24px; margin-top:16px; }
+  .status-badge { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; padding: 4px 10px; border-radius: 12px; font-weight: 600; }
+  .status-badge.idle { background: #f0f0f0; color: #888; }
+  .status-badge.running { background: #fff3e8; color: #ff5e14; }
+  .status-badge.done { background: #e8f5e9; color: #2e7d32; }
+  .status-badge.error { background: #fce8e8; color: #c62828; }
+  .dot { width: 8px; height: 8px; border-radius: 50%; background: currentColor; }
+  .dot.pulse { animation: pulse 1.2s infinite; }
+  @keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div>
+    <div class="logo">Rank <span>&</span> Rent Deployer</div>
+    <div class="sub">One-click WordPress site deployment</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- LEFT: Form -->
+  <div>
+    <form id="deployForm">
+
+      <div class="card" style="margin-bottom:20px">
+        <h2>WordPress Site</h2>
+        <div class="field">
+          <label>WordPress URL <span>*</span></label>
+          <input type="url" id="wp_url" placeholder="https://yourclientsite.com" required>
+          <div class="hint">The root URL of the WordPress site (no trailing slash)</div>
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>WP Username <span>*</span></label>
+            <input type="text" id="wp_username" placeholder="admin">
+          </div>
+          <div class="field">
+            <label>WP Admin Password <span>*</span></label>
+            <input type="password" id="wp_password" placeholder="Your wp-admin login password">
+            <div class="hint">The password you use to log into /wp-admin</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <h2>Business Details</h2>
+        <div class="field">
+          <label>Business Name <span>*</span></label>
+          <input type="text" id="business_name" placeholder="ABC Services Detroit">
+        </div>
+        <div class="field-row">
+          <div class="field">
+            <label>City <span>*</span></label>
+            <input type="text" id="city" placeholder="Detroit">
+          </div>
+          <div class="field">
+            <label>State <span>*</span></label>
+            <input type="text" id="state" placeholder="MI" maxlength="2" style="text-transform:uppercase">
+          </div>
+        </div>
+        <div class="field">
+          <label>Phone Number <span>*</span></label>
+          <input type="text" id="phone" placeholder="(313) 555-0100">
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <h2>Color Scheme</h2>
+        <div class="field-row">
+          <div class="field">
+            <label>Primary Color <span>*</span></label>
+            <div class="color-row">
+              <input type="color" id="primary_color_picker" value="#ff5e14">
+              <input type="text" id="primary_color" value="#ff5e14" placeholder="#ff5e14" maxlength="7">
+            </div>
+          </div>
+          <div class="field">
+            <label>Dark Color</label>
+            <div class="color-row">
+              <input type="color" id="dark_color_picker" value="#1a1a1a">
+              <input type="text" id="dark_color" value="#1a1a1a" placeholder="#1a1a1a" maxlength="7">
+            </div>
+          </div>
+        </div>
+        <div class="preview-swatch">
+          <div class="swatch" id="swatch_primary" style="background:#ff5e14"></div>
+          <span class="swatch-label">Primary</span>
+          <div class="swatch" id="swatch_dark" style="background:#1a1a1a;margin-left:12px"></div>
+          <span class="swatch-label">Dark</span>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <h2>Services to Deploy</h2>
+        <div class="tag-input-wrap" id="servicesWrap">
+          <!-- tags inserted by JS -->
+          <input class="tag-input" id="serviceInput" placeholder="Type a service and press Enter…">
+        </div>
+        <div class="tag-hint">e.g. Plumbing Repair · Drain Cleaning · Water Heater Installation — any service works</div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <h2>Blog Post Topics</h2>
+        <div class="tag-input-wrap" id="blogWrap">
+          <!-- tags inserted by JS -->
+          <input class="tag-input" id="blogInput" placeholder="Type a topic or keyword and press Enter…">
+        </div>
+        <div class="tag-hint">Each topic becomes one blog post. Add as many as you want.</div>
+      </div>
+
+      <div class="card" style="margin-bottom:20px">
+        <h2>API Keys</h2>
+        <div class="field">
+          <label>Gemini API Key <span>*</span></label>
+          <input type="password" id="gemini_api_key" placeholder="Leave blank to use .env value">
+        </div>
+        <div class="field">
+          <label>Pexels API Key <span>*</span></label>
+          <input type="password" id="pexels_api_key" placeholder="Leave blank to use .env value">
+        </div>
+        <div class="field">
+          <label>Google Maps Embed URL <span style="font-weight:400;color:#888">(optional)</span></label>
+          <input type="url" id="maps_embed_url" placeholder="https://www.google.com/maps/embed?pb=...">
+          <div class="hint">
+            Paste the full <code style="font-size:11px">&lt;iframe&gt;</code> code <strong>or</strong> just the URL.<br>
+            In Google Maps: <strong>Share → Embed a map → Copy HTML</strong> — paste the whole thing here.
+          </div>
+          <div id="maps-url-warn" style="display:none;margin-top:6px;padding:8px 12px;background:#fef3c7;border:1px solid #f59e0b;border-radius:4px;font-size:12px;color:#92400e;line-height:1.5">
+            ⚠️ This looks like a sharing link, not an embed URL — Google will block it in an iframe.<br>
+            Go to Google Maps → click <strong>Share</strong> → <strong>Embed a map</strong> → copy the iframe code.
+          </div>
+        </div>
+        <div class="field">
+          <label>Contact Form — Email Receiver <span style="font-weight:400;color:#888">(optional)</span></label>
+          <input type="email" id="contact_email" placeholder="owner@example.com">
+          <div class="hint">Form submissions will be emailed here. Leave blank to use the WordPress site admin email.</div>
+        </div>
+
+        <!-- Rich footer toggle -->
+        <div class="field" style="margin-top:4px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+            <input type="checkbox" id="rich_footer_toggle" style="width:16px;height:16px;cursor:pointer">
+            Rich Footer <span style="font-weight:400;color:#888">(3-column: brand · services · contact)</span>
+          </label>
+        </div>
+
+        <!-- SMTP toggle -->
+        <div class="field" style="margin-top:4px">
+          <label style="display:flex;align-items:center;gap:8px;cursor:pointer;font-weight:600">
+            <input type="checkbox" id="smtp_toggle" style="width:16px;height:16px;cursor:pointer">
+            Configure SMTP <span style="font-weight:400;color:#888">(required for sandbox hosts like TasteWP)</span>
+          </label>
+        </div>
+
+        <div id="smtp_fields" style="display:none">
+          <div class="field-row">
+            <div class="field">
+              <label>From Name</label>
+              <input type="text" id="smtp_from_name" placeholder="Concrete Contractor Troy">
+            </div>
+            <div class="field">
+              <label>From Email</label>
+              <input type="email" id="smtp_from_email" placeholder="noreply@yourdomain.com">
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field" style="flex:2">
+              <label>SMTP Host</label>
+              <input type="text" id="smtp_host" placeholder="smtp.gmail.com">
+            </div>
+            <div class="field" style="flex:1">
+              <label>Port</label>
+              <input type="number" id="smtp_port" value="587" min="1" max="65535">
+            </div>
+            <div class="field" style="flex:1">
+              <label>Encryption</label>
+              <select id="smtp_encryption" style="width:100%;padding:10px 12px;border:1.5px solid #ddd;border-radius:6px;font-size:14px;font-family:inherit;background:#fff">
+                <option value="tls">TLS (587)</option>
+                <option value="ssl">SSL (465)</option>
+                <option value="none">None</option>
+              </select>
+            </div>
+          </div>
+          <div class="field-row">
+            <div class="field">
+              <label>SMTP Username</label>
+              <input type="text" id="smtp_username" placeholder="your@gmail.com" autocomplete="off">
+            </div>
+            <div class="field">
+              <label>SMTP Password</label>
+              <div style="position:relative">
+                <input type="password" id="smtp_password" placeholder="App password or SMTP key" autocomplete="new-password" style="width:100%;padding-right:44px;box-sizing:border-box">
+                <button type="button" onclick="const i=document.getElementById('smtp_password');i.type=i.type==='password'?'text':'password'" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;font-size:16px;padding:0;color:#666">👁</button>
+              </div>
+            </div>
+          </div>
+          <div class="hint" style="margin-top:-8px">Gmail: use an <strong>App Password</strong> (Google Account → Security → 2-Step Verification → App passwords)</div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-deploy" id="deployBtn">🚀 Deploy Site</button>
+      <button type="button" id="resetBtn" style="margin-top:10px;width:100%;background:transparent;color:#991b1b;border:2px solid #991b1b;padding:12px;font-weight:700;font-size:14px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.5px">🗑️ Reset Target WordPress</button>
+
+      <!-- Interlinking panel — external links only -->
+      <div class="card" style="margin-top:20px">
+        <h2 style="margin:0 0 4px">🔗 External Interlinking</h2>
+        <p style="font-size:12px;color:#666;margin:0 0 14px;line-height:1.5">Add external links to keyword phrases across all deployed pages. Internal links are applied automatically during deployment.</p>
+
+        <div style="margin-bottom:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:12px">
+            <button type="button" id="il-suggest-btn" style="background:#6366f1;color:#fff;border:none;padding:9px 20px;font-weight:700;font-size:13px;border-radius:6px;cursor:pointer;font-family:inherit">✨ Suggest Keywords</button>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;color:#374151;font-weight:600">
+              Count:
+              <input type="number" id="il-suggest-count" value="5" min="1" max="20" style="width:60px;padding:7px 8px;border:1px solid #d1d5db;border-radius:5px;font-size:13px;font-family:inherit;text-align:center">
+            </label>
+          </div>
+          <div id="il-kw-perm"></div>
+        </div>
+
+        <button type="button" id="il-apply-btn-perm" style="width:100%;background:#0f766e;color:#fff;border:none;padding:12px;font-weight:700;font-size:14px;border-radius:6px;cursor:pointer;font-family:inherit">🔗 Apply External Links</button>
+        <pre id="il-log-perm" style="display:none;margin-top:12px;background:#0f172a;color:#e2e8f0;padding:14px;border-radius:6px;font-size:12px;line-height:1.6;white-space:pre-wrap;max-height:200px;overflow-y:auto"></pre>
+      </div>
+
+      <button type="button" id="cancelBtn" style="margin-top:14px;width:100%;background:#dc2626;color:#fff;border:none;padding:12px;font-weight:700;font-size:14px;border-radius:6px;cursor:pointer;font-family:inherit;letter-spacing:.5px">⛔ Cancel Running Process</button>
+
+    </form>
+  </div>
+
+  <!-- RIGHT: Preview + Log -->
+  <div class="right-panel">
+
+    <div class="site-preview">
+      <div class="preview-hero" id="previewHero" style="background:linear-gradient(rgba(26,26,26,.72),rgba(26,26,26,.72)) center/cover, #1a1a1a">
+        <h3 id="prevCity">Your City's Trusted Local Contractor</h3>
+        <p id="prevTagline">Professional services for every home and business</p>
+        <div class="preview-btn" id="prevBtn" style="background:#ff5e14">Get Free Quote</div>
+      </div>
+      <div class="preview-body">
+        <div class="preview-eyebrow" id="prevEyebrow" style="color:#ff5e14">Why Choose Us</div>
+        <div class="preview-h2" id="prevBiz">Best Local Service in Your City</div>
+        <div class="preview-p">High-quality services for every home and business — combining skilled workmanship with long-lasting results.</div>
+        <div class="preview-stat-row">
+          <div class="preview-stat"><span class="n" id="prevN" style="color:#ff5e14">850+</span><span class="l">Projects</span></div>
+          <div class="preview-stat"><span class="n" style="color:#ff5e14">15+</span><span class="l">Years</span></div>
+          <div class="preview-stat"><span class="n" style="color:#ff5e14">100%</span><span class="l">Satisfaction</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="log-card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
+        <h2 style="margin:0;border:none;padding:0">Deploy Log</h2>
+        <span class="status-badge idle" id="statusBadge"><span class="dot"></span> Idle</span>
+      </div>
+      <div class="log-output" id="logOutput">Ready. Fill in the form and click Deploy.</div>
+      <div class="progress-bar-wrap">
+        <div class="progress-bar" id="progressBar"></div>
+      </div>
+      <div id="deployReport"></div>
+    </div>
+
+    <!-- Saved Sites -->
+    <div class="log-card" id="savedSitesCard" style="margin-top:24px">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+        <h2 style="margin:0;border:none;padding:0">Saved Sites</h2>
+        <div style="display:flex;gap:8px">
+          <button onclick="clearCache()" id="clearCacheBtn" style="background:none;border:1px solid #f87171;color:#dc2626;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">🗑 Clear Cache</button>
+          <button onclick="loadHistory()" style="background:none;border:1px solid #ddd;padding:6px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit">↻ Refresh</button>
+        </div>
+      </div>
+      <div id="historyList"><p style="color:#999;font-size:13px">No saved deployments yet.</p></div>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+// ---- Tag input factory ----
+function makeTagInput(wrapId, inputId, defaultItems) {
+  const wrap = document.getElementById(wrapId);
+  const input = document.getElementById(inputId);
+  const items = [...defaultItems];
+
+  function renderTags() {
+    wrap.querySelectorAll('.tag').forEach(t => t.remove());
+    items.forEach((item, i) => {
+      const tag = document.createElement('span');
+      tag.className = 'tag';
+      tag.innerHTML = `${item} <button class="remove" type="button" title="Remove">×</button>`;
+      tag.querySelector('.remove').addEventListener('click', () => {
+        items.splice(i, 1);
+        renderTags();
+      });
+      wrap.insertBefore(tag, input);
+    });
+  }
+
+  input.addEventListener('keydown', e => {
+    if ((e.key === 'Enter' || e.key === ',') && input.value.trim()) {
+      e.preventDefault();
+      const val = input.value.trim().replace(/,$/, '');
+      if (val && !items.includes(val)) {
+        items.push(val);
+        renderTags();
+      }
+      input.value = '';
+    } else if (e.key === 'Backspace' && !input.value && items.length) {
+      items.pop();
+      renderTags();
+    }
+  });
+
+  wrap.addEventListener('click', () => input.focus());
+  renderTags();
+  return {
+    getItems: () => [...items],
+    setItems: (newItems) => { items.length = 0; newItems.forEach(i => items.push(i)); renderTags(); },
+  };
+}
+
+const DEFAULT_SERVICES = [
+  "Concrete Driveways", "Stamped Concrete Patios", "Concrete Walkways",
+  "Concrete Repair", "Concrete Paving", "Concrete Foundations",
+];
+const DEFAULT_BLOG_TOPICS = [
+  "How to Choose the Right Concrete Contractor",
+  "Stamped Concrete vs. Pavers: Which Is Better?",
+  "When to Repair vs. Replace Your Concrete Driveway",
+];
+
+const servicesInput = makeTagInput('servicesWrap', 'serviceInput', DEFAULT_SERVICES);
+const blogInput = makeTagInput('blogWrap', 'blogInput', DEFAULT_BLOG_TOPICS);
+
+// ---- Color sync ----
+function syncColors(primary, dark) {
+  const p = primary || document.getElementById('primary_color').value;
+  const d = dark || document.getElementById('dark_color').value;
+  document.getElementById('swatch_primary').style.background = p;
+  document.getElementById('swatch_dark').style.background = d;
+  document.getElementById('prevBtn').style.background = p;
+  document.getElementById('prevEyebrow').style.color = p;
+  document.querySelectorAll('.preview-stat .n').forEach(el => el.style.color = p);
+  document.getElementById('previewHero').style.background =
+    `linear-gradient(rgba(26,26,26,.72),rgba(26,26,26,.72)) center/cover, ${d}`;
+  document.getElementById('primary_color_picker').value = p;
+  document.getElementById('dark_color_picker').value = d;
+}
+
+document.getElementById('primary_color_picker').addEventListener('input', e => {
+  document.getElementById('primary_color').value = e.target.value;
+  syncColors(e.target.value, null);
+});
+document.getElementById('dark_color_picker').addEventListener('input', e => {
+  document.getElementById('dark_color').value = e.target.value;
+  syncColors(null, e.target.value);
+});
+document.getElementById('primary_color').addEventListener('input', e => syncColors(e.target.value, null));
+document.getElementById('dark_color').addEventListener('input', e => syncColors(null, e.target.value));
+
+// Maps URL — auto-extract src from iframe code, validate embed URL
+document.getElementById('maps_embed_url').addEventListener('input', function() {
+  const val = this.value.trim();
+  const warn = document.getElementById('maps-url-warn');
+  if (!val) { warn.style.display = 'none'; return; }
+
+  // If they pasted a full <iframe> tag, extract the src
+  if (val.includes('<iframe')) {
+    const m = val.match(/src=["']([^"']+)["']/);
+    if (m) {
+      this.value = m[1];
+      warn.style.display = m[1].startsWith('https://www.google.com/maps/embed') ? 'none' : 'block';
+      return;
+    }
+  }
+
+  warn.style.display = val.startsWith('https://www.google.com/maps/embed') ? 'none' : 'block';
+});
+
+// ---- Live preview ----
+document.getElementById('city').addEventListener('input', e => {
+  const c = e.target.value || 'Your City';
+  document.getElementById('prevCity').textContent = `${c}'s Trusted Local Contractor`;
+  document.getElementById('prevBiz').textContent = `Best Local Service in ${c}`;
+});
+document.getElementById('business_name').addEventListener('input', e => {
+  document.getElementById('prevBiz').textContent = e.target.value || 'Best Local Service';
+});
+
+// ---- Deployment report ----
+function renderReport(report) {
+  const el = document.getElementById('deployReport');
+  el.innerHTML = '';
+
+  // Published section
+  if (report.published && report.published.length) {
+    const h = document.createElement('h3');
+    h.textContent = `✅ Published (${report.published.length})`;
+    h.style.cssText = 'margin:0 0 12px;font-size:15px;color:#1a1a1a';
+    el.appendChild(h);
+    const grid = document.createElement('div');
+    grid.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:20px';
+    report.published.forEach(item => {
+      const a = document.createElement('a');
+      a.href = item.url;
+      a.target = '_blank';
+      a.style.cssText = 'display:block;padding:10px 14px;background:#f0fdf4;border:1px solid #bbf7d0;border-radius:6px;text-decoration:none;font-size:13px;color:#166534;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis';
+      a.title = item.url;
+      a.textContent = '↗ ' + item.label;
+      grid.appendChild(a);
+    });
+    el.appendChild(grid);
+  }
+
+  // Failed section
+  if (report.failed && report.failed.length) {
+    const h = document.createElement('h3');
+    h.textContent = `❌ Failed (${report.failed.length}) — Needs Attention`;
+    h.style.cssText = 'margin:16px 0 12px;font-size:15px;color:#991b1b';
+    el.appendChild(h);
+    const note = document.createElement('p');
+    note.style.cssText = 'font-size:12px;color:#666;margin:0 0 12px';
+    note.textContent = 'These items were not published. Click Retry Failed to attempt them again without re-running the full deployment.';
+    el.appendChild(note);
+    const list = document.createElement('div');
+    list.style.cssText = 'display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:8px;margin-bottom:16px';
+    report.failed.forEach(item => {
+      const div = document.createElement('div');
+      const label = typeof item === 'string' ? item : item.label;
+      const type = typeof item === 'object' ? item.type : '';
+      div.style.cssText = 'padding:10px 14px;background:#fef2f2;border:1px solid #fecaca;border-radius:6px;font-size:13px;color:#991b1b;font-weight:600';
+      div.textContent = `✗ ${label}${type ? ' (' + type + ')' : ''}`;
+      list.appendChild(div);
+    });
+    el.appendChild(list);
+
+    const retryBtn = document.createElement('button');
+    retryBtn.textContent = '🔁 Retry Failed Items';
+    retryBtn.style.cssText = 'background:#991b1b;color:#fff;border:none;padding:11px 24px;font-weight:700;font-size:14px;border-radius:6px;cursor:pointer;font-family:inherit';
+    retryBtn.onclick = () => {
+      if (retryBtn.disabled) return;
+      retryBtn.disabled = true;
+      retryBtn.textContent = '⏳ Retrying…';
+      retryFailed(report.failed).finally(() => {
+        retryBtn.disabled = false;
+        retryBtn.textContent = '🔁 Retry Failed Items';
+      });
+    };
+    el.appendChild(retryBtn);
+  }
+
+  el.style.display = report.published.length || report.failed.length ? 'block' : 'none';
+  window._lastReport = report;
+}
+
+
+let _retryRunning = false;
+
+async function retryFailed(failedItems, recordId) {
+  if (_retryRunning) return;
+  _retryRunning = true;
+  const payload = collectPayload();
+  payload.failed_items = failedItems;
+  payload.record_id = recordId || _currentRecordId;
+  logEl.innerHTML = '';
+  logLines = 0;
+  progressBar.style.width = '0%';
+  setStatus('running');
+  document.getElementById('deployBtn').disabled = true;
+  document.getElementById('deployReport').style.display = 'none';
+
+  try {
+    const resp = await fetch('/retry', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop();
+      for (const part of parts) {
+        const line = part.replace(/^data: /, '').trim();
+        if (!line) continue;
+        let msg;
+        try { msg = JSON.parse(line); } catch { msg = line; }
+        if (typeof msg === 'string' && msg.startsWith('__REPORT__:')) {
+          try { renderReport(JSON.parse(msg.slice(11))); } catch {}
+        } else if (typeof msg === 'string' && msg.startsWith('__RECORD_ID__:')) {
+          _currentRecordId = msg.slice(14).trim();
+          loadHistory();
+        } else {
+          appendLog(msg);
+        }
+      }
+    }
+    progressBar.style.width = '100%';
+    setStatus('done');
+  } catch (err) {
+    appendLog('💥 Network error: ' + err.message);
+    setStatus('error');
+  } finally {
+    _retryRunning = false;
+  }
+  document.getElementById('deployBtn').disabled = false;
+}
+
+// ---- Log helpers ----
+const logEl = document.getElementById('logOutput');
+const badge = document.getElementById('statusBadge');
+const progressBar = document.getElementById('progressBar');
+
+let logLines = 0;
+const TOTAL_STEPS = 22; // approx: 6 services + 9 posts + 4 pages
+
+function appendLog(msg) {
+  const line = document.createElement('div');
+  const lower = msg.toLowerCase();
+  if (lower.includes('❌') || lower.includes('error') || lower.includes('failed')) {
+    line.className = 'err';
+  } else if (lower.includes('✅') || lower.includes('success') || lower.includes('complete')) {
+    line.className = 'ok';
+  } else if (lower.includes('→') || lower.includes('📄') || lower.includes('🧠') || lower.includes('🖼')) {
+    line.className = 'info';
+  }
+  line.textContent = msg;
+  logEl.appendChild(line);
+  logEl.scrollTop = logEl.scrollHeight;
+
+  // progress
+  if (msg.includes('✅')) {
+    logLines++;
+    const pct = Math.min(100, Math.round((logLines / TOTAL_STEPS) * 100));
+    progressBar.style.width = pct + '%';
+  }
+}
+
+function setStatus(state) {
+  const states = {
+    idle: { text: 'Idle', cls: 'idle', pulse: false },
+    running: { text: 'Deploying…', cls: 'running', pulse: true },
+    done: { text: 'Done', cls: 'done', pulse: false },
+    error: { text: 'Error', cls: 'error', pulse: false },
+  };
+  const s = states[state] || states.idle;
+  badge.className = `status-badge ${s.cls}`;
+  badge.innerHTML = `<span class="dot${s.pulse ? ' pulse' : ''}"></span> ${s.text}`;
+}
+
+// ---- Cache ----
+async function clearCache() {
+  const btn = document.getElementById('clearCacheBtn');
+  const payload = collectPayload();
+  if (!payload.wp_url || !payload.city || !payload.business_name) {
+    alert('Load a site config first so we know which cache to clear.');
+    return;
+  }
+  btn.disabled = true;
+  btn.textContent = '⏳ Clearing…';
+  try {
+    const resp = await fetch('/cache/clear', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+    const result = await resp.json();
+    btn.textContent = result.cleared ? '✅ Cleared' : '✅ No cache';
+    setTimeout(() => { btn.textContent = '🗑 Clear Cache'; btn.disabled = false; }, 2000);
+  } catch {
+    btn.textContent = '❌ Error';
+    btn.disabled = false;
+  }
+}
+
+// ---- History ----
+let _currentRecordId = null;
+
+async function loadHistory() {
+  const resp = await fetch('/history');
+  const records = await resp.json();
+  const el = document.getElementById('historyList');
+  if (!records.length) {
+    el.innerHTML = '<p style="color:#999;font-size:13px">No saved deployments yet.</p>';
+    return;
+  }
+  el.innerHTML = '';
+  records.forEach(r => {
+    const statusColor = r.status === 'complete' ? '#166534' : r.status === 'partial' ? '#92400e' : '#991b1b';
+    const statusBg = r.status === 'complete' ? '#f0fdf4' : r.status === 'partial' ? '#fffbeb' : '#fef2f2';
+    const statusLabel = r.status === 'complete' ? '✅ Complete' : r.status === 'partial' ? '⚠️ Partial' : '❌ Failed';
+    const card = document.createElement('div');
+    card.style.cssText = `border:1px solid #e5e7eb;border-radius:8px;padding:14px 16px;margin-bottom:10px;display:flex;align-items:center;gap:12px;flex-wrap:wrap`;
+
+    // Info block — .textContent for all user-supplied values (XSS-safe)
+    const info = document.createElement('div');
+    info.style.cssText = 'flex:1;min-width:180px';
+
+    const nameDiv = document.createElement('div');
+    nameDiv.style.cssText = 'font-weight:700;font-size:14px;color:#1a1a1a';
+    nameDiv.textContent = r.business_name;
+
+    const metaDiv = document.createElement('div');
+    metaDiv.style.cssText = 'font-size:12px;color:#666;margin-top:2px';
+    metaDiv.textContent = `${r.city}, ${r.state} · ${r.wp_url}`;
+
+    const dateDiv = document.createElement('div');
+    dateDiv.style.cssText = 'font-size:11px;color:#999;margin-top:2px';
+    dateDiv.textContent = r.saved_at;
+
+    info.appendChild(nameDiv);
+    info.appendChild(metaDiv);
+    info.appendChild(dateDiv);
+
+    const badge = document.createElement('span');
+    badge.style.cssText = `background:${statusBg};color:${statusColor};font-size:11px;font-weight:700;padding:3px 10px;border-radius:12px`;
+    badge.textContent = statusLabel;
+
+    const btnRow = document.createElement('div');
+    btnRow.style.cssText = 'display:flex;gap:8px;flex-wrap:wrap';
+
+    const loadBtn = document.createElement('button');
+    loadBtn.style.cssText = 'background:#1a1a1a;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit';
+    loadBtn.textContent = 'Load';
+    loadBtn.addEventListener('click', () => loadSite(r.id));
+
+    const delBtn = document.createElement('button');
+    delBtn.style.cssText = 'background:none;border:1px solid #ddd;color:#666;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-family:inherit';
+    delBtn.textContent = 'Delete';
+    delBtn.addEventListener('click', () => deleteSite(r.id, delBtn));
+
+    btnRow.appendChild(loadBtn);
+
+    if (r.failed && r.failed.length) {
+      const retryBtn = document.createElement('button');
+      retryBtn.dataset.retryId = r.id;
+      retryBtn.style.cssText = 'background:#991b1b;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit';
+      retryBtn.textContent = `Retry Failed (${r.failed.length})`;
+      btnRow.appendChild(retryBtn);
+    }
+
+    if (r.status === 'failed' && (!r.failed || !r.failed.length)) {
+      const redeployBtn = document.createElement('button');
+      redeployBtn.dataset.redeployId = r.id;
+      redeployBtn.style.cssText = 'background:#b45309;color:#fff;border:none;padding:7px 14px;border-radius:6px;font-size:12px;cursor:pointer;font-weight:600;font-family:inherit';
+      redeployBtn.textContent = '🔄 Redeploy';
+      btnRow.appendChild(redeployBtn);
+    }
+
+    btnRow.appendChild(delBtn);
+
+    card.appendChild(info);
+    card.appendChild(badge);
+    card.appendChild(btnRow);
+    el.appendChild(card);
+  });
+
+  // Wire retry buttons after cards are in DOM
+  el.querySelectorAll('[data-retry-id]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      retrySaved(btn.dataset.retryId, btn);
+    });
+  });
+
+  // Wire redeploy buttons
+  el.querySelectorAll('[data-redeploy-id]').forEach(btn => {
+    btn.addEventListener('click', async () => {
+      if (btn.disabled) return;
+      btn.disabled = true;
+      btn.textContent = '⏳ Loading…';
+      await loadSite(btn.dataset.redeployId);
+      btn.disabled = false;
+      btn.textContent = '🔄 Redeploy';
+      document.getElementById('deployForm').dispatchEvent(new Event('submit'));
+    });
+  });
+}
+
+async function loadSite(id) {
+  const r = await (await fetch(`/history/${id}`)).json();
+  document.getElementById('wp_url').value = r.wp_url || '';
+  document.getElementById('wp_username').value = r.wp_username || '';
+  document.getElementById('wp_password').value = r.wp_password || '';
+  document.getElementById('business_name').value = r.business_name || '';
+  document.getElementById('city').value = r.city || '';
+  document.getElementById('state').value = r.state || '';
+  document.getElementById('phone').value = r.phone || '';
+  document.getElementById('primary_color').value = r.primary_color || '#ff5e14';
+  document.getElementById('dark_color').value = r.dark_color || '#1a1a1a';
+  servicesInput.setItems(r.services || []);
+  blogInput.setItems(r.blog_topics || []);
+  document.getElementById('maps_embed_url').value = r.maps_embed_url || '';
+  document.getElementById('contact_email').value = r.contact_email || '';
+  const hasSmtp = !!(r.smtp_host);
+  document.getElementById('smtp_toggle').checked = hasSmtp;
+  document.getElementById('smtp_fields').style.display = hasSmtp ? 'block' : 'none';
+  document.getElementById('smtp_from_name').value  = r.smtp_from_name  || '';
+  document.getElementById('smtp_from_email').value = r.smtp_from_email || '';
+  document.getElementById('smtp_host').value        = r.smtp_host       || '';
+  document.getElementById('smtp_port').value        = r.smtp_port       || '587';
+  document.getElementById('smtp_encryption').value  = r.smtp_encryption || 'tls';
+  document.getElementById('smtp_username').value    = r.smtp_username   || '';
+  document.getElementById('smtp_password').value    = r.smtp_password   || '';
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  renderReport({ published: r.published_urls || [], failed: r.failed || [] });
+  _currentRecordId = id;
+}
+
+async function retrySaved(id, btn) {
+  if (_retryRunning) return;
+  if (btn) { btn.disabled = true; btn.textContent = '⏳ Retrying…'; }
+  const r = await (await fetch(`/history/${id}`)).json();
+  await loadSite(id);
+  await retryFailed(r.failed, id);
+  // Fetch the updated record to reflect actual post-retry state
+  try {
+    const updated = await (await fetch(`/history/${id}`)).json();
+    if (btn) {
+      if (updated.failed && updated.failed.length > 0) {
+        btn.disabled = false;
+        btn.textContent = `Retry Failed (${updated.failed.length})`;
+        // Re-wire click handler with the updated failed list
+        btn.onclick = null;
+        btn.addEventListener('click', () => {
+          if (btn.disabled) return;
+          retrySaved(id, btn);
+        }, { once: true });
+      } else {
+        btn.remove();
+      }
+    }
+  } catch {
+    if (btn) { btn.disabled = false; }
+  }
+}
+
+async function deleteSite(id, btn) {
+  if (!confirm('Remove this saved deployment?')) return;
+  await fetch(`/history/${id}`, { method: 'DELETE' });
+  btn.closest('div[style*="border:1px"]').remove();
+}
+
+// Load history on page start
+loadHistory();
+
+// ---- Collect form payload ----
+function collectPayload() {
+  return {
+    wp_url: document.getElementById('wp_url').value.trim(),
+    wp_username: document.getElementById('wp_username').value.trim(),
+    wp_password: document.getElementById('wp_password').value.trim(),
+    business_name: document.getElementById('business_name').value.trim(),
+    city: document.getElementById('city').value.trim(),
+    state: document.getElementById('state').value.trim().toUpperCase(),
+    phone: document.getElementById('phone').value.trim(),
+    primary_color: document.getElementById('primary_color').value.trim(),
+    dark_color: document.getElementById('dark_color').value.trim(),
+    services: servicesInput.getItems(),
+    blog_topics: blogInput.getItems(),
+    gemini_api_key: document.getElementById('gemini_api_key').value.trim(),
+    pexels_api_key: document.getElementById('pexels_api_key').value.trim(),
+    maps_embed_url: document.getElementById('maps_embed_url').value.trim(),
+    contact_email:   document.getElementById('contact_email').value.trim(),
+    rich_footer:     document.getElementById('rich_footer_toggle').checked,
+    smtp_host:       document.getElementById('smtp_host').value.trim(),
+    smtp_port:       parseInt(document.getElementById('smtp_port').value) || 587,
+    smtp_encryption: document.getElementById('smtp_encryption').value,
+    smtp_username:   document.getElementById('smtp_username').value.trim(),
+    smtp_password:   document.getElementById('smtp_password').value,
+    smtp_from_name:  document.getElementById('smtp_from_name').value.trim(),
+    smtp_from_email: document.getElementById('smtp_from_email').value.trim(),
+  };
+}
+
+// ---- Deploy ----
+document.getElementById('smtp_toggle').addEventListener('change', function() {
+  document.getElementById('smtp_fields').style.display = this.checked ? 'block' : 'none';
+  if (!this.checked) {
+    ['smtp_host','smtp_port','smtp_encryption','smtp_username','smtp_password','smtp_from_name','smtp_from_email']
+      .forEach(id => {
+        const el = document.getElementById(id);
+        if (el.tagName === 'SELECT') el.value = id === 'smtp_encryption' ? 'tls' : '';
+        else if (el.type === 'number') el.value = id === 'smtp_port' ? '587' : '';
+        else el.value = '';
+      });
+  }
+});
+
+document.getElementById('deployForm').addEventListener('submit', async function(e) {
+  e.preventDefault();
+
+  const selectedServices = servicesInput.getItems();
+  const selectedTopics = blogInput.getItems();
+
+  if (!selectedServices.length) { alert('Add at least one service.'); return; }
+  if (!selectedTopics.length) { alert('Add at least one blog topic.'); return; }
+
+  const payload = collectPayload();
+
+  logEl.innerHTML = '';
+  logLines = 0;
+  progressBar.style.width = '0%';
+  setStatus('running');
+  document.getElementById('deployBtn').disabled = true;
+
+
+  try {
+    const resp = await fetch('/deploy', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    });
+
+    if (!resp.ok) {
+      const err = await resp.json();
+      appendLog('❌ Validation errors:');
+      (err.errors || []).forEach(e => appendLog('  • ' + e));
+      setStatus('error');
+      document.getElementById('deployBtn').disabled = false;
+      return;
+    }
+
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, { stream: true });
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop();
+      for (const part of parts) {
+        const line = part.replace(/^data: /, '').trim();
+        if (!line) continue;
+        let msg;
+        try { msg = JSON.parse(line); } catch { msg = line; }
+        if (typeof msg === 'string' && msg.startsWith('__REPORT__:')) {
+          try {
+            const report = JSON.parse(msg.slice(11));
+            renderReport(report);
+          } catch {}
+        } else if (typeof msg === 'string' && msg.startsWith('__RECORD_ID__:')) {
+          _currentRecordId = msg.slice(14).trim();
+          loadHistory();
+        } else {
+          appendLog(msg);
+        }
+      }
+    }
+
+    progressBar.style.width = '100%';
+    setStatus('done');
+  } catch (err) {
+    appendLog('💥 Network error: ' + err.message);
+    setStatus('error');
+  }
+
+  document.getElementById('deployBtn').disabled = false;
+
+});
+
+// ---- Cancel button ----
+const cancelBtn = document.getElementById('cancelBtn');
+
+cancelBtn.addEventListener('click', async function() {
+  cancelBtn.disabled = true;
+  cancelBtn.textContent = '⏳ Cancelling…';
+  try {
+    await fetch('/cancel', { method: 'POST' });
+  } catch(e) {}
+  cancelBtn.textContent = '⛔ Cancel Running Process';
+  cancelBtn.disabled = false;
+
+});
+
+// ---- Interlinking panel (permanent) ----
+
+document.getElementById('il-suggest-btn').addEventListener('click', async function() {
+  const btn = this;
+  btn.disabled = true;
+  btn.textContent = '⏳ Asking Gemini…';
+  const kwList = document.getElementById('il-kw-perm');
+  kwList.innerHTML = '';
+  try {
+    const payload = collectPayload();
+    payload.published_urls = (window._lastReport && window._lastReport.published) ? window._lastReport.published : [];
+    payload.count = parseInt(document.getElementById('il-suggest-count').value, 10) || 5;
+    const res = await fetch('/interlink/suggest', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if (!data.ok) throw new Error(data.error || 'Suggestion failed');
+    (data.keywords || []).forEach(kw => {
+      const row = document.createElement('div');
+      row.style.cssText = 'display:flex;gap:8px;align-items:center;margin-bottom:8px';
+      const lbl = document.createElement('span');
+      lbl.textContent = kw;
+      lbl.style.cssText = 'flex:0 0 200px;font-size:13px;font-weight:600;color:#374151';
+      const inp = document.createElement('input');
+      inp.type = 'url';
+      inp.placeholder = 'https://...';
+      inp.dataset.keyword = kw;
+      inp.style.cssText = 'flex:1;padding:8px 12px;border:1px solid #d1d5db;border-radius:4px;font-size:13px;font-family:inherit';
+      row.appendChild(lbl);
+      row.appendChild(inp);
+      kwList.appendChild(row);
+    });
+    if (!data.keywords || !data.keywords.length) kwList.innerHTML = '<p style="font-size:13px;color:#666">No keywords found.</p>';
+  } catch(e) {
+    kwList.innerHTML = `<p style="font-size:13px;color:#991b1b">${e.message}</p>`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '✨ Suggest Keywords';
+  }
+});
+
+document.getElementById('il-apply-btn-perm').addEventListener('click', async function() {
+  const btn = this;
+  btn.disabled = true;
+  btn.textContent = '⏳ Applying…';
+  const ilLog = document.getElementById('il-log-perm');
+  ilLog.style.display = 'block';
+  ilLog.textContent = '';
+
+  const externalLinks = {};
+  document.querySelectorAll('#il-kw-perm input[data-keyword]').forEach(inp => {
+    if (inp.value.trim()) externalLinks[inp.dataset.keyword] = inp.value.trim();
+  });
+
+  const payload = collectPayload();
+  payload.published_urls = (window._lastReport && window._lastReport.published) ? window._lastReport.published : [];
+  payload.external_links = externalLinks;
+
+
+  try {
+    const res = await fetch('/interlink/apply', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload)
+    });
+    const reader = res.body.getReader();
+    const decoder = new TextDecoder();
+    let buf = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buf += decoder.decode(value, {stream: true});
+      const parts = buf.split('\n\n');
+      buf = parts.pop();
+      parts.forEach(part => {
+        if (part.startsWith('data: ')) {
+          try { ilLog.textContent += JSON.parse(part.slice(6)) + '\n'; ilLog.scrollTop = ilLog.scrollHeight; } catch {}
+        }
+      });
+    }
+  } catch(e) {
+    ilLog.textContent += `\nError: ${e.message}`;
+  } finally {
+    btn.disabled = false;
+    btn.textContent = '🔗 Apply Links';
+  
+  }
+});
+
+// ---- Reset ----
+document.getElementById('resetBtn').addEventListener('click', async function() {
+  const url = document.getElementById('wp_url').value.trim();
+  const user = document.getElementById('wp_username').value.trim();
+  const pass = document.getElementById('wp_password').value.trim();
+  if (!url || !user || !pass) {
+    alert('Fill in the WordPress URL, username, and password first.');
+    return;
+  }
+  const confirmed = confirm(
+    '⚠️  This will permanently delete ALL pages, posts, and media on:\n\n' +
+    url + '\n\n' +
+    'This cannot be undone. Continue?'
+  );
+  if (!confirmed) return;
+
+  const btn = document.getElementById('resetBtn');
+  btn.disabled = true;
+  btn.textContent = '⏳ Resetting…';
+  logEl.innerHTML = '';
+  logLines = 0;
+  setStatus('running');
+  document.getElementById('deployReport').style.display = 'none';
+
+
+  try {
+    const payload = {
+      wp_url: url,
+      wp_username: user,
+      wp_password: pass,
+      business_name: document.getElementById('business_name').value.trim() || 'Site',
+      city: document.getElementById('city').value.trim() || 'City',
+      state: document.getElementById('state').value.trim() || 'ST',
+      phone: document.getElementById('phone').value.trim() || '000-000-0000',
+      primary_color: document.getElementById('primary_color').value.trim() || '#ff5e14',
+    };
+    const resp = await fetch('/reset', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(payload),
+    });
+    const reader = resp.body.getReader();
+    const decoder = new TextDecoder();
+    let buffer = '';
+    while (true) {
+      const {done, value} = await reader.read();
+      if (done) break;
+      buffer += decoder.decode(value, {stream: true});
+      const parts = buffer.split('\n\n');
+      buffer = parts.pop();
+      for (const part of parts) {
+        const line = part.replace(/^data: /, '').trim();
+        if (!line) continue;
+        try { appendLog(JSON.parse(line)); } catch { appendLog(line); }
+      }
+    }
+    setStatus('done');
+  } catch(err) {
+    appendLog('💥 Network error: ' + err.message);
+    setStatus('error');
+  }
+
+  btn.disabled = false;
+  btn.textContent = '🗑️ Reset Target WordPress';
+
+});
+</script>
+</body>
+</html>

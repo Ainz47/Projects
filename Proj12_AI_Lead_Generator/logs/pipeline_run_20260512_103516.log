@@ -1,8 +1,0 @@
-2026-05-12 10:35:16,723 [INFO] __main__ — Starting pipeline for Bathroom Remodeler in Farmington Hills, MI
-2026-05-12 10:35:16,723 [INFO] __main__ — Scraping Google Maps...
-2026-05-12 10:35:25,939 [INFO] scraper — Apify run started: m8KQ2MnYyfHMkfazR
-2026-05-12 10:35:26,199 [ERROR] scraper — Error scraping with Apify: 'RunClient' object has no attribute 'iterate_items'
-2026-05-12 10:35:26,199 [INFO] __main__ — Scraped 0 leads
-2026-05-12 10:35:26,201 [INFO] __main__ — Saved 0 qualified leads to /workspaces/webpulse-demo-engine/data/leads_Bathroom_Remodeler_Farmington Hills_MI_20260512_103516.csv
-2026-05-12 10:35:26,202 [INFO] __main__ — Saved structured JSON output to /workspaces/webpulse-demo-engine/data/leads_Bathroom_Remodeler_Farmington Hills_MI_20260512_103516.json
-2026-05-12 10:35:26,202 [INFO] __main__ — Pipeline completed
