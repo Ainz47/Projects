@@ -41,18 +41,21 @@ This project demonstrates a complete hardware-to-cloud data pipeline:
 
 ---
 
-## 📥 Installation & Setup
+## 📥 Reproducing the Build
 
-### 1. Firmware Configuration
-Open the .ino files in the Arduino IDE.
+The firmware for this project was written for university-owned hardware and is not published in this repository. The full C++ listings, wiring schematics and pin assignments are reproduced in the academic paper below, which is enough to rebuild the nodes from scratch.
 
-Install the Heltec ESP32 and Blynk libraries.
+To reproduce the setup you would need:
 
-Input your BLYNK_AUTH_TOKEN and Wi-Fi credentials in the Gateway script.
+* **Hardware:** Heltec WiFi LoRa 32 V2 boards, JSN-SR04T ultrasonic sensors, GY-271 magnetometers, and the power stack listed above.
+* **Toolchain:** Arduino IDE with the Heltec ESP32 board package and the Blynk library installed.
+* **Configuration:** a `BLYNK_AUTH_TOKEN` and Wi-Fi credentials, set in the Gateway firmware before flashing.
 
 ## 📄 Full Documentation
-For a deep dive into the system schematics, latency statistical analysis, and C++ firmware code, please view the full academic paper included in this repository:
-SMART PARK IoT Sensor Fusion & LoRa Data Pipeline
+
+For a deep dive into the system schematics, latency statistical analysis, and C++ firmware code, see the full academic paper included in this repository:
+
+📄 [SMART PARK IoT Sensor Fusion & LoRa Data Pipeline (PDF)](./SMART%20PARK%20IoT%20Sensor%20Fusion%20&%20LoRa%20Data%20Pipeline1.pdf)
 
 ## 🛡️ Disclaimer
 This project was developed for academic research purposes. Always ensure compliance with local radio frequency regulations (e.g., 915MHz ISM band usage) when deploying LoRa hardware.

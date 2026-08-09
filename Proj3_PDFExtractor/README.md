@@ -23,7 +23,7 @@ Handling thousands of PDFs manually is a bottleneck. This pipeline implements a 
 * **Document Processing:** `pdfplumber`, `io`
 * **Data Persistence:** SQLite3 (SQL-based relational storage)
 * **Data Cleaning:** Regex (Regular Expressions) & Pandas
-* **Deployment:** GitHub Actions (Automated Cron Job)
+* **Execution:** Standalone CLI script (no local storage required, so it schedules cleanly under cron or a CI runner)
 
 ---
 
@@ -31,7 +31,7 @@ Handling thousands of PDFs manually is a bottleneck. This pipeline implements a 
 * **Memory Efficiency:** Processes PDF files directly from the network stream, bypassing the need for local storage and reducing I/O overhead.
 * **Automated Discovery:** Automatically identifies `.pdf` links even when nested inside dynamic UI elements or accordions.
 * **Relational Storage:** Moves beyond flat CSVs by utilizing a structured SQL schema for better data integrity, indexing, and future dashboard integration.
-* **Self-Healing/Scheduled:** Configured via GitHub Actions to run every 24 hours, ensuring the database is always updated with the latest leads without manual intervention.
+* **Repeatable Runs:** Writes into a persistent SQL schema rather than a fresh flat file each time, so the script can be re-run on a schedule to keep the database topped up with the latest leads.
 
 ---
 
@@ -41,32 +41,33 @@ Handling thousands of PDFs manually is a bottleneck. This pipeline implements a 
    ```bash
    git clone https://github.com/Ainz47/Projects.git
    cd Proj3_PDFExtractor
+   ```
    
-2. Install dependencies:
+2. **Install dependencies:**
    ```bash
    pip install playwright requests pdfplumber pandas
    playwright install chromium
+   ```
 
-3. Initialize the Database & Run:
+3. **Initialize the Database & Run:**
    ```bash
    python PDFExtractor.py
+   ```
 
-📊 SQL Schema Example
-The pipeline populates a school_data.db with the following structure:
+## 📊 SQL Schema Example
 
-id: Primary Key (Auto-increment)
+The pipeline populates a `school_data.db` with the following structure:
 
-district_name: Extracted source identifier
+* `id` — Primary Key (auto-increment)
+* `district_name` — Extracted source identifier
+* `doc_type` — Classification (e.g. "Invitation to Bid")
+* `meeting_date` — Extracted and normalized date
+* `extracted_text` — Raw text snippet for verification
+* `source_url` — Traceability back to the original document
 
-doc_type: Classification (e.g., "Invitation to Bid")
+---
 
-meeting_date: Extracted and normalized date
-
-extracted_text: Raw text snippet for verification
-
-source_url: Traceability back to the original document
-
-🛡️ Disclaimer
+## 🛡️ Disclaimer
 This project was developed for educational and professional demonstration purposes. It demonstrates advanced technical troubleshooting and systems logic applied to data extraction.
 
 

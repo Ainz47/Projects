@@ -18,7 +18,7 @@ A collection of 12 production-oriented projects spanning data engineering, AI pi
 | 8 | [Arxiv Pipeline](#8-arxiv-pipeline) | Data Engineering | Python, dbt, Kestra, Azure, MotherDuck |
 | 9 | [GeoData AI Ingestion Engine](#9-geodata-ai-ingestion-engine) | AI Data Pipeline | Python, Gemini, Playwright, WordPress |
 | 10 | [NYC BIS Violation Monitor](#10-nyc-bis-violation-monitor) | Public Data / ETL | Python, NYC Open Data API |
-| 11 | [Rank Rent Automation](#11-rank-rent-automation) | SEO Automation | Python, Gemini, WordPress REST API |
+| 11 | [Rank Rent Automation](#11-rank-rent-automation) | SEO Automation | Python, Flask, Gemini, Pexels, WordPress REST API |
 | 12 | [AI Lead Generator](#12-ai-lead-generator) | B2B Lead Gen | Python, Claude, Gemini, Apify |
 
 ---
@@ -49,8 +49,8 @@ Stealth e-commerce scraper that attaches to an existing Chrome window via Chrome
 
 Automated pipeline that discovers procurement PDFs on school district websites and extracts structured fields (budget approvals, bid deadlines) using pdfplumber and regex — all in-memory, no disk writes.
 
-**Stack:** Python · Playwright · pdfplumber · SQLite · GitHub Actions  
-**Highlights:** Three-layer architecture (discovery → ingestion → extraction); scheduled via GitHub Actions cron; cloud-ready for AWS Lambda.
+**Stack:** Python · Playwright · pdfplumber · SQLite  
+**Highlights:** Three-layer architecture (discovery → ingestion → extraction); fully in-memory byte-stream processing, so it is cloud-ready for AWS Lambda or a CI runner.
 
 [→ View project](Proj3_PDFExtractor/)
 
@@ -135,10 +135,10 @@ Tracks building violations for NYC properties by querying the official DOB Open 
 
 ## 11. Rank Rent Automation
 
-Bulk SEO content pipeline that generates optimized local service landing pages at scale. Reads a CSV of service/city/state combinations, calls Gemini to write location-specific copy, validates JSON output, then publishes hierarchical pages to WordPress.
+Local Flask app that provisions a complete rank-and-rent WordPress site from a single form. Gemini writes the copy and Pexels supplies the imagery, then the tool publishes a homepage, one page per service, blog posts with a listing page, 12 FAQs, and a contact page with a quote form and Maps embed.
 
-**Stack:** Python · Google Gemini · WordPress REST API · Pandas  
-**Highlights:** Strict JSON validation before any publish; location landmark validation for geographic accuracy; timestamped audit trail; scalable to unlimited service/city pairs.
+**Stack:** Python · Flask · Google Gemini · Pexels API · WordPress REST API  
+**Highlights:** Live progress over SSE; content cache and Retry Failed so re-runs are idempotent; AI-driven internal interlinking; deployment history and one-click site reset; 14 pages published per run.
 
 [→ View project](Proj11_Rank_Rent_Automation/)
 
@@ -160,6 +160,6 @@ B2B lead generation system for web design agencies. Scrapes local service busine
 **Languages:** Python (primary), C++ (IoT firmware), HCL (Terraform)  
 **Data / ETL:** dbt · MotherDuck (DuckDB) · Supabase (PostgreSQL) · SQLite · Parquet  
 **AI / LLMs:** Anthropic Claude · Google Gemini (text + vision + image gen)  
-**Orchestration & Infra:** Kestra · Azure Blob Storage · Terraform · Docker · GitHub Actions  
+**Orchestration & Infra:** Kestra · Azure Blob Storage · Terraform · Docker  
 **Web / APIs:** FastAPI · WordPress REST API · Playwright · BeautifulSoup4  
 **Visualization:** Metabase · Jinja2 / WeasyPrint (PDF)
