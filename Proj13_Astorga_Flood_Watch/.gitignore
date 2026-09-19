@@ -1,0 +1,26 @@
+# Secrets -- the Discord webhook lives here, never in git
+.env
+.env.*
+
+# Python
+backend/venv/
+__pycache__/
+*.pyc
+*.pyo
+
+# Regenerable demo database (recreate with: cd backend && python seed.py)
+*.db
+*.sqlite3
+
+# Office lock / temp files
+~$*
+
+# Playwright MCP artifacts
+**/.playwright-mcp/
+
+# OS junk
+Thumbs.db
+.DS_Store
+
+# Another group's reference manuscript (kept locally, not part of this project)
+GROUP 1_SMARTPARK_FINAL MANUSCRIPT.docx - Google Docs.pdf

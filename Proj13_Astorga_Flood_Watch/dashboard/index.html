@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Astorga Central — Flood Watch Operations</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 3C10 12 7 16 7 21a9 9 0 0 0 18 0c0-5-3-9-9-18z' fill='%233bc9db'/></svg>" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div id="ribbon" title="Barangay-wide flood status"></div>
+
+  <header>
+    <img class="seal" src="../assets/astorga-seal.jpg" alt="Official seal of Barangay Astorga" />
+    <span class="mark">Astorga<span class="accent">·</span>Central</span>
+    <span class="place">FLOOD WATCH · Barangay Astorga, Santa Cruz, Davao del Sur</span>
+    <span id="overall" class="overall status-normal">All Normal</span>
+  </header>
+
+  <main>
+    <aside id="rail">
+      <div class="rail-title">Choke Points</div>
+      <div id="cp-list"></div>
+
+      <div class="rail-title">Citizen Reports</div>
+      <div id="report-list"></div>
+    </aside>
+
+    <section id="stage">
+      <div id="map"></div>
+      <div id="detail">
+        <div class="placeholder">Select a choke point to see its water-level history.</div>
+      </div>
+    </section>
+  </main>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>

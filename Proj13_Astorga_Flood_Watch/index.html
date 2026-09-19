@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Astorga Central — Barangay Digital Services</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><path d='M16 3C10 12 7 16 7 21a9 9 0 0 0 18 0c0-5-3-9-9-18z' fill='%233bc9db'/></svg>" />
+  <style>
+    :root {
+      --bg: #0f1720; --bg-2: #0b1118; --panel: #182432; --panel-2: #1f2e3f;
+      --line: #2a3b4e; --water: #3bc9db; --water-deep: #1b8a9b;
+      --safe: #2fb380; --watch: #f4b740; --critical: #e4483b;
+      --text: #e6edf3; --muted: #8b9baa; --dim: #5f7286;
+      --mono: ui-monospace, "Cascadia Code", "SF Mono", Menlo, Consolas, monospace;
+      --sans: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      --maxw: 1120px;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.6; overflow-x: hidden; }
+    a { color: inherit; text-decoration: none; }
+    .wrap { max-width: var(--maxw); margin: 0 auto; padding: 0 24px; }
+    ::selection { background: var(--water); color: #051419; }
+    :focus-visible { outline: 2px solid var(--water); outline-offset: 3px; }
+
+    /* ---------- NAV ---------- */
+    nav {
+      position: sticky; top: 0; z-index: 50;
+      background: rgba(15,23,32,0.82); backdrop-filter: blur(10px);
+      border-bottom: 1px solid var(--line);
+    }
+    nav .row { display: flex; align-items: center; gap: 28px; height: 62px; }
+    .brand { font-weight: 800; letter-spacing: 0.3px; font-size: 18px; }
+    .brand .dot { color: var(--water); }
+    nav .brand { display: inline-flex; align-items: center; gap: 11px; }
+    .seal { width: 34px; height: 34px; border-radius: 50%; object-fit: cover;
+      background: #fff; box-shadow: 0 0 0 1px var(--line), 0 2px 8px rgba(0,0,0,0.35); }
+    nav .links { display: flex; gap: 26px; margin-left: auto; font-size: 14px; color: var(--muted); }
+    nav .links a:hover { color: var(--text); }
+    .btn {
+      font-family: var(--sans); font-size: 14px; font-weight: 600; cursor: pointer;
+      border-radius: 8px; padding: 9px 16px; border: 1px solid var(--line);
+      background: transparent; color: var(--text); transition: all 0.15s;
+    }
+    .btn:hover { border-color: var(--water); color: var(--water); }
+    .btn.primary { background: var(--water); color: #051419; border-color: var(--water); }
+    .btn.primary:hover { background: #57d6e6; color: #051419; }
+    .nav-login { margin-left: 4px; }
+
+    /* ---------- HERO ---------- */
+    header.hero { position: relative; padding: 88px 0 64px; overflow: hidden; }
+    /* faint contour/water lines as ambient background */
+    header.hero::before {
+      content: ""; position: absolute; inset: 0; z-index: 0; opacity: 0.5;
+      background:
+        radial-gradient(1100px 420px at 80% -10%, rgba(59,201,219,0.10), transparent 60%),
+        repeating-linear-gradient(115deg, transparent 0 38px, rgba(59,201,219,0.035) 38px 39px);
+      pointer-events: none;
+    }
+    .hero .wrap { position: relative; z-index: 1; }
+    .eyebrow {
+      font-family: var(--mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase;
+      color: var(--water); margin-bottom: 18px;
+    }
+    h1 { font-size: clamp(34px, 5.4vw, 58px); line-height: 1.05; font-weight: 800; letter-spacing: -0.5px; max-width: 15ch; }
+    h1 .grad { background: linear-gradient(120deg, var(--water), #7fe3ef); -webkit-background-clip: text; background-clip: text; color: transparent; }
+    .lede { color: var(--muted); font-size: clamp(16px, 2vw, 19px); max-width: 56ch; margin-top: 20px; }
+    .hero-cta { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 30px; }
+    .btn.lg { padding: 13px 22px; font-size: 15px; }
+
+    /* live status strip */
+    .status-strip {
+      margin-top: 40px; display: flex; align-items: center; gap: 16px; flex-wrap: wrap;
+      background: var(--panel); border: 1px solid var(--line); border-left: 4px solid var(--safe);
+      border-radius: 12px; padding: 16px 20px; max-width: 640px; transition: border-color 0.5s;
+    }
+    .status-strip.watch { border-left-color: var(--watch); }
+    .status-strip.critical { border-left-color: var(--critical); }
+    .status-strip .pulse { width: 12px; height: 12px; border-radius: 50%; background: var(--safe); box-shadow: 0 0 0 0 rgba(47,179,128,0.5); animation: ping 2s infinite; }
+    .status-strip.watch .pulse { background: var(--watch); }
+    .status-strip.critical .pulse { background: var(--critical); animation: ping 1s infinite; }
+    @keyframes ping { 0% { box-shadow: 0 0 0 0 rgba(59,201,219,0.5); } 70% { box-shadow: 0 0 0 12px rgba(59,201,219,0); } 100% { box-shadow: 0 0 0 0 rgba(59,201,219,0); } }
+    @media (prefers-reduced-motion: reduce) { .status-strip .pulse { animation: none; } }
+    .status-strip .label { font-family: var(--mono); font-size: 11px; letter-spacing: 1.5px; text-transform: uppercase; color: var(--muted); }
+    .status-strip .headline { font-weight: 700; font-size: 15px; }
+    .status-strip .sub { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+    .status-strip .link { margin-left: auto; font-size: 13px; color: var(--water); white-space: nowrap; }
+    .status-strip .link:hover { text-decoration: underline; }
+
+    /* ---------- SECTION SHELL ---------- */
+    section { padding: 72px 0; border-top: 1px solid var(--line); }
+    .sec-eyebrow { font-family: var(--mono); font-size: 12px; letter-spacing: 2px; text-transform: uppercase; color: var(--muted); }
+    .sec-title { font-size: clamp(24px, 3.5vw, 34px); font-weight: 800; margin-top: 10px; letter-spacing: -0.3px; }
+    .sec-lede { color: var(--muted); max-width: 60ch; margin-top: 12px; }
+
+    /* ---------- SERVICES GRID ---------- */
+    .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 18px; margin-top: 36px; }
+    .card {
+      position: relative; background: var(--panel); border: 1px solid var(--line);
+      border-radius: 14px; padding: 22px; display: flex; flex-direction: column; min-height: 210px;
+      transition: transform 0.15s, border-color 0.15s;
+    }
+    .card.live { border-color: rgba(59,201,219,0.4); background: linear-gradient(180deg, rgba(59,201,219,0.06), var(--panel)); }
+    .card.live:hover { transform: translateY(-3px); border-color: var(--water); }
+    .card .ico { font-size: 26px; }
+    .card .badge {
+      position: absolute; top: 16px; right: 16px; font-family: var(--mono); font-size: 10px;
+      letter-spacing: 1px; text-transform: uppercase; padding: 3px 9px; border-radius: 999px;
+    }
+    .badge.live { color: var(--safe); background: rgba(47,179,128,0.14); border: 1px solid rgba(47,179,128,0.4); }
+    .badge.soon { color: var(--dim); background: rgba(139,155,170,0.08); border: 1px solid var(--line); }
+    .card h3 { font-size: 18px; margin: 14px 0 6px; }
+    .card p { color: var(--muted); font-size: 14px; flex: 1; }
+    .card .actions { display: flex; gap: 10px; margin-top: 16px; flex-wrap: wrap; }
+    .card.soon { opacity: 0.62; }
+    .card.soon .ico { filter: grayscale(0.4); }
+    .btn.sm { padding: 8px 13px; font-size: 13px; }
+    .btn.ghost:disabled { opacity: 0.5; cursor: not-allowed; border-style: dashed; }
+    .btn.ghost:disabled:hover { border-color: var(--line); color: var(--text); }
+
+    /* ---------- PLATFORM / ABOUT ---------- */
+    .split { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 48px; align-items: center; }
+    .points { margin-top: 26px; display: flex; flex-direction: column; gap: 18px; }
+    .point { display: flex; gap: 14px; }
+    .point .n { font-family: var(--mono); color: var(--water); font-size: 13px; padding-top: 3px; min-width: 30px; }
+    .point h4 { font-size: 15px; margin-bottom: 3px; }
+    .point p { color: var(--muted); font-size: 14px; }
+    .stat-panel { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 26px; }
+    .stat { padding: 16px 0; border-bottom: 1px solid var(--line); }
+    .stat:last-child { border-bottom: none; }
+    .stat .big { font-family: var(--mono); font-size: 28px; font-weight: 700; color: var(--water); }
+    .stat .cap { color: var(--muted); font-size: 13px; margin-top: 2px; }
+
+    /* ---------- CONTACT ---------- */
+    .contact-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; margin-top: 34px; }
+    .contact-info .item { display: flex; gap: 12px; padding: 12px 0; border-bottom: 1px solid var(--line); }
+    .contact-info .item .k { font-family: var(--mono); font-size: 11px; letter-spacing: 1px; text-transform: uppercase; color: var(--muted); min-width: 96px; padding-top: 2px; }
+    .contact-info .item .v { font-size: 15px; }
+    form.contact input, form.contact textarea {
+      width: 100%; background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px;
+      color: var(--text); font-family: var(--sans); font-size: 14px; padding: 11px 12px; margin-bottom: 12px;
+    }
+    form.contact input:focus, form.contact textarea:focus { outline: none; border-color: var(--water); }
+    .form-note { font-size: 12px; color: var(--dim); margin-top: 4px; }
+
+    /* ---------- FOOTER ---------- */
+    footer { border-top: 1px solid var(--line); padding: 34px 0; color: var(--muted); font-size: 13px; }
+    footer .row { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; justify-content: space-between; }
+    footer .mono { font-family: var(--mono); font-size: 12px; color: var(--dim); }
+
+    /* ---------- MODAL ---------- */
+    .modal-back { position: fixed; inset: 0; background: rgba(5,10,15,0.72); backdrop-filter: blur(3px); display: none; align-items: center; justify-content: center; z-index: 100; padding: 20px; }
+    .modal-back.open { display: flex; }
+    .modal { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 30px; width: 100%; max-width: 380px; position: relative; }
+    .modal h3 { font-size: 20px; margin-bottom: 6px; }
+    .modal p { color: var(--muted); font-size: 14px; margin-bottom: 20px; }
+    .modal input { width: 100%; background: var(--bg-2); border: 1px solid var(--line); border-radius: 8px; color: var(--text); font-size: 14px; padding: 11px 12px; margin-bottom: 12px; }
+    .modal input:focus { outline: none; border-color: var(--water); }
+    .modal .close { position: absolute; top: 14px; right: 16px; background: none; border: none; color: var(--muted); font-size: 22px; cursor: pointer; }
+    .modal .demo-note { font-size: 12px; color: var(--dim); text-align: center; margin-top: 14px; }
+
+    @media (max-width: 900px) {
+      .grid { grid-template-columns: repeat(2, 1fr); }
+      .split, .contact-grid { grid-template-columns: 1fr; gap: 30px; }
+      nav .links { display: none; }
+    }
+    @media (max-width: 560px) { .grid { grid-template-columns: 1fr; } }
+  </style>
+</head>
+<body>
+
+  <!-- NAV -->
+  <nav>
+    <div class="wrap row">
+      <a class="brand" href="#top"><img class="seal" src="assets/astorga-seal.jpg" alt="Official seal of Barangay Astorga" />Astorga<span class="dot">·</span>Central</a>
+      <div class="links">
+        <a href="#services">Services</a>
+        <a href="#platform">Platform</a>
+        <a href="#contact">Contact</a>
+      </div>
+      <button class="btn nav-login" onclick="openLogin()">Official Login</button>
+    </div>
+  </nav>
+
+  <!-- HERO -->
+  <header class="hero" id="top">
+    <div class="wrap">
+      <div class="eyebrow">Barangay Astorga · Santa Cruz, Davao del Sur</div>
+      <h1>One barangay portal.<br /><span class="grad">Starting with flood safety.</span></h1>
+      <p class="lede">Astorga Central is the digital services hub for Barangay Astorga. Its first live
+        service, Flood Watch, monitors water at flood-prone choke points and warns the community before
+        the water reaches the door.</p>
+
+      <div class="hero-cta">
+        <a class="btn primary lg" href="report-form/">Report Flooding</a>
+        <a class="btn lg" href="dashboard/">Open Flood Dashboard</a>
+      </div>
+
+      <!-- LIVE status strip (fetches backend; degrades gracefully) -->
+      <div class="status-strip" id="statusStrip">
+        <span class="pulse"></span>
+        <div>
+          <div class="label">Barangay Flood Status · Live</div>
+          <div class="headline" id="statusHeadline">Checking monitoring network…</div>
+          <div class="sub" id="statusSub">Connecting to Flood Watch</div>
+        </div>
+        <a class="link" href="dashboard/">View live map →</a>
+      </div>
+    </div>
+  </header>
+
+  <!-- SERVICES -->
+  <section id="services">
+    <div class="wrap">
+      <div class="sec-eyebrow">Services</div>
+      <h2 class="sec-title">Barangay services, in one place</h2>
+      <p class="sec-lede">Flood Watch is live today. The same platform is built to carry the barangay's
+        other services as they come online — no new system, no new cost.</p>
+
+      <div class="grid">
+        <!-- FLOOD WATCH — the functional one -->
+        <div class="card live">
+          <span class="badge live" id="cardBadge">● Live</span>
+          <div class="ico">🌊</div>
+          <h3>Flood Watch</h3>
+          <p>Real-time water-level monitoring at choke points, instant alerts, and citizen flood reports on a live map.</p>
+          <div class="actions">
+            <a class="btn primary sm" href="dashboard/">Dashboard</a>
+            <a class="btn sm" href="report-form/">Report</a>
+          </div>
+        </div>
+
+        <div class="card soon">
+          <span class="badge soon">Coming soon</span>
+          <div class="ico">🩺</div>
+          <h3>Health Desk</h3>
+          <p>Barangay health station schedules, medicine availability, and appointment requests.</p>
+          <div class="actions"><button class="btn ghost sm" disabled>Coming soon</button></div>
+        </div>
+
+        <div class="card soon">
+          <span class="badge soon">Coming soon</span>
+          <div class="ico">🛣️</div>
+          <h3>Road &amp; Infrastructure</h3>
+          <p>Report potholes, broken drainage, and streetlights with a pinned location.</p>
+          <div class="actions"><button class="btn ghost sm" disabled>Coming soon</button></div>
+        </div>
+
+        <div class="card soon">
+          <span class="badge soon">Coming soon</span>
+          <div class="ico">🗑️</div>
+          <h3>Waste Management</h3>
+          <p>Garbage collection schedules and missed-pickup reports per purok.</p>
+          <div class="actions"><button class="btn ghost sm" disabled>Coming soon</button></div>
+        </div>
+
+        <div class="card soon">
+          <span class="badge soon">Coming soon</span>
+          <div class="ico">📄</div>
+          <h3>Permits &amp; Clearances</h3>
+          <p>Request barangay clearances and certificates online, then claim on site.</p>
+          <div class="actions"><button class="btn ghost sm" disabled>Coming soon</button></div>
+        </div>
+
+        <div class="card soon">
+          <span class="badge soon">Coming soon</span>
+          <div class="ico">📢</div>
+          <h3>Announcements</h3>
+          <p>Official advisories, evacuation notices, and community bulletins in one feed.</p>
+          <div class="actions"><button class="btn ghost sm" disabled>Coming soon</button></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- PLATFORM / ABOUT -->
+  <section id="platform">
+    <div class="wrap split">
+      <div>
+        <div class="sec-eyebrow">Why a platform</div>
+        <h2 class="sec-title">Build the road once, run many services on it</h2>
+        <p class="sec-lede">Flood Watch proves the model. The same core — mapping, location-tagged
+          reports, and official review — is reused by every future service, so each new one is cheap to add.</p>
+        <div class="points">
+          <div class="point"><span class="n">01</span><div><h4>Shared core</h4><p>Citizen reports and the live map are built once and reused by every module.</p></div></div>
+          <div class="point"><span class="n">02</span><div><h4>Free &amp; open</h4><p>OpenStreetMap, a free alert channel, and one small server — no paid map or cloud lock-in.</p></div></div>
+          <div class="point"><span class="n">03</span><div><h4>Fail-safe by design</h4><p>When a sensor can't read reliably, the system warns rather than stays silent.</p></div></div>
+        </div>
+      </div>
+      <div class="stat-panel">
+        <div class="stat"><div class="big">₱300</div><div class="cap">Cost to build and demo one live sensor node</div></div>
+        <div class="stat"><div class="big">₱200–500</div><div class="cap">Monthly cost to run the whole barangay platform</div></div>
+        <div class="stat"><div class="big">3</div><div class="cap">Status levels — Normal, Watch, Critical — with instant alerts</div></div>
+        <div class="stat"><div class="big">~12,263</div><div class="cap">Residents of Barangay Astorga served</div></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CONTACT -->
+  <section id="contact">
+    <div class="wrap">
+      <div class="sec-eyebrow">Contact</div>
+      <h2 class="sec-title">Get in touch with the barangay</h2>
+      <div class="contact-grid">
+        <div class="contact-info">
+          <div class="item"><span class="k">Barangay</span><span class="v">Barangay Astorga, Santa Cruz, Davao del Sur</span></div>
+          <div class="item"><span class="k">Email</span><span class="v">sk-office@example.com</span></div>
+          <div class="item"><span class="k">Facebook</span><span class="v">Sangguniang Kabataan ng Barangay Astorga</span></div>
+          <div class="item"><span class="k">Emergency</span><span class="v">Use Flood Watch “Report Flooding” for live incidents</span></div>
+        </div>
+        <form class="contact" onsubmit="return fakeSend(event)">
+          <input type="text" placeholder="Your name" aria-label="Your name" />
+          <input type="email" placeholder="Email address" aria-label="Email address" />
+          <textarea rows="4" placeholder="How can the barangay help?" aria-label="Message"></textarea>
+          <button class="btn primary" type="submit">Send message</button>
+          <div class="form-note" id="contactNote">Demo form — messages are not delivered in this prototype.</div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- FOOTER -->
+  <footer>
+    <div class="wrap row">
+      <div><span class="brand">Astorga<span class="dot">·</span>Central</span> &nbsp; Barangay digital services platform</div>
+      <div class="mono">Prototype · Flood Watch module live · © 2026 SK Barangay Astorga</div>
+    </div>
+  </footer>
+
+  <!-- LOGIN MODAL (decorative) -->
+  <div class="modal-back" id="loginModal" onclick="if(event.target===this)closeLogin()">
+    <div class="modal" role="dialog" aria-modal="true" aria-label="Official login">
+      <button class="close" onclick="closeLogin()" aria-label="Close">×</button>
+      <h3>Official Login</h3>
+      <p>Barangay officials sign in to manage reports and verify incidents.</p>
+      <input type="text" placeholder="Username" aria-label="Username" />
+      <input type="password" placeholder="Password" aria-label="Password" />
+      <button class="btn primary" style="width:100%" onclick="closeLogin(); location.href='dashboard/'">Sign in</button>
+      <div class="demo-note">Demo — authentication is not enabled. Continues to the dashboard.</div>
+    </div>
+  </div>
+
+  <script>
+    const API_BASE = "http://localhost:8000";
+
+    // Login modal
+    function openLogin() { document.getElementById("loginModal").classList.add("open"); }
+    function closeLogin() { document.getElementById("loginModal").classList.remove("open"); }
+    document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeLogin(); });
+
+    // Contact form is decorative
+    function fakeSend(e) {
+      e.preventDefault();
+      document.getElementById("contactNote").textContent = "Thanks! (Demo — message not actually sent.)";
+      document.getElementById("contactNote").style.color = "var(--safe)";
+      e.target.reset();
+      return false;
+    }
+
+    // Live barangay flood status — pulls from the backend, degrades gracefully.
+    const RANK = { normal: 0, watch: 1, critical: 2 };
+    async function loadStatus() {
+      const strip = document.getElementById("statusStrip");
+      const head = document.getElementById("statusHeadline");
+      const sub = document.getElementById("statusSub");
+      try {
+        const res = await fetch(API_BASE + "/api/flood/choke-points", { cache: "no-store" });
+        if (!res.ok) throw new Error();
+        const cps = await res.json();
+        if (!cps.length) throw new Error();
+        let worst = "normal", counts = { normal: 0, watch: 0, critical: 0 };
+        cps.forEach((c) => { counts[c.current_status]++; if (RANK[c.current_status] > RANK[worst]) worst = c.current_status; });
+        strip.className = "status-strip" + (worst === "normal" ? "" : " " + worst);
+        head.textContent = worst === "normal" ? "All clear across the barangay"
+          : worst === "watch" ? "Watch — water rising at a choke point"
+          : "Critical — flooding detected";
+        sub.textContent = `${cps.length} choke points monitored · ${counts.critical} critical · ${counts.watch} watch`;
+      } catch {
+        // Backend not running — show a calm, honest default.
+        head.textContent = "Monitoring network offline";
+        sub.textContent = "Start the Flood Watch server to see live status";
+      }
+    }
+    loadStatus();
+    setInterval(loadStatus, 15000);
+  </script>
+</body>
+</html>
