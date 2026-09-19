@@ -1,0 +1,17 @@
+{
+  "deny": [
+    {
+      "match": "<ID-or-string-that-must-never-appear-in-a-command>",
+      "tools": ["Bash", "PowerShell", "WebFetch"],
+      "reason": "<why this is forbidden>"
+    }
+  ],
+  "ask": [
+    {
+      "match": "<script-or-api-that-spends-credits>",
+      "tools": ["Bash", "PowerShell"],
+      "reason": "<what it costs - confirm before running>"
+    }
+  ],
+  "verify": "<short distinctive substring of the verify command, e.g. 'pytest tests'>"
+}

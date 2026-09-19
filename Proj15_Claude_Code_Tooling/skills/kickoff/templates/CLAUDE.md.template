@@ -1,0 +1,32 @@
+# <ProjectName> — Project Instructions
+
+## What This Project Does
+<One paragraph: pipeline/product, inputs, outputs, who it's for.>
+
+## CRITICAL CONSTRAINTS
+<Do-not-touch items with exact IDs. Mirror every entry as a deny rule in
+.claude/guardrails.json — prose explains, the hook enforces.>
+
+## Key Scripts
+| Script | Purpose |
+|---|---|
+| `<path>` | <what it does> |
+
+## APIs / External Services
+<Endpoints, auth style, env var names (never the keys themselves), quirks.
+Flag every credit-spending call — mirror as ask rules in guardrails.json.>
+
+## Verify
+- Command: `<verify command>` (also set as "verify" in .claude/guardrails.json)
+- A task touching source is DONE only after this ran clean or the user waived it.
+
+## Conventions
+- Every script that mutates external state (APIs, DBs, sends) MUST support `--dry-run`.
+- Dry-run before first live run of any new/changed mutating script.
+- Every outbound push appends to the relevant exclusion list (if applicable).
+
+## Data Directories
+<Where raw/processed/output data lives; which files are large or sensitive.>
+
+## Known Issues
+<Living list — bugs, blocked sources, data quirks.>

@@ -1,0 +1,101 @@
+{
+  "PostCompact": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "$raw = [Console]::In.ReadToEnd(); $j = try { $raw | ConvertFrom-Json } catch { $null }; $summary = if ($j -and $j.summary) { $j.summary } else { $raw }; $d = Get-Date; $fname = \"Dev Log - Compaction $($d.ToString('yyyy-MM-dd HHmm')).md\"; Set-Content -Path \"<HOME>\\Documents\\Vault\\50_Carreer\\Dev Logs\\$fname\" -Value \"# Session Compaction Log`n$($d.ToString('yyyy-MM-dd HH:mm'))`n`n$summary\" -Encoding UTF8; @{hookSpecificOutput=@{hookEventName='PostCompact';additionalContext=\"The session was just auto-compacted. Here is what was happening before compaction:`n`n$summary\"}} | ConvertTo-Json -Compress -Depth 5",
+          "shell": "powershell",
+          "statusMessage": "Saving session log to Obsidian..."
+        }
+      ]
+    }
+  ],
+  "SessionStart": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "py \"<HOME>\\.claude\\hooks\\inject_state.py\"",
+          "timeout": 10,
+          "statusMessage": "Restoring project state..."
+        }
+      ]
+    }
+  ],
+  "PostToolUse": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "py \"<HOME>\\.claude\\hooks\\checkpoint_reminder.py\"",
+          "timeout": 10
+        }
+      ]
+    }
+  ],
+  "PreToolUse": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "py \"<HOME>\\.claude\\hooks\\guardrails.py\"",
+          "timeout": 10
+        }
+      ]
+    },
+    {
+      "matcher": "Bash|PowerShell",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "py \"<HOME>\\.claude\\hooks\\delivery_gate.py\"",
+          "timeout": 15,
+          "statusMessage": "Checking delivery flags..."
+        }
+      ]
+    },
+    {
+      "matcher": "mcp__obsidian__vault_write",
+      "hooks": [
+        {
+          "type": "command",
+          "command": "py \"<HOME>\\.claude\\hooks\\vault_gate.py\"",
+          "timeout": 10,
+          "statusMessage": "Checking vault doc caps..."
+        }
+      ]
+    }
+  ],
+  "Stop": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "py \"<HOME>\\.claude\\hooks\\done_gate.py\"",
+          "timeout": 15
+        }
+      ]
+    },
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "py \"<HOME>\\.claude\\hooks\\vault_gate.py\"",
+          "timeout": 15
+        }
+      ]
+    }
+  ],
+  "PreCompact": [
+    {
+      "hooks": [
+        {
+          "type": "command",
+          "command": "py \"<HOME>\\.claude\\hooks\\precompact_preserve.py\"",
+          "timeout": 10
+        }
+      ]
+    }
+  ]
+}
