@@ -1,0 +1,2 @@
+# Used by inject_state.py to parse note frontmatter, and by its tests.
+pyyaml
