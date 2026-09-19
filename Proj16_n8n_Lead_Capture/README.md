@@ -8,6 +8,12 @@ Form -> Validate -> valid? -> Gemini score -> parse -> Sheet row
                       `-> invalid -> rejected row -> Sheet row
 ```
 
+![The lead capture workflow on the n8n canvas](screenshots/lead-capture-canvas.png)
+
+A successful run for a hot lead, every step on the path green:
+
+![A successful execution](screenshots/execution-success.png)
+
 ## How it behaves
 - Bad submissions (no name, broken email, one-word message) never reach the LLM. They are logged as `rejected` with the reasons.
 - The model only returns a score, a one-line reason and a draft reply. The tier is computed in code (`hot` 8 to 10, `warm` 5 to 7, `cold` below 5), so the model cannot label a 3/10 lead hot.
@@ -24,7 +30,7 @@ Checked by hand on a local n8n 2.39.8 run, importing these exact files:
 - With an invalid Gemini model, a lead was logged as `needs_review`.
 - A failing Sheet write triggered the error workflow.
 - The weekly workflow produced its summary from the Sheet's rows.
-- The WhatsApp node ran for hot leads and the WhatsApp Cloud API accepted the message. I have not confirmed each alert arrived on the phone, so treat delivery as unverified.
+- A hot lead sent a WhatsApp alert that reached my phone. Alerts sent before I had messaged the test number were accepted by the API but never arrived, which is the 24-hour rule under WhatsApp notes below.
 
 Not done: it is not deployed. It runs on a local n8n, and CI does not run n8n, so nothing automated proves the workflows execute.
 
@@ -38,7 +44,7 @@ Not done: it is not deployed. It runs on a local n8n, and CI does not run n8n, s
 7. To test: `py -m pip install -r requirements.txt` then `py samples/submit.py`. The form only accepts `multipart/form-data`, which the script sends.
 
 ## WhatsApp notes
-- Free-form text only delivers inside 24 hours of the recipient last messaging your number. With Meta's test number, message it from your phone first.
+- Free-form text only delivers inside 24 hours of the recipient last messaging your number. With Meta's test number, message it from your phone first. The API still answers "accepted" when the window is closed, so an accepted message is not proof it arrived.
 - The test number's access token expires after about 24 hours. Use a System User token for anything longer-lived.
 
 ## Swapping parts

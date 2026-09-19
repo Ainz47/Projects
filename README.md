@@ -220,7 +220,7 @@ The hooks, skills and guardrails I run Claude Code with, published with paths an
 
 A self-hosted n8n pipeline: a contact form feeds an LLM scorer, every lead is logged to a Google Sheet, strong leads trigger an alert, and a weekly summary and an error alert run as separate workflows. The Code-node logic lives in plain files with unit tests, and the workflow JSON is generated from it.
 
-**Stack:** n8n · Gemini · Google Sheets · WhatsApp Cloud API (the API accepted the alerts; delivery to a phone not confirmed) · JavaScript · Python  
+**Stack:** n8n · Gemini · Google Sheets · WhatsApp Cloud API · JavaScript · Python  
 **Highlights:** The score decides the tier in code, not the model; an LLM outage logs the lead as needs-review instead of dropping it; exports carry credential names only and a test fails if a secret-shaped string appears. Run on a local n8n, not deployed.
 
 [→ View project](Proj16_n8n_Lead_Capture/)
