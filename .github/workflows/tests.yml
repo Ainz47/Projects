@@ -1,6 +1,6 @@
 name: tests
 
-# Runs the two projects that ship tests. Windows runner on purpose: the hook
+# Runs the projects that ship tests. Windows runner on purpose: the hook
 # tests use Windows-style project paths and the suites were verified on Windows.
 on:
   push:
@@ -38,3 +38,19 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - name: Run each test script
         run: for f in test_*.py; do python -X utf8 "$f" || exit 1; done
+
+  proj16-n8n-lead-capture:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Proj16_n8n_Lead_Capture
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: node --test "tests/*.test.js"
+      - run: python -X utf8 -m unittest discover -s tests -p "test_*.py"

@@ -2,9 +2,9 @@
 
 [![tests](https://github.com/Ainz47/Projects/actions/workflows/tests.yml/badge.svg)](https://github.com/Ainz47/Projects/actions/workflows/tests.yml)
 
-A collection of 15 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
+A collection of 16 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
 
-**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. The other projects are documented with architecture notes and diagrams, not automated tests.
+**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. The other projects are documented with architecture notes and diagrams, not automated tests.
 
 ---
 
@@ -16,13 +16,14 @@ Pick the row that matches what you are hiring for.
 |---|---|
 | Web scraping, data extraction, anti-bot handling | [Proj1](#1-schooljobs), [Proj2](#2-shopeehijacker), [Proj9](#9-geodata-ai-ingestion-engine) |
 | Backend APIs and webhooks | [Proj6](#6-cloud-report-engine), [Proj7](#7-fastapi-etl-alerts), [Proj13](#13-astorga-flood-watch) |
+| Workflow automation in n8n | [Proj16](#16-n8n-lead-capture) |
 | Data engineering (dbt, orchestration, IaC) | [Proj8](#8-arxiv-pipeline) |
 | WordPress and CMS automation | [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine) |
-| AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling) |
+| AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling), [Proj16](#16-n8n-lead-capture) |
 | Claude Code skills, hooks and guardrails | [Proj15](#15-claude-code-tooling) |
 | Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [storefront case study](case-studies/storefront-spa-port.md) |
 | Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md) |
-| Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md) |
+| Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md), [Proj16](#16-n8n-lead-capture) |
 | Embedded and IoT | [Proj4](#4-smartparkingiot), [Proj13](#13-astorga-flood-watch) |
 
 ---
@@ -46,6 +47,7 @@ Pick the row that matches what you are hiring for.
 | 13 | [Astorga Flood Watch](#13-astorga-flood-watch) | IoT / Alerting | Python, FastAPI, SQLite, Leaflet, ESP32 |
 | 14 | [Schedule PWA](#14-schedule-pwa) | Offline-first App | JavaScript, PouchDB, CouchDB, Python |
 | 15 | [Claude Code Tooling](#15-claude-code-tooling) | Agent Tooling | Python, Claude Code hooks, guardrails |
+| 16 | [n8n Lead Capture](#16-n8n-lead-capture) | Workflow Automation | n8n, Gemini, Google Sheets, WhatsApp API, JavaScript |
 
 ---
 
@@ -214,6 +216,17 @@ The hooks, skills and guardrails I run Claude Code with, published with paths an
 
 ---
 
+## 16. n8n Lead Capture
+
+A self-hosted n8n pipeline: a contact form feeds an LLM scorer, every lead is logged to a Google Sheet, strong leads trigger an alert, and a weekly summary and an error alert run as separate workflows. The Code-node logic lives in plain files with unit tests, and the workflow JSON is generated from it.
+
+**Stack:** n8n · Gemini · Google Sheets · WhatsApp Cloud API (the API accepted the alerts; delivery to a phone not confirmed) · JavaScript · Python  
+**Highlights:** The score decides the tier in code, not the model; an LLM outage logs the lead as needs-review instead of dropping it; exports carry credential names only and a test fails if a secret-shaped string appears. Run on a local n8n, not deployed.
+
+[→ View project](Proj16_n8n_Lead_Capture/)
+
+---
+
 ## Case studies
 
 Client work where the code stays private, written up by situation, constraint, build and outcome.
@@ -229,7 +242,7 @@ Client work where the code stays private, written up by situation, constraint, b
 **Languages:** Python (primary), JavaScript (ES modules), C++ (IoT firmware), HCL (Terraform), Liquid (Shopify)  
 **Data / ETL:** dbt · MotherDuck (DuckDB) · Supabase (PostgreSQL) · CouchDB / PouchDB · SQLite · Parquet  
 **AI / LLMs:** Anthropic Claude · Google Gemini (text + vision + image gen)  
-**Orchestration & Infra:** Kestra · Azure Blob Storage · Terraform · Docker  
+**Orchestration & Infra:** Kestra · n8n (self-hosted) · Azure Blob Storage · Terraform · Docker  
 **Web / APIs:** FastAPI · WordPress REST API · Shopify Admin GraphQL · Brevo API · Playwright · BeautifulSoup4  
 **Agent tooling:** Claude Code hooks, skills and guardrails · MCP  
 **Hardware:** ESP32 / ESP8266 · LoRa · ultrasonic sensing  
