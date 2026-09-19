@@ -54,6 +54,7 @@ Each file is a self-contained script. Run one, or all:
 
 ```bash
 cd hooks
+py -m pip install -r requirements.txt   # pyyaml, used by inject_state and its tests
 for f in test_*.py; do py -X utf8 "$f" || break; done
 ```
 

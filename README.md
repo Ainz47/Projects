@@ -1,6 +1,10 @@
 # Projects
 
+[![tests](https://github.com/Ainz47/Projects/actions/workflows/tests.yml/badge.svg)](https://github.com/Ainz47/Projects/actions/workflows/tests.yml)
+
 A collection of 15 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
+
+**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. The other projects are documented with architecture notes and diagrams, not automated tests.
 
 ---
 
@@ -192,7 +196,7 @@ Low-cost flood early-warning system for a Philippine barangay. Ultrasonic sensor
 
 Offline-first daily schedule app that installs on a phone, syncs through CouchDB, and pushes the week to Google Calendar and an Obsidian note. Streaks, coins and a reward shop make the routine a game.
 
-**Stack:** JavaScript (ES modules, no bundler) · PouchDB · CouchDB · service worker · Python (standard library only)  
+**Stack:** JavaScript (ES modules, no bundler) · PouchDB · CouchDB · service worker · Python (standard library, plus `tzdata` on Windows)  
 **Highlights:** Revision merging that keeps both devices' edits instead of losing the CouchDB loser; a seed script that respects which keys the file owns and which the app owns; atomic single-PUT deploy; 282 JS and 88 Python tests.
 
 [→ View project](Proj14_Personal_Workflow_PWA/)

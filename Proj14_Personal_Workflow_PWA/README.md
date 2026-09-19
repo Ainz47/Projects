@@ -4,6 +4,10 @@ An offline-first daily schedule app that runs as a phone-installable PWA, syncs 
 
 The interesting part is not the UI. It is keeping two devices, a hand-edited template and a live database in agreement without losing anyone's edits.
 
+<img src="docs/screenshots/now.png" alt="The Now screen: current block, countdown, mark-done button and bedtime controls" width="300">
+
+*The Now screen, running on the neutral demo template that ships in `src/data/`.*
+
 ## Highlights
 
 - **Offline-first.** PouchDB keeps a local IndexedDB replica, so ticking a block works with no signal and syncs when the connection returns.
@@ -11,12 +15,13 @@ The interesting part is not the UI. It is keeping two devices, a hand-edited tem
 - **Network-first service worker.** With no content hashing, the only way new files reach an installed device is to prefer the network and fall back to the cached shell, which `sw.js` does.
 - **Conflict resolution that keeps both sides.** CouchDB picks a winner among conflicting revisions and silently discards the rest. `conflicts.js` folds every revision into one: later timestamp wins per entry, and on an exact tie the completion wins.
 - **A seed script that respects who owns what.** `seed.py` merges the hand-edited template with the live document. Structural keys (days, streaks, attributes) come from the file. `checks` and `tasks`, which the app edits in place, come from the database. Ids that only exist in the file are added on top.
-- **Zero dependencies in the tooling.** The CouchDB, Google Calendar and Obsidian clients use only the standard library, and the front end has no bundler. PouchDB is vendored (Apache-2.0).
+- **Almost no dependencies in the tooling.** The CouchDB, Google Calendar and Obsidian clients use only the standard library, and the front end has no bundler. PouchDB is vendored (Apache-2.0). The one install is `tzdata`, because Windows has no system time zone database for `zoneinfo`.
 - **Pure logic, tested without a network.** Calendar planning (`calendar_plan.py`) and note rendering (`vault_render.py`) do no I/O, which is what makes idempotency directly testable.
 
 ## Tests
 
 ```bash
+py -m pip install -r requirements.txt                     # tzdata, for Asia/Manila on Windows
 npm test                                                  # 282 tests, node --test
 py -X utf8 -m unittest discover -s tests -p "test_*.py"   # 88 tests
 ```
