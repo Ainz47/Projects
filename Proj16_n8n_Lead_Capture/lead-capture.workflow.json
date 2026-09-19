@@ -219,7 +219,9 @@
           "mode": "name",
           "value": "Leads"
         },
-        "options": {},
+        "options": {
+          "useAppend": true
+        },
         "columns": {
           "mappingMode": "autoMapInputData",
           "value": {},

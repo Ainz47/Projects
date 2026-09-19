@@ -1,6 +1,6 @@
 [
   {"label": "hot", "expect_tier": "hot", "Name": "Maria Santos", "Email": "maria@example.com", "Company": "Santos Physio Group", "Message": "We run four clinics and lose about thirty enquiries a week because the forms land in a shared inbox. We want each enquiry logged, scored and routed to the right clinic manager, and the budget is approved for this quarter.", "Budget": "$2,000-$10,000", "Timeline": "This month"},
-  {"label": "warm", "expect_tier": "warm", "Name": "Tom Becker", "Email": "tom@example.com", "Company": "Becker Design", "Message": "Thinking about automating my invoice reminders at some point. Not sure which tools yet, would like to hear what is possible.", "Budget": "$500-$2,000", "Timeline": "Next quarter"},
+  {"label": "warm", "expect_tier": "warm", "Name": "Tom Becker", "Email": "tom@example.com", "Company": "Becker Design", "Message": "I run a small design studio and client onboarding is all manual emails and PDFs. I would like to look at automating it this year, but I have no fixed budget yet.", "Budget": "$500-$2,000", "Timeline": "Next quarter"},
   {"label": "cold", "expect_tier": "cold", "Name": "Sam", "Email": "sam@example.com", "Company": "", "Message": "Need a full Uber-style app with payments, maps and live chat built for cheap, will pay when it makes money.", "Budget": "Under $500", "Timeline": "ASAP"},
   {"label": "junk", "expect_tier": "rejected", "Name": "", "Email": "not-an-email", "Company": "", "Message": "asdf", "Budget": "Under $500", "Timeline": "Just exploring"}
 ]

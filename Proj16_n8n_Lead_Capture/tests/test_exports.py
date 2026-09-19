@@ -106,6 +106,10 @@ class LeadCaptureWiring(unittest.TestCase):
         self.assertEqual(targets(self.wf, "Gemini qualify", 0), ["Normalize LLM output"])
         self.assertEqual(targets(self.wf, "Normalize LLM output", 0), ["Parse qualification"])
 
+    def test_sheet_append_is_atomic_so_concurrent_leads_are_not_lost(self):
+        # Found in a live run: without useAppend, leads arriving together overwrote each other.
+        self.assertIs(self.nodes["Append row"]["parameters"]["options"].get("useAppend"), True)
+
     def test_code_nodes_embed_the_tested_logic(self):
         self.assertIn("function validateLead", self.nodes["Validate lead"]["parameters"]["jsCode"])
         parse = self.nodes["Parse qualification"]["parameters"]["jsCode"]

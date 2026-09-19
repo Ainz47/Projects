@@ -118,6 +118,9 @@ def sheets_node(name, position, operation, **extra):
     if operation == "append":
         parameters["columns"] = {"mappingMode": "autoMapInputData", "value": {},
                                  "matchingColumns": [], "schema": []}
+        # Default append reads the row count then writes to that row number, so two leads
+        # arriving together overwrite each other. useAppend calls Google's atomic :append.
+        parameters["options"] = {"useAppend": True}
     return node(name, "n8n-nodes-base.googleSheets", V["sheets"], position, parameters,
                 credentials={"googleSheetsOAuth2Api": "Google Sheets account"}, **extra)
 
