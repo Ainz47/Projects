@@ -1,0 +1,261 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email deliverability checker | Jhurald Lantape</title>
+<meta name="description" content="Check a domain's SPF, DKIM, DMARC and MX records in your browser and get a plain-English fix for anything wrong. Runs on DNS-over-HTTPS, nothing is stored.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #edf1ee;
+  --panel: #fafbfa;
+  --ink: #10201c;
+  --muted: #566661;
+  --line: #c9d3ce;
+  --hold: #c2185b;
+  --review: #9a5b00;
+  --clear: #1b7f5c;
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1512; --panel: #151e1a; --ink: #e6eeea; --muted: #8da19a;
+    --line: #26352f; --hold: #ff6b9a; --review: #e0a23b; --clear: #4cc79b;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1512; --panel: #151e1a; --ink: #e6eeea; --muted: #8da19a;
+  --line: #26352f; --hold: #ff6b9a; --review: #e0a23b; --clear: #4cc79b;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--display); font-size: 1.0625rem; line-height: 1.6; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--hold); }
+:focus-visible { outline: 2px solid var(--hold); outline-offset: 3px; border-radius: 2px; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+
+.bar { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 20px 0; flex-wrap: wrap; }
+.bar .who { font-weight: 800; letter-spacing: -0.01em; }
+.bar nav { display: flex; gap: 20px; font-family: var(--mono); font-size: 0.8125rem; }
+
+.hero { padding: 32px 0 28px; }
+.hero h1 { margin: 0 0 16px; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.06; letter-spacing: -0.03em; font-weight: 800; max-width: 18ch; }
+.hero p { margin: 0; max-width: 58ch; color: var(--muted); font-size: 1.125rem; }
+h2 { font-size: 1.5rem; letter-spacing: -0.02em; margin: 0 0 16px; }
+
+.label { display: block; font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+form { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+.field.full { grid-column: 1 / -1; }
+input[type="text"] {
+  width: 100%; padding: 12px 14px; background: var(--panel); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 4px; font-family: var(--mono); font-size: 1rem;
+}
+.hint { margin: 6px 0 0; font-size: 0.875rem; color: var(--muted); }
+.actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+button {
+  font: inherit; font-family: var(--mono); font-size: 0.875rem; padding: 10px 18px;
+  background: var(--ink); color: var(--paper); border: 0; border-radius: 4px; cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--hold); color: #fff; }
+button:disabled { opacity: 0.55; cursor: progress; }
+button.link { background: none; color: var(--muted); padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+button.link:hover { background: none; color: var(--hold); }
+
+.verdict { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin: 32px 0 8px; padding-top: 24px; border-top: 1px solid var(--line); }
+.stamp {
+  display: inline-block; padding: 6px 16px; border: 3px solid currentColor; border-radius: 4px;
+  font-family: var(--mono); font-weight: 500; font-size: 1.375rem; letter-spacing: 0.14em;
+  text-transform: uppercase; transform: rotate(-2deg); color: var(--muted);
+}
+.stamp[data-state="held"] { color: var(--hold); }
+.stamp[data-state="review"] { color: var(--review); }
+.stamp[data-state="cleared"] { color: var(--clear); }
+@media (prefers-reduced-motion: no-preference) {
+  .stamp.pop { animation: pop 0.22s ease-out; }
+  @keyframes pop { from { transform: rotate(-2deg) scale(1.25); opacity: 0.4; } to { transform: rotate(-2deg) scale(1); opacity: 1; } }
+}
+.summary { margin: 0; color: var(--muted); }
+
+.results { list-style: none; margin: 16px 0 0; padding: 0; }
+.check { padding: 16px 0; border-top: 1px solid var(--line); }
+.c-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.c-name { font-weight: 800; font-size: 1.125rem; }
+.chip { font-family: var(--mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.check[data-status="pass"] .chip { color: var(--clear); }
+.check[data-status="warn"] .chip { color: var(--review); }
+.check[data-status="fail"] .chip { color: var(--hold); }
+.c-text, .c-fix { margin: 4px 0 0; }
+.c-fix { color: var(--muted); font-size: 0.9375rem; }
+.c-fix b { font-weight: 600; color: var(--ink); }
+details { margin-top: 8px; }
+summary { cursor: pointer; font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); }
+pre {
+  margin: 8px 0 0; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  font-family: var(--mono); font-size: 0.8125rem; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
+.notes { margin: 56px 0 48px; }
+.notes p { max-width: 64ch; margin: 0 0 14px; }
+footer { border-top: 1px solid var(--line); padding: 24px 0 48px; color: var(--muted); font-size: 0.9375rem; }
+footer p { margin: 0 0 8px; max-width: 70ch; }
+
+@media (max-width: 640px) { form { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="bar">
+    <div><a class="who" href="../" style="text-decoration:none">Jhurald Hilary Lantape</a></div>
+    <nav aria-label="Links">
+      <a href="../">Portfolio</a>
+      <a href="https://github.com/Ainz47/Projects/tree/main/Proj17_Email_Deliverability_Checker">Source</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Is this domain set up to send email?</h1>
+      <p>Enter a domain and get a plain-English read of its SPF, DKIM, DMARC and MX records, with a fix for anything that needs one. It runs in your browser.</p>
+    </section>
+
+    <section aria-labelledby="tool-title">
+      <h2 id="tool-title" class="label" style="margin-bottom:12px">Check a domain</h2>
+      <form id="form" novalidate>
+        <div class="field">
+          <label class="label" for="domain">Domain</label>
+          <input id="domain" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="example.com">
+        </div>
+        <div class="field">
+          <label class="label" for="selector">DKIM selector (optional)</label>
+          <input id="selector" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="google">
+        </div>
+        <div class="field full">
+          <p class="hint">The selector is shown on your email provider's DKIM setup page. Leave it blank to try the common ones.</p>
+          <div class="actions" style="margin-top:14px">
+            <button type="submit" id="go">Check</button>
+            <button type="button" id="example" class="link">Try example.com</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="verdict">
+        <span id="stamp" class="stamp" data-state="empty" role="status" aria-live="polite">Enter a domain</span>
+        <p id="summary" class="summary"></p>
+      </div>
+      <ol id="results" class="results"></ol>
+    </section>
+
+    <section class="notes">
+      <h2>What this does and does not do</h2>
+      <p><b>Privacy.</b> The domain you type is sent to Cloudflare's public DNS-over-HTTPS service, and to Google's if Cloudflare does not answer. Nothing is sent to me and nothing is stored.</p>
+      <p><b>Limits.</b> It reads DNS records. It does not check blacklists or inbox placement, and it cannot test that a real message passes. A DKIM selector cannot be discovered from a domain, so it tries the common ones; type yours if it is not found. A clean result does not guarantee inbox placement.</p>
+      <p><b>Why these checks.</b> Gmail and Yahoo require SPF, DKIM and DMARC from anyone who sends in bulk.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Part of a portfolio of small builds. The checking logic is unit-tested against fake DNS answers, and this page is generated from that tested code. <a href="https://github.com/Ainz47/Projects/tree/main/Proj17_Email_Deliverability_Checker">Source and tests</a>.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+/*__LOGIC__*/
+
+  // ---- page ----
+  var STAMP_STATE = { ready: "cleared", review: "review", fix: "held", incomplete: "incomplete" };
+  var TITLES = { spf: "SPF", dkim: "DKIM", dmarc: "DMARC", mx: "MX" };
+  var CHIPS = { pass: "Pass", warn: "Warn", fail: "Fail", error: "Could not check" };
+
+  function $(id) { return document.getElementById(id); }
+  // DNS answers are attacker-controlled text: build every node with textContent and never parse them as HTML.
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  var stamp = $("stamp"), summary = $("summary"), results = $("results"), go = $("go");
+
+  function setStamp(state, label) {
+    stamp.textContent = label;
+    stamp.setAttribute("data-state", state);
+    stamp.classList.remove("pop");
+    void stamp.offsetWidth;
+    stamp.classList.add("pop");
+  }
+
+  function describe(report) {
+    var counts = { fail: 0, warn: 0, error: 0 };
+    report.checks.forEach(function (c) { if (counts[c.status] !== undefined) counts[c.status] += 1; });
+    var parts = [];
+    if (counts.fail) parts.push(counts.fail + (counts.fail === 1 ? " check needs fixing" : " checks need fixing"));
+    if (counts.warn) parts.push(counts.warn + " to review");
+    if (counts.error) parts.push(counts.error + " could not be checked");
+    return report.domain + ": " + (parts.length ? parts.join(", ") : "all four checks passed") + ".";
+  }
+
+  function render(report) {
+    results.textContent = "";
+    report.checks.forEach(function (c) {
+      var li = el("li", "check");
+      li.setAttribute("data-status", c.status);
+      var head = el("div", "c-head");
+      head.appendChild(el("span", "c-name", TITLES[c.id]));
+      head.appendChild(el("span", "chip", CHIPS[c.status]));
+      li.appendChild(head);
+      li.appendChild(el("p", "c-text", c.summary));
+      if (c.fix && c.status !== "pass") {
+        var fix = el("p", "c-fix");
+        fix.appendChild(el("b", "", "Fix: "));
+        fix.appendChild(document.createTextNode(c.fix));
+        li.appendChild(fix);
+      }
+      if (c.records.length) {
+        var details = el("details");
+        details.appendChild(el("summary", "", "Show record"));
+        details.appendChild(el("pre", "", c.records.join("\n")));
+        li.appendChild(details);
+      }
+      results.appendChild(li);
+    });
+  }
+
+  function run() {
+    go.disabled = true;
+    results.textContent = "";
+    summary.textContent = "Looking up DNS records...";
+    setStamp("empty", "Checking");
+    analyze($("domain").value, $("selector").value, createResolver())
+      .then(function (report) {
+        if (!report.ok) {
+          setStamp("empty", "Check the input");
+          summary.textContent = report.reason;
+          return;
+        }
+        setStamp(STAMP_STATE[report.verdict], VERDICT_LABELS[report.verdict]);
+        summary.textContent = describe(report);
+        render(report);
+      })
+      .catch(function (err) {
+        setStamp("incomplete", "Couldn't finish");
+        summary.textContent = "Something went wrong (" + err.message + "). Try again.";
+      })
+      .then(function () { go.disabled = false; });
+  }
+
+  $("form").addEventListener("submit", function (e) { e.preventDefault(); run(); });
+  $("example").addEventListener("click", function () { $("domain").value = "example.com"; run(); });
+})();
+</script>
+</body>
+</html>

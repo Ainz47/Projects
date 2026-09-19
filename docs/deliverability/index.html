@@ -1,0 +1,712 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Email deliverability checker | Jhurald Lantape</title>
+<meta name="description" content="Check a domain's SPF, DKIM, DMARC and MX records in your browser and get a plain-English fix for anything wrong. Runs on DNS-over-HTTPS, nothing is stored.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #edf1ee;
+  --panel: #fafbfa;
+  --ink: #10201c;
+  --muted: #566661;
+  --line: #c9d3ce;
+  --hold: #c2185b;
+  --review: #9a5b00;
+  --clear: #1b7f5c;
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1512; --panel: #151e1a; --ink: #e6eeea; --muted: #8da19a;
+    --line: #26352f; --hold: #ff6b9a; --review: #e0a23b; --clear: #4cc79b;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1512; --panel: #151e1a; --ink: #e6eeea; --muted: #8da19a;
+  --line: #26352f; --hold: #ff6b9a; --review: #e0a23b; --clear: #4cc79b;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body { margin: 0; background: var(--paper); color: var(--ink); font-family: var(--display); font-size: 1.0625rem; line-height: 1.6; }
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--hold); }
+:focus-visible { outline: 2px solid var(--hold); outline-offset: 3px; border-radius: 2px; }
+.wrap { max-width: 860px; margin: 0 auto; padding: 0 16px; }
+
+.bar { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 20px 0; flex-wrap: wrap; }
+.bar .who { font-weight: 800; letter-spacing: -0.01em; }
+.bar nav { display: flex; gap: 20px; font-family: var(--mono); font-size: 0.8125rem; }
+
+.hero { padding: 32px 0 28px; }
+.hero h1 { margin: 0 0 16px; font-size: clamp(1.9rem, 5vw, 3rem); line-height: 1.06; letter-spacing: -0.03em; font-weight: 800; max-width: 18ch; }
+.hero p { margin: 0; max-width: 58ch; color: var(--muted); font-size: 1.125rem; }
+h2 { font-size: 1.5rem; letter-spacing: -0.02em; margin: 0 0 16px; }
+
+.label { display: block; font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+form { display: grid; grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr); gap: 16px 24px; align-items: start; }
+.field.full { grid-column: 1 / -1; }
+input[type="text"] {
+  width: 100%; padding: 12px 14px; background: var(--panel); color: var(--ink);
+  border: 1px solid var(--line); border-radius: 4px; font-family: var(--mono); font-size: 1rem;
+}
+.hint { margin: 6px 0 0; font-size: 0.875rem; color: var(--muted); }
+.actions { display: flex; gap: 14px; flex-wrap: wrap; align-items: center; }
+button {
+  font: inherit; font-family: var(--mono); font-size: 0.875rem; padding: 10px 18px;
+  background: var(--ink); color: var(--paper); border: 0; border-radius: 4px; cursor: pointer;
+}
+button:hover:not(:disabled) { background: var(--hold); color: #fff; }
+button:disabled { opacity: 0.55; cursor: progress; }
+button.link { background: none; color: var(--muted); padding: 0; text-decoration: underline; text-underline-offset: 3px; }
+button.link:hover { background: none; color: var(--hold); }
+
+.verdict { display: flex; align-items: center; gap: 20px; flex-wrap: wrap; margin: 32px 0 8px; padding-top: 24px; border-top: 1px solid var(--line); }
+.stamp {
+  display: inline-block; padding: 6px 16px; border: 3px solid currentColor; border-radius: 4px;
+  font-family: var(--mono); font-weight: 500; font-size: 1.375rem; letter-spacing: 0.14em;
+  text-transform: uppercase; transform: rotate(-2deg); color: var(--muted);
+}
+.stamp[data-state="held"] { color: var(--hold); }
+.stamp[data-state="review"] { color: var(--review); }
+.stamp[data-state="cleared"] { color: var(--clear); }
+@media (prefers-reduced-motion: no-preference) {
+  .stamp.pop { animation: pop 0.22s ease-out; }
+  @keyframes pop { from { transform: rotate(-2deg) scale(1.25); opacity: 0.4; } to { transform: rotate(-2deg) scale(1); opacity: 1; } }
+}
+.summary { margin: 0; color: var(--muted); }
+
+.results { list-style: none; margin: 16px 0 0; padding: 0; }
+.check { padding: 16px 0; border-top: 1px solid var(--line); }
+.c-head { display: flex; flex-wrap: wrap; gap: 4px 12px; align-items: baseline; }
+.c-name { font-weight: 800; font-size: 1.125rem; }
+.chip { font-family: var(--mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); }
+.check[data-status="pass"] .chip { color: var(--clear); }
+.check[data-status="warn"] .chip { color: var(--review); }
+.check[data-status="fail"] .chip { color: var(--hold); }
+.c-text, .c-fix { margin: 4px 0 0; }
+.c-fix { color: var(--muted); font-size: 0.9375rem; }
+.c-fix b { font-weight: 600; color: var(--ink); }
+details { margin-top: 8px; }
+summary { cursor: pointer; font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); }
+pre {
+  margin: 8px 0 0; padding: 12px; background: var(--panel); border: 1px solid var(--line); border-radius: 4px;
+  font-family: var(--mono); font-size: 0.8125rem; white-space: pre-wrap; overflow-wrap: anywhere;
+}
+
+.notes { margin: 56px 0 48px; }
+.notes p { max-width: 64ch; margin: 0 0 14px; }
+footer { border-top: 1px solid var(--line); padding: 24px 0 48px; color: var(--muted); font-size: 0.9375rem; }
+footer p { margin: 0 0 8px; max-width: 70ch; }
+
+@media (max-width: 640px) { form { grid-template-columns: minmax(0, 1fr); } }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="bar">
+    <div><a class="who" href="../" style="text-decoration:none">Jhurald Hilary Lantape</a></div>
+    <nav aria-label="Links">
+      <a href="../">Portfolio</a>
+      <a href="https://github.com/Ainz47/Projects/tree/main/Proj17_Email_Deliverability_Checker">Source</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Is this domain set up to send email?</h1>
+      <p>Enter a domain and get a plain-English read of its SPF, DKIM, DMARC and MX records, with a fix for anything that needs one. It runs in your browser.</p>
+    </section>
+
+    <section aria-labelledby="tool-title">
+      <h2 id="tool-title" class="label" style="margin-bottom:12px">Check a domain</h2>
+      <form id="form" novalidate>
+        <div class="field">
+          <label class="label" for="domain">Domain</label>
+          <input id="domain" type="text" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="example.com">
+        </div>
+        <div class="field">
+          <label class="label" for="selector">DKIM selector (optional)</label>
+          <input id="selector" type="text" autocomplete="off" autocapitalize="off" spellcheck="false" placeholder="google">
+        </div>
+        <div class="field full">
+          <p class="hint">The selector is shown on your email provider's DKIM setup page. Leave it blank to try the common ones.</p>
+          <div class="actions" style="margin-top:14px">
+            <button type="submit" id="go">Check</button>
+            <button type="button" id="example" class="link">Try example.com</button>
+          </div>
+        </div>
+      </form>
+
+      <div class="verdict">
+        <span id="stamp" class="stamp" data-state="empty" role="status" aria-live="polite">Enter a domain</span>
+        <p id="summary" class="summary"></p>
+      </div>
+      <ol id="results" class="results"></ol>
+    </section>
+
+    <section class="notes">
+      <h2>What this does and does not do</h2>
+      <p><b>Privacy.</b> The domain you type is sent to Cloudflare's public DNS-over-HTTPS service, and to Google's if Cloudflare does not answer. Nothing is sent to me and nothing is stored.</p>
+      <p><b>Limits.</b> It reads DNS records. It does not check blacklists or inbox placement, and it cannot test that a real message passes. A DKIM selector cannot be discovered from a domain, so it tries the common ones; type yours if it is not found. A clean result does not guarantee inbox placement.</p>
+      <p><b>Why these checks.</b> Gmail and Yahoo require SPF, DKIM and DMARC from anyone who sends in bulk.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>Part of a portfolio of small builds. The checking logic is unit-tested against fake DNS answers, and this page is generated from that tested code. <a href="https://github.com/Ainz47/Projects/tree/main/Proj17_Email_Deliverability_Checker">Source and tests</a>.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+// ---- domain.js ----
+// Turns whatever the user typed into a domain we are willing to query, or a reason we are not.
+
+const LABEL = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
+const SELECTOR = /^[a-z0-9](?:[a-z0-9._-]{0,61}[a-z0-9])?$/;
+
+function reject(reason) {
+  return { ok: false, reason };
+}
+
+function normalizeDomain(input) {
+  let s = String(input ?? "").trim().toLowerCase();
+  if (!s) return reject("Enter a domain, for example example.com.");
+
+  s = s.replace(/^[a-z][a-z0-9+.-]*:\/\//, "").split(/[/?#]/)[0];
+  if (s.includes("@")) s = s.slice(s.lastIndexOf("@") + 1);
+  s = s.replace(/:\d+$/, "").replace(/\.$/, "");
+
+  if (s.startsWith("[") || s.includes(":") || /^\d+\.\d+\.\d+\.\d+$/.test(s)) {
+    return reject("That looks like an IP address. Enter a domain name instead.");
+  }
+
+  let host;
+  try {
+    host = new URL("http://" + s).hostname;
+  } catch {
+    return reject("That is not a valid domain name.");
+  }
+
+  const labels = host.split(".");
+  if (host.length > 253 || labels.length < 2 || labels.some((l) => l.length > 63 || !LABEL.test(l))) {
+    return reject("That is not a valid domain name.");
+  }
+  return { ok: true, domain: host };
+}
+
+function normalizeSelector(input) {
+  const s = String(input ?? "").trim().toLowerCase();
+  if (!s) return { ok: true, selector: "" };
+  if (!SELECTOR.test(s)) return reject("A DKIM selector uses letters, digits, dots, hyphens and underscores.");
+  return { ok: true, selector: s };
+}
+
+// ---- result.js ----
+// The shape every check returns, and the rule for turning a list of problems into one status.
+// status is one of pass | warn | error | fail; fail outranks error, error outranks warn.
+
+const RANK = { pass: 0, warn: 1, error: 2, fail: 3 };
+
+function result(id, status, summary, fix = "", records = []) {
+  return { id, status, summary, fix, records };
+}
+
+// problems: [{ level: "warn" | "error" | "fail", text, fix }]
+function fromProblems(id, problems, passSummary, records = []) {
+  if (!problems.length) return result(id, "pass", passSummary, "", records);
+  const worst = problems.reduce((a, b) => (RANK[b.level] > RANK[a.level] ? b : a));
+  const fix = problems.map((p) => p.fix).filter(Boolean).join(" ");
+  return result(id, worst.level, worst.text, fix, records);
+}
+
+// ---- tags.js ----
+// Parses "k=v; k2=v2" tag lists (DMARC and DKIM records). Keys are lower-cased, values are trimmed.
+function parseTags(record) {
+  const tags = {};
+  for (const part of record.split(";")) {
+    const i = part.indexOf("=");
+    if (i > 0) tags[part.slice(0, i).trim().toLowerCase()] = part.slice(i + 1).trim();
+  }
+  return tags;
+}
+
+// ---- dns.js ----
+// The only module that touches the network. Everything else takes the `resolve` function this returns.
+//
+// resolve(name, type) -> { ok: true, answers } | { ok: false, error }
+// "No such name" and "no records" are ok:true with empty answers; only a lookup that could not
+// be completed is ok:false, so a network problem can never be read as "the domain has no SPF".
+
+const DEFAULT_ENDPOINTS = ["https://cloudflare-dns.com/dns-query", "https://dns.google/resolve"];
+const TYPE_CODES = { TXT: 16, MX: 15 };
+
+function parseTxt(data) {
+  const parts = [...data.matchAll(/"((?:[^"\\]|\\.)*)"/g)].map((m) => m[1].replace(/\\(.)/g, "$1"));
+  return parts.length ? parts.join("") : data;
+}
+
+function parseMx(data) {
+  const [priority, ...host] = data.trim().split(/\s+/);
+  return { priority: Number(priority), host: host.join(" ").replace(/\.$/, "") };
+}
+
+function createResolver({
+  fetchFn = (...args) => globalThis.fetch(...args),
+  endpoints = DEFAULT_ENDPOINTS,
+  timeoutMs = 5000,
+  maxRequests = 60,
+} = {}) {
+  const cache = new Map();
+  let requests = 0;
+
+  async function ask(base, name, type) {
+    const controller = new AbortController();
+    let timer;
+    const timeout = new Promise((_, reject) => {
+      timer = setTimeout(() => {
+        controller.abort();
+        reject(new Error("timed out"));
+      }, timeoutMs);
+    });
+    const work = (async () => {
+      const url = `${base}?name=${encodeURIComponent(name)}&type=${type}`;
+      const res = await fetchFn(url, { headers: { accept: "application/dns-json" }, signal: controller.signal });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      const body = await res.json();
+      if (body.Status !== 0 && body.Status !== 3) throw new Error(`DNS status ${body.Status}`);
+      const wanted = (body.Answer || []).filter((a) => a.type === TYPE_CODES[type]);
+      return { ok: true, answers: wanted.map((a) => (type === "MX" ? parseMx(a.data) : parseTxt(a.data))) };
+    })();
+    try {
+      return await Promise.race([work, timeout]);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
+
+  async function lookup(name, type) {
+    let lastError = "no resolver configured";
+    for (const base of endpoints) {
+      if (requests >= maxRequests) return { ok: false, error: "Request limit reached for this check." };
+      requests += 1;
+      try {
+        return await ask(base, name, type);
+      } catch (e) {
+        lastError = e.message;
+      }
+    }
+    return { ok: false, error: `Could not reach a DNS resolver (${lastError}).` };
+  }
+
+  return (name, type) => {
+    const key = `${type}:${name}`;
+    if (!cache.has(key)) cache.set(key, lookup(name, type));
+    return cache.get(key);
+  };
+}
+
+// ---- spf.js ----
+const LIMIT = 10;
+const isSpf = (txt) => /^v=spf1(\s|$)/i.test(txt);
+
+function parseTerms(record) {
+  return record
+    .trim()
+    .split(/\s+/)
+    .slice(1)
+    .map((term) => {
+      const m = /^([+\-~?])?([a-z0-9]+)(.*)$/i.exec(term);
+      if (!m) return { name: "", qualifier: "", domain: "" };
+      const rest = m[3];
+      const domain = /^[:=]/.test(rest) ? rest.slice(1).replace(/\/\d+(\/\d+)?$/, "") : "";
+      return { name: m[2].toLowerCase(), qualifier: m[1] || "", domain: domain.toLowerCase() };
+    });
+}
+
+function count(ctx) {
+  ctx.lookups += 1;
+  if (ctx.lookups > LIMIT) {
+    ctx.over = true;
+    ctx.stop = true;
+  }
+}
+
+// Fetch and walk the SPF record of an include or redirect target. Returns that record's "all"
+// qualifier (only meaningful for redirect; an include's own "all" does not apply to the caller).
+async function follow(target, ctx, chain) {
+  if (ctx.stop) return null;
+  if (chain.has(target)) {
+    ctx.loop = target;
+    ctx.stop = true;
+    return null;
+  }
+  const r = await ctx.resolve(target, "TXT");
+  if (!r.ok) {
+    ctx.errors.push(r.error);
+    return null;
+  }
+  const records = r.answers.filter(isSpf);
+  if (records.length !== 1) {
+    ctx.missing.push(target);
+    return null;
+  }
+  return walk(target, records[0], ctx, new Set([...chain, target]));
+}
+
+async function walk(domain, record, ctx, chain) {
+  let all = null;
+  let redirect = "";
+  for (const t of parseTerms(record)) {
+    if (ctx.stop) return all;
+    if (t.name === "all") {
+      all = t.qualifier || "+";
+      break;
+    }
+    if (t.name === "redirect") {
+      redirect = t.domain;
+    } else if (t.name === "include") {
+      count(ctx);
+      await follow(t.domain, ctx, chain);
+    } else if (t.name === "a" || t.name === "mx" || t.name === "exists") {
+      count(ctx);
+    } else if (t.name === "ptr") {
+      count(ctx);
+      ctx.ptr = true;
+    }
+  }
+  if (all === null && redirect && !ctx.stop) {
+    count(ctx);
+    return follow(redirect, ctx, chain);
+  }
+  return all;
+}
+
+async function checkSpf(domain, resolve) {
+  const r = await resolve(domain, "TXT");
+  if (!r.ok) {
+    return result("spf", "error", `Could not look up the SPF record (${r.error}).`, "Try again in a moment.");
+  }
+  const records = r.answers.filter(isSpf);
+  if (records.length === 0) {
+    return result(
+      "spf",
+      "fail",
+      "No SPF record found for this domain.",
+      "Add a TXT record that starts with v=spf1, lists the services allowed to send for you, and ends with -all (or ~all while testing)."
+    );
+  }
+  if (records.length > 1) {
+    return result("spf", "fail", `Found ${records.length} SPF records. Receivers treat more than one as an error.`, "Merge them into a single v=spf1 record.", records);
+  }
+
+  const ctx = { resolve, lookups: 0, stop: false, over: false, ptr: false, loop: "", missing: [], errors: [] };
+  const all = await walk(domain, records[0], ctx, new Set([domain]));
+
+  const problems = [];
+  if (ctx.loop) problems.push({ level: "fail", text: `The includes loop back to ${ctx.loop}.`, fix: "Remove the include that points back to a record already in the chain." });
+  if (ctx.over) problems.push({ level: "fail", text: `The record needs more than ${LIMIT} DNS lookups, so receivers reject it.`, fix: "Remove includes you do not use, or flatten them into ip4 and ip6 ranges." });
+  for (const target of ctx.missing) problems.push({ level: "fail", text: `Includes ${target}, which has no usable SPF record.`, fix: `Remove the include of ${target}, or get the correct include from that provider.` });
+  if (ctx.errors.length) problems.push({ level: "error", text: `Could not finish checking the includes (${ctx.errors[0]}).`, fix: "Try again in a moment." });
+  if (ctx.ptr) problems.push({ level: "warn", text: "Uses the ptr mechanism, which is deprecated and slow.", fix: "Replace ptr with ip4, ip6 or include." });
+  if (!ctx.stop) {
+    if (all === "+") problems.push({ level: "fail", text: "The record ends with +all, which lets anyone send as this domain.", fix: "Change +all to -all (or ~all while you are still testing)." });
+    else if (all === "?") problems.push({ level: "warn", text: "The record ends with ?all, which says nothing about senders you did not list.", fix: "Change ?all to -all (or ~all while you are still testing)." });
+    else if (all === null) problems.push({ level: "warn", text: "The record does not end with an all mechanism, so senders you did not list are not covered.", fix: "End the record with -all (or ~all while you are still testing)." });
+  }
+  if (!ctx.over && ctx.lookups >= LIMIT - 1) {
+    problems.push({ level: "warn", text: `Uses ${ctx.lookups} of ${LIMIT} DNS lookups, so one more include could break it.`, fix: "Trim includes you do not need." });
+  }
+
+  const ending = all === "~" ? "~all (soft fail)" : `${all}all`;
+  return fromProblems("spf", problems, `SPF found. Ends with ${ending}, uses ${ctx.lookups} of ${LIMIT} DNS lookups.`, records);
+}
+
+// ---- dkim.js ----
+// A selector cannot be discovered from the domain, so we probe the names the big providers use.
+const COMMON_SELECTORS = [
+  "google", "default", "selector1", "selector2", "k1", "k2", "k3", "s1", "s2",
+  "mail", "dkim", "smtp", "zoho", "mandrill", "brevo1", "brevo2",
+];
+
+const isDkim = (txt) => /^\s*v=DKIM1/i.test(txt) || /(^|;)\s*p=/i.test(txt);
+
+// Byte length of a base64 string without decoding it (works the same in a browser and in node).
+const base64Bytes = (b64) => Math.floor((b64.replace(/=+$/, "").length * 3) / 4);
+
+function evaluate(selector, txt) {
+  const tags = parseTags(txt);
+  const p = (tags.p || "").replace(/\s+/g, "");
+  if (!p) {
+    return [{ level: "fail", text: `The key for selector ${selector} has been revoked (empty p=).`, fix: "Publish a current key for this selector, or stop sending with it." }];
+  }
+  const problems = [];
+  if ((tags.k || "rsa").toLowerCase() !== "ed25519") {
+    const bytes = base64Bytes(p);
+    if (bytes < 100) {
+      problems.push({ level: "fail", text: `The key for selector ${selector} is too short to be secure.`, fix: "Publish a 2048-bit key." });
+    } else if (bytes < 270) {
+      problems.push({ level: "warn", text: `Selector ${selector} uses what looks like a 1024-bit key, which is considered weak.`, fix: "Rotate to a 2048-bit key with your email provider." });
+    }
+  }
+  if ((tags.t || "").toLowerCase().split(":").includes("y")) {
+    problems.push({ level: "warn", text: `Selector ${selector} is in test mode (t=y), so receivers may ignore failures.`, fix: "Remove t=y once you have confirmed DKIM works." });
+  }
+  return problems;
+}
+
+async function checkDkim(domain, resolve, typedSelector = "") {
+  const selectors = [...new Set([typedSelector, ...COMMON_SELECTORS].filter(Boolean))];
+  const lookups = await Promise.all(
+    selectors.map(async (selector) => ({ selector, r: await resolve(`${selector}._domainkey.${domain}`, "TXT") }))
+  );
+
+  const typed = typedSelector ? lookups.find((l) => l.selector === typedSelector) : null;
+  if (typed && !typed.r.ok) {
+    return result("dkim", "error", `Could not look up the DKIM record for ${typedSelector} (${typed.r.error}).`, "Try again in a moment.");
+  }
+
+  const found = lookups
+    .filter((l) => l.r.ok)
+    .map((l) => ({ selector: l.selector, records: l.r.answers.filter(isDkim) }))
+    .filter((l) => l.records.length);
+
+  if (!found.length && !typed) {
+    if (lookups.every((l) => !l.r.ok)) {
+      return result("dkim", "error", `Could not look up any DKIM records (${lookups[0].r.error}).`, "Try again in a moment.");
+    }
+    return result(
+      "dkim",
+      "warn",
+      "No DKIM record found among the common selectors. This does not prove DKIM is missing, because a selector cannot be discovered from the domain.",
+      "Type your selector into the DKIM selector field. Your email provider's DKIM setup page shows it."
+    );
+  }
+
+  const problems = [];
+  if (typed && !found.some((f) => f.selector === typedSelector)) {
+    problems.push({
+      level: "fail",
+      text: `No DKIM record found for the selector ${typedSelector} (${typedSelector}._domainkey.${domain}).`,
+      fix: "Check the selector name in your email provider's DKIM settings, or publish the key it gives you.",
+    });
+  }
+  for (const f of found) problems.push(...evaluate(f.selector, f.records[0]));
+
+  const names = found.map((f) => f.selector).join(", ");
+  const summary = `DKIM found for ${found.length === 1 ? "selector" : "selectors"} ${names}.`;
+  return fromProblems("dkim", problems, summary, found.map((f) => f.records[0]));
+}
+
+// ---- dmarc.js ----
+const isDmarc = (txt) => /^v=DMARC1\s*(;|$)/i.test(txt);
+const POLICIES = ["none", "quarantine", "reject"];
+
+// example.com -> [example.com]; a.b.example.com -> [a.b.example.com, b.example.com, example.com].
+// There is no public-suffix list here, so the search simply stops at two labels.
+function candidates(domain) {
+  const labels = domain.split(".");
+  const out = [];
+  for (let i = 0; i <= labels.length - 2; i++) out.push(labels.slice(i).join("."));
+  return out;
+}
+
+async function checkDmarc(domain, resolve) {
+  let foundAt = "";
+  let records = [];
+  for (const candidate of candidates(domain)) {
+    const r = await resolve(`_dmarc.${candidate}`, "TXT");
+    if (!r.ok) return result("dmarc", "error", `Could not look up the DMARC record (${r.error}).`, "Try again in a moment.");
+    records = r.answers.filter(isDmarc);
+    if (records.length) {
+      foundAt = candidate;
+      break;
+    }
+  }
+
+  if (!records.length) {
+    return result(
+      "dmarc",
+      "fail",
+      "No DMARC record found for this domain.",
+      `Add a TXT record at _dmarc.${domain} such as v=DMARC1; p=none; rua=mailto:you@${domain}, then move the policy to quarantine or reject once the reports look clean.`
+    );
+  }
+  if (records.length > 1) {
+    return result("dmarc", "fail", `Found ${records.length} DMARC records. Receivers ignore DMARC when there is more than one.`, "Keep a single v=DMARC1 record.", records);
+  }
+
+  const tags = parseTags(records[0]);
+  const inherited = foundAt !== domain;
+  const policy = ((inherited && tags.sp) || tags.p || "").toLowerCase();
+  const problems = [];
+
+  if (!policy) {
+    problems.push({ level: "fail", text: "The DMARC record has no policy (p=).", fix: "Add p=none, p=quarantine or p=reject to the record." });
+  } else if (!POLICIES.includes(policy)) {
+    problems.push({ level: "fail", text: `The DMARC policy "${policy}" is not valid.`, fix: "Use p=none, p=quarantine or p=reject." });
+  } else if (policy === "none") {
+    problems.push({ level: "warn", text: "The policy is none, so DMARC is monitoring only and mail that fails the checks is still delivered.", fix: "Read the reports for a few weeks, then move to p=quarantine and later p=reject." });
+  } else if (tags.pct && Number(tags.pct) < 100) {
+    problems.push({ level: "warn", text: `The policy only applies to ${tags.pct}% of mail (pct=${tags.pct}).`, fix: "Raise pct to 100 once you are confident nothing legitimate fails." });
+  }
+  if (!tags.rua) {
+    problems.push({ level: "warn", text: "No report address (rua), so you will not receive DMARC reports.", fix: "Add rua=mailto:you@yourdomain so you can see who sends as your domain." });
+  }
+
+  const where = inherited ? ` (inherited from ${foundAt})` : "";
+  return fromProblems("dmarc", problems, `DMARC found. The policy is ${policy}${where} and reports are turned on.`, records);
+}
+
+// ---- mx.js ----
+async function checkMx(domain, resolve) {
+  const r = await resolve(domain, "MX");
+  if (!r.ok) return result("mx", "error", `Could not look up the MX records (${r.error}).`, "Try again in a moment.");
+
+  const servers = [...r.answers].sort((a, b) => a.priority - b.priority);
+  if (!servers.length) {
+    return result("mx", "warn", "No MX records found, so this domain cannot receive replies.", "Add MX records that point at your mail provider so replies and bounces reach you.");
+  }
+  const records = servers.map((s) => `${s.priority} ${s.host || "."}`);
+  if (servers.length === 1 && servers[0].host === "") {
+    return result("mx", "pass", "This domain publishes a null MX, so it says it does not receive email.", "", records);
+  }
+  return result("mx", "pass", `${servers.length} mail ${servers.length === 1 ? "server" : "servers"} found.`, "", records);
+}
+
+// ---- report.js ----
+const VERDICT_LABELS = { ready: "Ready", review: "Review", fix: "Fix first", incomplete: "Couldn't finish" };
+
+// A failure always wins. An error (a lookup that could not finish) comes next, so a network
+// problem can never read as "Ready".
+function verdictFor(checks) {
+  const has = (status) => checks.some((c) => c.status === status);
+  if (has("fail")) return "fix";
+  if (has("error")) return "incomplete";
+  if (has("warn")) return "review";
+  return "ready";
+}
+
+async function analyze(rawDomain, rawSelector, resolve) {
+  const d = normalizeDomain(rawDomain);
+  if (!d.ok) return { ok: false, reason: d.reason };
+  const s = normalizeSelector(rawSelector);
+  if (!s.ok) return { ok: false, reason: s.reason };
+
+  const runs = [
+    ["spf", () => checkSpf(d.domain, resolve)],
+    ["dkim", () => checkDkim(d.domain, resolve, s.selector)],
+    ["dmarc", () => checkDmarc(d.domain, resolve)],
+    ["mx", () => checkMx(d.domain, resolve)],
+  ];
+  const checks = await Promise.all(
+    runs.map(async ([id, run]) => {
+      try {
+        return await run();
+      } catch (e) {
+        return result(id, "error", `This check stopped unexpectedly (${e.message}).`, "Try again in a moment.");
+      }
+    })
+  );
+  return { ok: true, domain: d.domain, verdict: verdictFor(checks), checks };
+}
+
+
+  // ---- page ----
+  var STAMP_STATE = { ready: "cleared", review: "review", fix: "held", incomplete: "incomplete" };
+  var TITLES = { spf: "SPF", dkim: "DKIM", dmarc: "DMARC", mx: "MX" };
+  var CHIPS = { pass: "Pass", warn: "Warn", fail: "Fail", error: "Could not check" };
+
+  function $(id) { return document.getElementById(id); }
+  // DNS answers are attacker-controlled text: build every node with textContent and never parse them as HTML.
+  function el(tag, className, text) {
+    var node = document.createElement(tag);
+    if (className) node.className = className;
+    if (text != null) node.textContent = text;
+    return node;
+  }
+
+  var stamp = $("stamp"), summary = $("summary"), results = $("results"), go = $("go");
+
+  function setStamp(state, label) {
+    stamp.textContent = label;
+    stamp.setAttribute("data-state", state);
+    stamp.classList.remove("pop");
+    void stamp.offsetWidth;
+    stamp.classList.add("pop");
+  }
+
+  function describe(report) {
+    var counts = { fail: 0, warn: 0, error: 0 };
+    report.checks.forEach(function (c) { if (counts[c.status] !== undefined) counts[c.status] += 1; });
+    var parts = [];
+    if (counts.fail) parts.push(counts.fail + (counts.fail === 1 ? " check needs fixing" : " checks need fixing"));
+    if (counts.warn) parts.push(counts.warn + " to review");
+    if (counts.error) parts.push(counts.error + " could not be checked");
+    return report.domain + ": " + (parts.length ? parts.join(", ") : "all four checks passed") + ".";
+  }
+
+  function render(report) {
+    results.textContent = "";
+    report.checks.forEach(function (c) {
+      var li = el("li", "check");
+      li.setAttribute("data-status", c.status);
+      var head = el("div", "c-head");
+      head.appendChild(el("span", "c-name", TITLES[c.id]));
+      head.appendChild(el("span", "chip", CHIPS[c.status]));
+      li.appendChild(head);
+      li.appendChild(el("p", "c-text", c.summary));
+      if (c.fix && c.status !== "pass") {
+        var fix = el("p", "c-fix");
+        fix.appendChild(el("b", "", "Fix: "));
+        fix.appendChild(document.createTextNode(c.fix));
+        li.appendChild(fix);
+      }
+      if (c.records.length) {
+        var details = el("details");
+        details.appendChild(el("summary", "", "Show record"));
+        details.appendChild(el("pre", "", c.records.join("\n")));
+        li.appendChild(details);
+      }
+      results.appendChild(li);
+    });
+  }
+
+  function run() {
+    go.disabled = true;
+    results.textContent = "";
+    summary.textContent = "Looking up DNS records...";
+    setStamp("empty", "Checking");
+    analyze($("domain").value, $("selector").value, createResolver())
+      .then(function (report) {
+        if (!report.ok) {
+          setStamp("empty", "Check the input");
+          summary.textContent = report.reason;
+          return;
+        }
+        setStamp(STAMP_STATE[report.verdict], VERDICT_LABELS[report.verdict]);
+        summary.textContent = describe(report);
+        render(report);
+      })
+      .catch(function (err) {
+        setStamp("incomplete", "Couldn't finish");
+        summary.textContent = "Something went wrong (" + err.message + "). Try again.";
+      })
+      .then(function () { go.disabled = false; });
+  }
+
+  $("form").addEventListener("submit", function (e) { e.preventDefault(); run(); });
+  $("example").addEventListener("click", function () { $("domain").value = "example.com"; run(); });
+})();
+</script>
+</body>
+</html>
