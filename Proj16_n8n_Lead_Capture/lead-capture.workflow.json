@@ -140,10 +140,13 @@
             }
           ]
         },
-        "options": {}
+        "options": {
+          "includeMergedResponse": true
+        },
+        "jsonOutput": true
       },
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
-      "typeVersion": 1,
+      "typeVersion": 1.2,
       "position": [
         720,
         -120
@@ -164,7 +167,7 @@
             {
               "id": "llm-text",
               "name": "llm_text",
-              "value": "={{ $json.content?.parts?.[0]?.text ?? '' }}",
+              "value": "={{ $json.mergedResponse ?? $json.content?.parts?.[0]?.text ?? '' }}",
               "type": "string"
             }
           ]

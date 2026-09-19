@@ -12,9 +12,10 @@ CODE_DIR = ROOT / "code"
 EXPORT_MARKER = "// --- exports"
 PLACEHOLDER_ID = "REPLACE_IN_UI"
 
-# typeVersion per node type. Confirmed against the installed n8n package in Task 3.
+# typeVersion per node type, checked against the supported versions of n8n 2.39.8
+# (Gemini 1.1+ has the includeMergedResponse option this file relies on).
 V = {
-    "form": 2.2, "code": 2, "if": 2.2, "set": 3.4, "gemini": 1, "sheets": 4.7,
+    "form": 2.2, "code": 2, "if": 2.2, "set": 3.4, "gemini": 1.2, "sheets": 4.7,
     "whatsapp": 1.1, "schedule": 1.2, "error": 1,
 }
 
@@ -44,7 +45,8 @@ Line 3: one suggestion for next week.
 Data (JSON):
 {{ JSON.stringify($json) }}"""
 
-LLM_TEXT = "={{ $json.content?.parts?.[0]?.text ?? '' }}"
+# includeMergedResponse puts the reply text in one field; the parts path is the fallback.
+LLM_TEXT = "={{ $json.mergedResponse ?? $json.content?.parts?.[0]?.text ?? '' }}"
 
 
 def js(*modules, tail):
@@ -84,14 +86,18 @@ def code_node(name, position, source):
     return node(name, "n8n-nodes-base.code", V["code"], position, {"jsCode": source})
 
 
-def gemini_node(name, position, prompt):
-    return node(name, "@n8n/n8n-nodes-langchain.googleGemini", V["gemini"], position, {
+def gemini_node(name, position, prompt, json_output=False):
+    parameters = {
         "resource": "text", "operation": "message",
         "modelId": {"__rl": True, "value": "models/gemini-2.5-flash", "mode": "list",
                     "cachedResultName": "models/gemini-2.5-flash"},
         "messages": {"values": [{"content": prompt}]},
-        "options": {},
-    }, credentials={"googlePalmApi": "Gemini account"}, onError="continueRegularOutput")
+        "options": {"includeMergedResponse": True},
+    }
+    if json_output:
+        parameters["jsonOutput"] = True
+    return node(name, "@n8n/n8n-nodes-langchain.googleGemini", V["gemini"], position, parameters,
+                credentials={"googlePalmApi": "Gemini account"}, onError="continueRegularOutput")
 
 
 def normalize_node(position):
@@ -163,7 +169,7 @@ def lead_capture():
                   js("validate.js", tail="return $input.all().map((item) => ({ json: validateLead(item.json) }));")),
         if_node("Is valid?", [480, 0], "={{ $json.valid }}",
                 {"type": "boolean", "operation": "true", "singleValue": True}),
-        gemini_node("Gemini qualify", [720, -120], QUALIFY_PROMPT),
+        gemini_node("Gemini qualify", [720, -120], QUALIFY_PROMPT, json_output=True),
         normalize_node([960, -120]),
         code_node("Parse qualification", [1200, -120], js("parse_llm.js", "rows.js", tail=(
             "const lead = $('Validate lead').first().json;\n"
