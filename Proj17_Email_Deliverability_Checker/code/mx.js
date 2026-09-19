@@ -1,8 +1,8 @@
-import { result } from "./result.js";
+import { result, lookupFailed } from "./result.js";
 
 export async function checkMx(domain, resolve) {
   const r = await resolve(domain, "MX");
-  if (!r.ok) return result("mx", "error", `Could not look up the MX records (${r.error}).`, "Try again in a moment.");
+  if (!r.ok) return lookupFailed("mx", "the MX records", r.error);
 
   const servers = [...r.answers].sort((a, b) => a.priority - b.priority);
   if (!servers.length) {

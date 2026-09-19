@@ -1,4 +1,4 @@
-import { result, fromProblems } from "./result.js";
+import { result, fromProblems, lookupFailed } from "./result.js";
 import { parseTags } from "./tags.js";
 
 // A selector cannot be discovered from the domain, so we probe the names the big providers use.
@@ -12,9 +12,13 @@ const isDkim = (txt) => /^\s*v=DKIM1/i.test(txt) || /(^|;)\s*p=/i.test(txt);
 // Byte length of a base64 string without decoding it (works the same in a browser and in node).
 const base64Bytes = (b64) => Math.floor((b64.replace(/=+$/, "").length * 3) / 4);
 
+const keyOf = (txt) => (parseTags(txt).p || "").replace(/\s+/g, "");
+
+// Only a selector the user typed can reach here with an empty key: revoked keys found by probing
+// are grouped and reported once in checkDkim, because a retired selector is not necessarily a problem.
 function evaluate(selector, txt) {
   const tags = parseTags(txt);
-  const p = (tags.p || "").replace(/\s+/g, "");
+  const p = keyOf(txt);
   if (!p) {
     return [{ level: "fail", text: `The key for selector ${selector} has been revoked (empty p=).`, fix: "Publish a current key for this selector, or stop sending with it." }];
   }
@@ -41,7 +45,7 @@ export async function checkDkim(domain, resolve, typedSelector = "") {
 
   const typed = typedSelector ? lookups.find((l) => l.selector === typedSelector) : null;
   if (typed && !typed.r.ok) {
-    return result("dkim", "error", `Could not look up the DKIM record for ${typedSelector} (${typed.r.error}).`, "Try again in a moment.");
+    return lookupFailed("dkim", `the DKIM record for ${typedSelector}`, typed.r.error);
   }
 
   const found = lookups
@@ -51,7 +55,7 @@ export async function checkDkim(domain, resolve, typedSelector = "") {
 
   if (!found.length && !typed) {
     if (lookups.every((l) => !l.r.ok)) {
-      return result("dkim", "error", `Could not look up any DKIM records (${lookups[0].r.error}).`, "Try again in a moment.");
+      return lookupFailed("dkim", "any DKIM records", lookups[0].r.error);
     }
     return result(
       "dkim",
@@ -69,9 +73,20 @@ export async function checkDkim(domain, resolve, typedSelector = "") {
       fix: "Check the selector name in your email provider's DKIM settings, or publish the key it gives you.",
     });
   }
-  for (const f of found) problems.push(...evaluate(f.selector, f.records[0]));
+  const isRevokedProbe = (f) => f.selector !== typedSelector && !keyOf(f.records[0]);
+  const revoked = found.filter(isRevokedProbe);
+  for (const f of found) if (!isRevokedProbe(f)) problems.push(...evaluate(f.selector, f.records[0]));
+  if (revoked.length) {
+    const subject = revoked.length === 1 ? `Selector ${revoked[0].selector} has a revoked key` : `${revoked.length} selectors have revoked keys`;
+    const tail = found.some((f) => keyOf(f.records[0])) ? "." : ", and no active key was found.";
+    problems.push({
+      level: "warn",
+      text: `${subject} (empty p=)${tail}`,
+      fix: "If you still send with these selectors, publish a current key. If they are retired, you can ignore this.",
+    });
+  }
 
   const names = found.map((f) => f.selector).join(", ");
   const summary = `DKIM found for ${found.length === 1 ? "selector" : "selectors"} ${names}.`;
-  return fromProblems("dkim", problems, summary, found.map((f) => f.records[0]));
+  return fromProblems("dkim", problems, summary, [...new Set(found.map((f) => f.records[0]))]);
 }

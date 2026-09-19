@@ -190,12 +190,14 @@ function normalizeDomain(input) {
     return reject("That looks like an IP address. Enter a domain name instead.");
   }
 
-  let host;
+  let host; // mutable: a leading "www." is dropped below
   try {
     host = new URL("http://" + s).hostname;
   } catch {
     return reject("That is not a valid domain name.");
   }
+
+  if (host.startsWith("www.") && host.split(".").length > 2) host = host.slice(4);
 
   const labels = host.split(".");
   if (host.length > 253 || labels.length < 2 || labels.some((l) => l.length > 63 || !LABEL.test(l))) {
@@ -221,11 +223,18 @@ function result(id, status, summary, fix = "", records = []) {
   return { id, status, summary, fix, records };
 }
 
+const endSentence = (text) => (/[.!?]$/.test(text) ? text : `${text}.`);
+
+// A lookup that could not be completed, worded the same way for every check.
+function lookupFailed(id, what, error) {
+  return result(id, "error", `Could not look up ${what}: ${endSentence(error)}`, "Try again in a moment.");
+}
+
 // problems: [{ level: "warn" | "error" | "fail", text, fix }]
 function fromProblems(id, problems, passSummary, records = []) {
   if (!problems.length) return result(id, "pass", passSummary, "", records);
   const worst = problems.reduce((a, b) => (RANK[b.level] > RANK[a.level] ? b : a));
-  const fix = problems.map((p) => p.fix).filter(Boolean).join(" ");
+  const fix = [...new Set(problems.map((p) => p.fix).filter(Boolean))].join(" ");
   return result(id, worst.level, worst.text, fix, records);
 }
 
@@ -394,7 +403,7 @@ async function walk(domain, record, ctx, chain) {
 async function checkSpf(domain, resolve) {
   const r = await resolve(domain, "TXT");
   if (!r.ok) {
-    return result("spf", "error", `Could not look up the SPF record (${r.error}).`, "Try again in a moment.");
+    return lookupFailed("spf", "the SPF record", r.error);
   }
   const records = r.answers.filter(isSpf);
   if (records.length === 0) {
@@ -416,7 +425,7 @@ async function checkSpf(domain, resolve) {
   if (ctx.loop) problems.push({ level: "fail", text: `The includes loop back to ${ctx.loop}.`, fix: "Remove the include that points back to a record already in the chain." });
   if (ctx.over) problems.push({ level: "fail", text: `The record needs more than ${LIMIT} DNS lookups, so receivers reject it.`, fix: "Remove includes you do not use, or flatten them into ip4 and ip6 ranges." });
   for (const target of ctx.missing) problems.push({ level: "fail", text: `Includes ${target}, which has no usable SPF record.`, fix: `Remove the include of ${target}, or get the correct include from that provider.` });
-  if (ctx.errors.length) problems.push({ level: "error", text: `Could not finish checking the includes (${ctx.errors[0]}).`, fix: "Try again in a moment." });
+  if (ctx.errors.length) problems.push({ level: "error", text: `Could not finish checking the includes: ${endSentence(ctx.errors[0])}`, fix: "Try again in a moment." });
   if (ctx.ptr) problems.push({ level: "warn", text: "Uses the ptr mechanism, which is deprecated and slow.", fix: "Replace ptr with ip4, ip6 or include." });
   if (!ctx.stop) {
     if (all === "+") problems.push({ level: "fail", text: "The record ends with +all, which lets anyone send as this domain.", fix: "Change +all to -all (or ~all while you are still testing)." });
@@ -443,9 +452,13 @@ const isDkim = (txt) => /^\s*v=DKIM1/i.test(txt) || /(^|;)\s*p=/i.test(txt);
 // Byte length of a base64 string without decoding it (works the same in a browser and in node).
 const base64Bytes = (b64) => Math.floor((b64.replace(/=+$/, "").length * 3) / 4);
 
+const keyOf = (txt) => (parseTags(txt).p || "").replace(/\s+/g, "");
+
+// Only a selector the user typed can reach here with an empty key: revoked keys found by probing
+// are grouped and reported once in checkDkim, because a retired selector is not necessarily a problem.
 function evaluate(selector, txt) {
   const tags = parseTags(txt);
-  const p = (tags.p || "").replace(/\s+/g, "");
+  const p = keyOf(txt);
   if (!p) {
     return [{ level: "fail", text: `The key for selector ${selector} has been revoked (empty p=).`, fix: "Publish a current key for this selector, or stop sending with it." }];
   }
@@ -472,7 +485,7 @@ async function checkDkim(domain, resolve, typedSelector = "") {
 
   const typed = typedSelector ? lookups.find((l) => l.selector === typedSelector) : null;
   if (typed && !typed.r.ok) {
-    return result("dkim", "error", `Could not look up the DKIM record for ${typedSelector} (${typed.r.error}).`, "Try again in a moment.");
+    return lookupFailed("dkim", `the DKIM record for ${typedSelector}`, typed.r.error);
   }
 
   const found = lookups
@@ -482,7 +495,7 @@ async function checkDkim(domain, resolve, typedSelector = "") {
 
   if (!found.length && !typed) {
     if (lookups.every((l) => !l.r.ok)) {
-      return result("dkim", "error", `Could not look up any DKIM records (${lookups[0].r.error}).`, "Try again in a moment.");
+      return lookupFailed("dkim", "any DKIM records", lookups[0].r.error);
     }
     return result(
       "dkim",
@@ -500,11 +513,22 @@ async function checkDkim(domain, resolve, typedSelector = "") {
       fix: "Check the selector name in your email provider's DKIM settings, or publish the key it gives you.",
     });
   }
-  for (const f of found) problems.push(...evaluate(f.selector, f.records[0]));
+  const isRevokedProbe = (f) => f.selector !== typedSelector && !keyOf(f.records[0]);
+  const revoked = found.filter(isRevokedProbe);
+  for (const f of found) if (!isRevokedProbe(f)) problems.push(...evaluate(f.selector, f.records[0]));
+  if (revoked.length) {
+    const subject = revoked.length === 1 ? `Selector ${revoked[0].selector} has a revoked key` : `${revoked.length} selectors have revoked keys`;
+    const tail = found.some((f) => keyOf(f.records[0])) ? "." : ", and no active key was found.";
+    problems.push({
+      level: "warn",
+      text: `${subject} (empty p=)${tail}`,
+      fix: "If you still send with these selectors, publish a current key. If they are retired, you can ignore this.",
+    });
+  }
 
   const names = found.map((f) => f.selector).join(", ");
   const summary = `DKIM found for ${found.length === 1 ? "selector" : "selectors"} ${names}.`;
-  return fromProblems("dkim", problems, summary, found.map((f) => f.records[0]));
+  return fromProblems("dkim", problems, summary, [...new Set(found.map((f) => f.records[0]))]);
 }
 
 // ---- dmarc.js ----
@@ -525,7 +549,7 @@ async function checkDmarc(domain, resolve) {
   let records = [];
   for (const candidate of candidates(domain)) {
     const r = await resolve(`_dmarc.${candidate}`, "TXT");
-    if (!r.ok) return result("dmarc", "error", `Could not look up the DMARC record (${r.error}).`, "Try again in a moment.");
+    if (!r.ok) return lookupFailed("dmarc", "the DMARC record", r.error);
     records = r.answers.filter(isDmarc);
     if (records.length) {
       foundAt = candidate;
@@ -570,7 +594,7 @@ async function checkDmarc(domain, resolve) {
 // ---- mx.js ----
 async function checkMx(domain, resolve) {
   const r = await resolve(domain, "MX");
-  if (!r.ok) return result("mx", "error", `Could not look up the MX records (${r.error}).`, "Try again in a moment.");
+  if (!r.ok) return lookupFailed("mx", "the MX records", r.error);
 
   const servers = [...r.answers].sort((a, b) => a.priority - b.priority);
   if (!servers.length) {

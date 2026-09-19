@@ -1,4 +1,4 @@
-import { result, fromProblems } from "./result.js";
+import { result, fromProblems, lookupFailed } from "./result.js";
 import { parseTags } from "./tags.js";
 
 const isDmarc = (txt) => /^v=DMARC1\s*(;|$)/i.test(txt);
@@ -18,7 +18,7 @@ export async function checkDmarc(domain, resolve) {
   let records = [];
   for (const candidate of candidates(domain)) {
     const r = await resolve(`_dmarc.${candidate}`, "TXT");
-    if (!r.ok) return result("dmarc", "error", `Could not look up the DMARC record (${r.error}).`, "Try again in a moment.");
+    if (!r.ok) return lookupFailed("dmarc", "the DMARC record", r.error);
     records = r.answers.filter(isDmarc);
     if (records.length) {
       foundAt = candidate;

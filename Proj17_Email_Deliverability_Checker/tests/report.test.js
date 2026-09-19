@@ -1,6 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { analyze, verdictFor, VERDICT_LABELS } from "../code/report.js";
+import { createResolver } from "../code/dns.js";
 import { fakeDns } from "./helpers.js";
 
 const key = (bytes) => Buffer.alloc(bytes, 1).toString("base64");
@@ -60,6 +61,18 @@ test("the typed selector is passed through to the DKIM check", async () => {
   const dns = fakeDns({});
   await analyze("a.com", "MyCorp", dns);
   assert.ok(dns.calls.includes("TXT:mycorp._domainkey.a.com"));
+});
+
+test("with the network down, every row reads as one clean sentence", async () => {
+  const offline = createResolver({ fetchFn: async () => { throw new Error("offline"); }, endpoints: ["https://x.test/a", "https://y.test/b"] });
+  const r = await analyze("a.com", "", offline);
+  assert.equal(r.verdict, "incomplete");
+  for (const check of r.checks) {
+    assert.equal(check.status, "error");
+    assert.doesNotMatch(check.summary, /\)\.\)/, check.summary);
+    assert.doesNotMatch(check.summary, /\(Could not/, check.summary);
+    assert.match(check.summary, /^Could not look up [^:]+: Could not reach a DNS resolver \(offline\)\.$/);
+  }
 });
 
 test("a check that throws becomes an error row and the others still finish", async () => {

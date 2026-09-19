@@ -7,7 +7,16 @@ test("a plain domain is lower-cased and accepted", () => {
 });
 
 test("a URL is reduced to its hostname", () => {
-  assert.equal(normalizeDomain("https://www.Example.com/path?x=1").domain, "www.example.com");
+  assert.equal(normalizeDomain("https://Shop.Example.com/path?x=1").domain, "shop.example.com");
+});
+
+test("a leading www. is dropped, because mail domains do not start with it", () => {
+  assert.equal(normalizeDomain("https://www.Example.com/path").domain, "example.com");
+  assert.equal(normalizeDomain("www.example.com").domain, "example.com");
+});
+
+test("www. is kept when dropping it would leave a single label", () => {
+  assert.equal(normalizeDomain("www.com").domain, "www.com");
 });
 
 test("an email address is reduced to its domain", () => {

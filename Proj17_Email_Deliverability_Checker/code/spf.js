@@ -1,4 +1,4 @@
-import { result, fromProblems } from "./result.js";
+import { result, fromProblems, lookupFailed, endSentence } from "./result.js";
 
 const LIMIT = 10;
 const isSpf = (txt) => /^v=spf1(\s|$)/i.test(txt);
@@ -78,7 +78,7 @@ async function walk(domain, record, ctx, chain) {
 export async function checkSpf(domain, resolve) {
   const r = await resolve(domain, "TXT");
   if (!r.ok) {
-    return result("spf", "error", `Could not look up the SPF record (${r.error}).`, "Try again in a moment.");
+    return lookupFailed("spf", "the SPF record", r.error);
   }
   const records = r.answers.filter(isSpf);
   if (records.length === 0) {
@@ -100,7 +100,7 @@ export async function checkSpf(domain, resolve) {
   if (ctx.loop) problems.push({ level: "fail", text: `The includes loop back to ${ctx.loop}.`, fix: "Remove the include that points back to a record already in the chain." });
   if (ctx.over) problems.push({ level: "fail", text: `The record needs more than ${LIMIT} DNS lookups, so receivers reject it.`, fix: "Remove includes you do not use, or flatten them into ip4 and ip6 ranges." });
   for (const target of ctx.missing) problems.push({ level: "fail", text: `Includes ${target}, which has no usable SPF record.`, fix: `Remove the include of ${target}, or get the correct include from that provider.` });
-  if (ctx.errors.length) problems.push({ level: "error", text: `Could not finish checking the includes (${ctx.errors[0]}).`, fix: "Try again in a moment." });
+  if (ctx.errors.length) problems.push({ level: "error", text: `Could not finish checking the includes: ${endSentence(ctx.errors[0])}`, fix: "Try again in a moment." });
   if (ctx.ptr) problems.push({ level: "warn", text: "Uses the ptr mechanism, which is deprecated and slow.", fix: "Replace ptr with ip4, ip6 or include." });
   if (!ctx.stop) {
     if (all === "+") problems.push({ level: "fail", text: "The record ends with +all, which lets anyone send as this domain.", fix: "Change +all to -all (or ~all while you are still testing)." });

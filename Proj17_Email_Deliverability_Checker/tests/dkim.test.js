@@ -62,9 +62,33 @@ test("other TXT text at a selector name is not a DKIM key", async () => {
   assert.equal(r.status, "warn");
 });
 
-test("an empty p= means the key was revoked and fails", async () => {
+test("an empty p= on a probed selector warns: a retired selector is not necessarily a problem", async () => {
   const r = await checkDkim("a.com", fakeDns(at("google", "v=DKIM1; k=rsa; p=")));
+  assert.equal(r.status, "warn");
+  assert.match(r.summary, /revoked/i);
+  assert.match(r.summary, /no active/i);
+});
+
+test("an empty p= on the selector the user typed fails, because they expect it to work", async () => {
+  const r = await checkDkim("a.com", fakeDns(at("mycorp", "v=DKIM1; k=rsa; p=")), "mycorp");
   assert.equal(r.status, "fail");
+  assert.match(r.summary, /revoked/i);
+});
+
+test("a wildcard that revokes every probed selector is reported once, not once per selector", async () => {
+  const table = {};
+  for (const s of COMMON_SELECTORS) Object.assign(table, at(s, "v=DKIM1; p="));
+  const r = await checkDkim("a.com", fakeDns(table));
+  assert.equal(r.status, "warn");
+  assert.match(r.summary, new RegExp(`${COMMON_SELECTORS.length} selectors have revoked keys`));
+  assert.match(r.summary, /no active key/i);
+  assert.equal(r.fix.split("publish a current key").length - 1, 1, r.fix);
+  assert.deepEqual(r.records, ["v=DKIM1; p="]);
+});
+
+test("a revoked probed selector does not hide a working one", async () => {
+  const r = await checkDkim("a.com", fakeDns({ ...at("google", "v=DKIM1; p="), ...at("selector1", rec(294)) }));
+  assert.equal(r.status, "warn");
   assert.match(r.summary, /revoked/i);
 });
 

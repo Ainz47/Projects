@@ -7,10 +7,17 @@ export function result(id, status, summary, fix = "", records = []) {
   return { id, status, summary, fix, records };
 }
 
+export const endSentence = (text) => (/[.!?]$/.test(text) ? text : `${text}.`);
+
+// A lookup that could not be completed, worded the same way for every check.
+export function lookupFailed(id, what, error) {
+  return result(id, "error", `Could not look up ${what}: ${endSentence(error)}`, "Try again in a moment.");
+}
+
 // problems: [{ level: "warn" | "error" | "fail", text, fix }]
 export function fromProblems(id, problems, passSummary, records = []) {
   if (!problems.length) return result(id, "pass", passSummary, "", records);
   const worst = problems.reduce((a, b) => (RANK[b.level] > RANK[a.level] ? b : a));
-  const fix = problems.map((p) => p.fix).filter(Boolean).join(" ");
+  const fix = [...new Set(problems.map((p) => p.fix).filter(Boolean))].join(" ");
   return result(id, worst.level, worst.text, fix, records);
 }

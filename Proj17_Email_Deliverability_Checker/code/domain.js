@@ -19,12 +19,14 @@ export function normalizeDomain(input) {
     return reject("That looks like an IP address. Enter a domain name instead.");
   }
 
-  let host;
+  let host; // mutable: a leading "www." is dropped below
   try {
     host = new URL("http://" + s).hostname;
   } catch {
     return reject("That is not a valid domain name.");
   }
+
+  if (host.startsWith("www.") && host.split(".").length > 2) host = host.slice(4);
 
   const labels = host.split(".");
   if (host.length > 253 || labels.length < 2 || labels.some((l) => l.length > 63 || !LABEL.test(l))) {
