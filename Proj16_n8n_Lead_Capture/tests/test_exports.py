@@ -130,8 +130,8 @@ class NoSecrets(unittest.TestCase):
             "google_api_key": "AIza" + "A" * 35,
             "sk_key": "sk-" + "a" * 30,
             "meta_access_token": "EAA" + "B" * 30,
-            "email_address": "someone@gmail.com",
-            "phone_number": "+639171234567",
+            "email_address": "someone@" + "gmail.com",
+            "phone_number": "+63" + "9171234567",
             "google_doc_id": "/d/" + "x" * 40,
         }
         for label, sample in samples.items():
