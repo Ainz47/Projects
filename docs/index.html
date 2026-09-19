@@ -3,8 +3,8 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Jhurald Lantape | Automation</title>
-<meta name="description" content="Marketing and data automation with a review gate in front of every send. Try the gate on your own copy.">
+<title>Jhurald Lantape | Software builder</title>
+<meta name="description" content="I build software that does repetitive work: scrapers, data pipelines, integrations and reports, with AI where it helps and checks before anything ships or sends.">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
@@ -55,26 +55,37 @@ a:hover { color: var(--hold); }
 .bar nav { display: flex; gap: 20px; font-family: var(--mono); font-size: 0.8125rem; }
 
 /* hero */
-.hero { padding: 40px 0 28px; }
+.hero { padding: 40px 0 44px; }
 .hero h1 {
   margin: 0 0 18px;
-  font-size: clamp(2.1rem, 6vw, 4rem);
-  line-height: 1.02;
+  font-size: clamp(2rem, 5.4vw, 3.6rem);
+  line-height: 1.04;
   letter-spacing: -0.03em;
   font-weight: 800;
-  max-width: 17ch;
+  max-width: 20ch;
 }
-.hero p { margin: 0; max-width: 56ch; color: var(--muted); font-size: 1.125rem; }
+.hero p { margin: 0; max-width: 58ch; color: var(--muted); font-size: 1.125rem; }
 
-/* the gate */
+h2 { font-size: 1.75rem; letter-spacing: -0.02em; margin: 0 0 24px; }
+.lede { max-width: 62ch; margin: -8px 0 28px; color: var(--muted); }
+
+/* pick what you need */
+.build { margin-bottom: 80px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 8px 40px; padding: 22px 0; border-top: 1px solid var(--line); }
+.row h3 { margin: 0; font-size: 1.125rem; }
+.row p { margin: 0 0 8px; }
+.row .see { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); }
+.row .see a { margin-right: 14px; display: inline-block; }
+
+/* the example check */
+.example { margin-bottom: 80px; }
 .gate {
   display: grid;
   grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
   grid-template-areas: "verdict verdict" "draft findings" "marked findings";
   grid-template-rows: auto auto 1fr;
   gap: 20px 40px;
-  margin: 12px 0 72px;
-  padding-top: 28px;
+  padding-top: 24px;
   border-top: 1px solid var(--line);
 }
 .g-verdict { grid-area: verdict; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
@@ -161,15 +172,7 @@ button {
 button:hover { background: var(--hold); color: #fff; }
 .note { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
 
-/* what I build */
-.build { margin-bottom: 72px; }
-.build h2, .proof h2 { font-size: 1.75rem; letter-spacing: -0.02em; margin: 0 0 24px; }
-.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 8px 40px; padding: 22px 0; border-top: 1px solid var(--line); }
-.row h3 { margin: 0; font-size: 1.125rem; }
-.row p { margin: 0 0 8px; }
-.row .see { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); }
-.row .see a { margin-right: 14px; }
-
+/* proof + footer */
 .proof { margin-bottom: 64px; }
 .proof p { max-width: 62ch; margin: 0 0 14px; }
 .proof img { vertical-align: middle; }
@@ -188,8 +191,9 @@ footer p { margin: 0 0 8px; max-width: 70ch; }
 <div class="wrap">
 
   <header class="bar">
-    <div><span class="who">Jhurald Hilary Lantape</span><span class="role">automation + data pipelines</span></div>
+    <div><span class="who">Jhurald Hilary Lantape</span><span class="role">software for repetitive work</span></div>
     <nav aria-label="Links">
+      <a href="mailto:jhuraldhilary@gmail.com">Email</a>
       <a href="https://github.com/Ainz47/Projects">GitHub</a>
       <a href="https://linkedin.com/in/jhuraldhilarylantape">LinkedIn</a>
     </nav>
@@ -197,79 +201,110 @@ footer p { margin: 0 0 8px; max-width: 70ch; }
 
   <main>
     <section class="hero">
-      <h1>Automation that checks its own work before it sends.</h1>
-      <p>I build AI content, lead and reporting workflows for teams where a wrong sentence has a real cost. Every one has a review gate in front of the send button. Try one below on your own copy.</p>
+      <h1>I build software that does the repetitive work.</h1>
+      <p>Scrapers, data pipelines, integrations and reports, with AI where it helps. Each one has a check in front of anything that ships or sends. Pick what you need below.</p>
     </section>
 
-    <section class="gate" aria-labelledby="gate-title">
-      <div class="g-verdict">
-        <span id="stamp" class="stamp" data-state="empty" role="status" aria-live="polite">Paste a draft</span>
-        <p id="summary" class="summary"></p>
-      </div>
-
-      <div class="g-draft">
-        <label class="label" for="draft" id="gate-title">Draft copy</label>
-        <textarea id="draft" spellcheck="false" autocomplete="off"></textarea>
-        <div class="actions">
-          <button type="button" id="toggle">See a cleared rewrite</button>
-          <span class="note">Runs in your browser. Nothing is sent anywhere.</span>
-        </div>
-      </div>
-
-      <div class="g-marked">
-        <span class="label">Marked-up copy</span>
-        <div id="marked" class="marked" aria-live="off"></div>
-      </div>
-
-      <div class="g-findings">
-        <span class="label">Findings</span>
-        <ol id="findings" class="findings"></ol>
-      </div>
-    </section>
-
-    <section class="build">
-      <h2>What I build</h2>
+    <section class="build" aria-labelledby="need-title">
+      <h2 id="need-title">Pick what you need</h2>
 
       <div class="row">
-        <h3>Content systems</h3>
+        <h3>Get data off websites</h3>
         <div>
-          <p>An AI first draft, then validation before anything is published. Built for CMS-driven sites where volume is the problem.</p>
+          <p>Collect listings, prices and documents from sites that block simple scrapers, and land them in a database or spreadsheet you can use.</p>
           <div class="see">See
-            <a href="https://github.com/Ainz47/Projects/tree/main/Proj11_Rank_Rent_Automation">Rank &amp; Rent deployer</a>
-            <a href="https://github.com/Ainz47/Projects/tree/main/Proj9_GeoData_AI_Ingestion_Engine">Directory ingestion engine</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj1_SchoolJobs">Job-listing scraper</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj2_ShopeeHijacker">Marketplace scraper</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj3_PDFExtractor">PDF extractor</a>
           </div>
         </div>
       </div>
 
       <div class="row">
-        <h3>Lead and CRM automation</h3>
+        <h3>Connect your tools and APIs</h3>
         <div>
-          <p>Find prospects, qualify them, write outreach that references what is actually on their site, and send through Brevo with gates that stop bad sends.</p>
+          <p>Take data from one system, work out what matters, and send it where your team looks, with an alert when a number crosses a line.</p>
+          <div class="see">See
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj7_FastAPI_ETL_Alerts">Sales and labor alerts</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj13_Astorga_Flood_Watch">Sensor-to-alert system</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <h3>Pipelines, dashboards and reports</h3>
+        <div>
+          <p>Cloud storage, transforms and dashboards set up as code, plus branded PDF reports generated from raw data with no one assembling them by hand.</p>
+          <div class="see">See
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj8_Arxiv_Pipeline">Data pipeline with dashboard</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj6_Cloud_Report_Engine">Report engine</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <h3>WordPress and store automation</h3>
+        <div>
+          <p>Publish and update WordPress content through its API without duplicates, from a form or a data feed. Shopify fixes too, written up as a case study.</p>
+          <div class="see">See
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj5_WordPress_ACF_REST_API">WordPress data pipeline</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj11_Rank_Rent_Automation">Site deployer</a>
+            <a href="https://github.com/Ainz47/Projects/blob/main/case-studies/jewelry-store-seo.md">Shopify case study</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <h3>AI where it helps</h3>
+        <div>
+          <p>Claude or Gemini for drafting, scoring and enriching, with checks in front of anything that sends. I also build the guardrails that keep AI coding agents inside the rules.</p>
           <div class="see">See
             <a href="https://github.com/Ainz47/Projects/tree/main/Proj12_AI_Lead_Generator">AI lead generator</a>
             <a href="https://github.com/Ainz47/Projects/blob/main/case-studies/multi-state-lead-pipeline.md">Lead pipeline case study</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>Reports without the spreadsheet work</h3>
-        <div>
-          <p>Raw data in, a branded PDF or a dashboard out, with no one assembling it by hand.</p>
-          <div class="see">See
-            <a href="https://github.com/Ainz47/Projects/tree/main/Proj6_Cloud_Report_Engine">Report engine</a>
-            <a href="https://github.com/Ainz47/Projects/tree/main/Proj8_Arxiv_Pipeline">Data pipeline with dashboard</a>
-          </div>
-        </div>
-      </div>
-
-      <div class="row">
-        <h3>Guardrails for AI agents</h3>
-        <div>
-          <p>A rule the agent has to remember will eventually get skipped, so the important ones are enforced by the tooling. The gate above is the same idea in miniature.</p>
-          <div class="see">See
             <a href="https://github.com/Ainz47/Projects/tree/main/Proj15_Claude_Code_Tooling">Claude Code tooling</a>
           </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <h3>Apps and hardware</h3>
+        <div>
+          <p>Offline-first apps that sync when the connection returns, and sensor systems that turn readings into alerts.</p>
+          <div class="see">See
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj14_Personal_Workflow_PWA">Offline-first app</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj4_SmartParkingIoT">Smart parking IoT</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="example" aria-labelledby="gate-title">
+      <h2>One example: a check before anything sends</h2>
+      <p class="lede">Most of what I build has a check like this in front of the risky step. This one reviews marketing copy for claims a health brand shouldn't make. Paste your own copy and see what it catches.</p>
+
+      <div class="gate">
+        <div class="g-verdict">
+          <span id="stamp" class="stamp" data-state="empty" role="status" aria-live="polite">Paste a draft</span>
+          <p id="summary" class="summary"></p>
+        </div>
+
+        <div class="g-draft">
+          <label class="label" for="draft" id="gate-title">Draft copy</label>
+          <textarea id="draft" spellcheck="false" autocomplete="off"></textarea>
+          <div class="actions">
+            <button type="button" id="toggle">See a cleared rewrite</button>
+            <span class="note">Runs in your browser. Nothing is sent anywhere.</span>
+          </div>
+        </div>
+
+        <div class="g-marked">
+          <span class="label">Marked-up copy</span>
+          <div id="marked" class="marked" aria-live="off"></div>
+        </div>
+
+        <div class="g-findings">
+          <span class="label">Findings</span>
+          <ol id="findings" class="findings"></ol>
         </div>
       </div>
     </section>
@@ -284,8 +319,8 @@ footer p { margin: 0 0 8px; max-width: 70ch; }
   </main>
 
   <footer>
-    <p>The gate above is a demo. It matches phrases with rules, so it catches patterns and not meaning, and it is not medical, legal or compliance advice. A person still signs off.</p>
-    <p>To talk about a project, message me on <a href="https://linkedin.com/in/jhuraldhilarylantape">LinkedIn</a>.</p>
+    <p>The check above is a demo. It matches phrases with rules, so it catches patterns and not meaning, and it is not medical, legal or compliance advice. A person still signs off.</p>
+    <p>To talk about a project, email <a href="mailto:jhuraldhilary@gmail.com">jhuraldhilary@gmail.com</a> or message me on <a href="https://linkedin.com/in/jhuraldhilarylantape">LinkedIn</a>.</p>
   </footer>
 </div>
 
@@ -373,7 +408,6 @@ footer p { margin: 0 0 8px; max-width: 70ch; }
     var text = draft.value;
     var hits = text.trim() ? analyze(text) : [];
 
-    // marked-up copy
     if (!text.trim()) {
       marked.innerHTML = '<span class="empty">Your copy appears here with the flagged phrases marked.</span>';
     } else {
@@ -388,9 +422,8 @@ footer p { margin: 0 0 8px; max-width: 70ch; }
       marked.innerHTML = html;
     }
 
-    // findings
     if (!text.trim()) {
-      findingsEl.innerHTML = '<li class="none">Add some copy to run the gate.</li>';
+      findingsEl.innerHTML = '<li class="none">Add some copy to run the check.</li>';
     } else if (!hits.length) {
       findingsEl.innerHTML = '<li class="none">No rules matched.</li>';
     } else {
@@ -405,7 +438,6 @@ footer p { margin: 0 0 8px; max-width: 70ch; }
       }).join("");
     }
 
-    // verdict
     var holds = hits.filter(function (h) { return h.rule.sev === "hold"; }).length;
     var reviews = hits.length - holds;
     var state, label, line;
