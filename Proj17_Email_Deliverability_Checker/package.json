@@ -1,0 +1,9 @@
+{
+  "name": "proj17-email-deliverability-checker",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "node --test \"tests/*.test.js\"",
+    "build": "node tools/build_page.mjs"
+  }
+}
