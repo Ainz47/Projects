@@ -1,0 +1,205 @@
+{
+  "_id": "campaign:talk-demo",
+  "type": "campaign",
+  "title": "Talk: 4-week speaking practice",
+  "startDate": "2026-08-17",
+  "endDate": "2026-09-13",
+  "days": [
+    {
+      "n": 1,
+      "date": "2026-08-17",
+      "kind": "practice",
+      "minutes": 10,
+      "task": "Read the outline aloud slowly, then explain it in your own words until the timer ends."
+    },
+    {
+      "n": 2,
+      "date": "2026-08-18",
+      "kind": "practice",
+      "minutes": 10,
+      "task": "Same as yesterday. Focus on not stopping even when you stumble."
+    },
+    {
+      "n": 3,
+      "date": "2026-08-19",
+      "kind": "practice",
+      "minutes": 10,
+      "task": "Read aloud, then talk through the key point in your own words."
+    },
+    {
+      "n": 4,
+      "date": "2026-08-20",
+      "kind": "practice",
+      "minutes": 10,
+      "task": "Only the parts that felt weak yesterday."
+    },
+    {
+      "n": 5,
+      "date": "2026-08-21",
+      "kind": "practice",
+      "minutes": 10,
+      "task": "Deliver the middle section standing up, no notes."
+    },
+    {
+      "n": 6,
+      "date": "2026-08-22",
+      "kind": "practice",
+      "minutes": 10,
+      "task": "Read the outline aloud slowly, then explain it in your own words until the timer ends."
+    },
+    {
+      "n": 7,
+      "date": "2026-08-23",
+      "kind": "rest",
+      "minutes": 0,
+      "task": "Rest."
+    },
+    {
+      "n": 8,
+      "date": "2026-08-24",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Same as yesterday. Focus on not stopping even when you stumble."
+    },
+    {
+      "n": 9,
+      "date": "2026-08-25",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Read aloud, then talk through the key point in your own words."
+    },
+    {
+      "n": 10,
+      "date": "2026-08-26",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Only the parts that felt weak yesterday."
+    },
+    {
+      "n": 11,
+      "date": "2026-08-27",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Deliver the middle section standing up, no notes."
+    },
+    {
+      "n": 12,
+      "date": "2026-08-28",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Read the outline aloud slowly, then explain it in your own words until the timer ends."
+    },
+    {
+      "n": 13,
+      "date": "2026-08-29",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Same as yesterday. Focus on not stopping even when you stumble."
+    },
+    {
+      "n": 14,
+      "date": "2026-08-30",
+      "kind": "rest",
+      "minutes": 0,
+      "task": "Rest."
+    },
+    {
+      "n": 15,
+      "date": "2026-08-31",
+      "kind": "practice",
+      "minutes": 35,
+      "task": "Read aloud, then talk through the key point in your own words."
+    },
+    {
+      "n": 16,
+      "date": "2026-09-01",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Only the parts that felt weak yesterday."
+    },
+    {
+      "n": 17,
+      "date": "2026-09-02",
+      "kind": "practice",
+      "minutes": 50,
+      "task": "Deliver the middle section standing up, no notes."
+    },
+    {
+      "n": 18,
+      "date": "2026-09-03",
+      "kind": "practice",
+      "minutes": 15,
+      "task": "Read the outline aloud slowly, then explain it in your own words until the timer ends."
+    },
+    {
+      "n": 19,
+      "date": "2026-09-04",
+      "kind": "fullrun",
+      "minutes": 60,
+      "task": "Full run-through, start to finish, out loud."
+    },
+    {
+      "n": 20,
+      "date": "2026-09-05",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Same as yesterday. Focus on not stopping even when you stumble."
+    },
+    {
+      "n": 21,
+      "date": "2026-09-06",
+      "kind": "rest",
+      "minutes": 0,
+      "task": "Rest."
+    },
+    {
+      "n": 22,
+      "date": "2026-09-07",
+      "kind": "fullrun",
+      "minutes": 60,
+      "task": "Full run-through, start to finish, out loud."
+    },
+    {
+      "n": 23,
+      "date": "2026-09-08",
+      "kind": "practice",
+      "minutes": 20,
+      "task": "Read aloud, then talk through the key point in your own words."
+    },
+    {
+      "n": 24,
+      "date": "2026-09-09",
+      "kind": "fullrun",
+      "minutes": 60,
+      "task": "Full run-through, start to finish, out loud."
+    },
+    {
+      "n": 25,
+      "date": "2026-09-10",
+      "kind": "practice",
+      "minutes": 15,
+      "task": "Only the parts that felt weak yesterday."
+    },
+    {
+      "n": 26,
+      "date": "2026-09-11",
+      "kind": "practice",
+      "minutes": 15,
+      "task": "Deliver the middle section standing up, no notes."
+    },
+    {
+      "n": 27,
+      "date": "2026-09-12",
+      "kind": "practice",
+      "minutes": 5,
+      "task": "Read the outline aloud slowly, then explain it in your own words until the timer ends."
+    },
+    {
+      "n": 28,
+      "date": "2026-09-13",
+      "kind": "perform",
+      "minutes": 0,
+      "task": "Give the talk."
+    }
+  ]
+}

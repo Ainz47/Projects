@@ -1,0 +1,41 @@
+{
+  "pages": [
+    {
+      "kind": "calendar#events",
+      "nextPageToken": "PAGE2",
+      "items": [
+        {
+          "id": "gcal_aaa",
+          "etag": "\"1\"",
+          "summary": "Top Focus",
+          "description": "Quiet time, outside for the light.",
+          "start": { "dateTime": "2026-08-17T06:00:00+08:00", "timeZone": "Asia/Manila" },
+          "end": { "dateTime": "2026-08-17T06:30:00+08:00", "timeZone": "Asia/Manila" },
+          "reminders": { "useDefault": false, "overrides": [ { "method": "popup", "minutes": 10 } ] },
+          "extendedProperties": { "private": { "scheduleKey": "2026-08-17:mon-a-topfocus" } }
+        }
+      ]
+    },
+    {
+      "kind": "calendar#events",
+      "items": [
+        {
+          "id": "gcal_bbb",
+          "etag": "\"2\"",
+          "summary": "Depart for campus",
+          "start": { "dateTime": "2026-08-17T12:00:00+08:00", "timeZone": "Asia/Manila" },
+          "end": { "dateTime": "2026-08-17T12:30:00+08:00", "timeZone": "Asia/Manila" },
+          "reminders": { "useDefault": false, "overrides": [ { "method": "popup", "minutes": 30 } ] },
+          "extendedProperties": { "private": { "scheduleKey": "2026-08-17:mon-a-depart" } }
+        },
+        {
+          "id": "handmade",
+          "etag": "\"3\"",
+          "summary": "Dentist",
+          "start": { "dateTime": "2026-08-17T15:00:00+08:00" },
+          "end": { "dateTime": "2026-08-17T16:00:00+08:00" }
+        }
+      ]
+    }
+  ]
+}
