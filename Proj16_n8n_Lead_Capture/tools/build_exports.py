@@ -159,7 +159,7 @@ def form_node():
             dropdown("Timeline", ["ASAP", "This month", "Next quarter", "Just exploring"]),
         ]},
         "options": {},
-    }, webhookId="lead-capture-form")
+    }, webhookId="lead-capture")  # n8n serves the form at /form/<webhookId>, so keep it equal to path
 
 
 def lead_capture():

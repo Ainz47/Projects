@@ -76,7 +76,7 @@
         0
       ],
       "name": "Lead Form",
-      "webhookId": "lead-capture-form"
+      "webhookId": "lead-capture"
     },
     {
       "parameters": {
