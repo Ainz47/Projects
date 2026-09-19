@@ -1,0 +1,439 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Jhurald Lantape | Automation</title>
+<meta name="description" content="Marketing and data automation with a review gate in front of every send. Try the gate on your own copy.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+:root {
+  --paper: #edf1ee;
+  --panel: #fafbfa;
+  --ink: #10201c;
+  --muted: #566661;
+  --line: #c9d3ce;
+  --hold: #c2185b;
+  --review: #9a5b00;
+  --clear: #1b7f5c;
+  --display: "Bricolage Grotesque", system-ui, sans-serif;
+  --mono: "IBM Plex Mono", ui-monospace, Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --paper: #0e1512; --panel: #151e1a; --ink: #e6eeea; --muted: #8da19a;
+    --line: #26352f; --hold: #ff6b9a; --review: #e0a23b; --clear: #4cc79b;
+  }
+}
+:root[data-theme="dark"] {
+  --paper: #0e1512; --panel: #151e1a; --ink: #e6eeea; --muted: #8da19a;
+  --line: #26352f; --hold: #ff6b9a; --review: #e0a23b; --clear: #4cc79b;
+}
+
+* { box-sizing: border-box; }
+html { -webkit-text-size-adjust: 100%; }
+body {
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--display);
+  font-size: 1.0625rem;
+  line-height: 1.6;
+}
+a { color: inherit; text-decoration-thickness: 1px; text-underline-offset: 3px; }
+a:hover { color: var(--hold); }
+:focus-visible { outline: 2px solid var(--hold); outline-offset: 3px; border-radius: 2px; }
+
+.wrap { max-width: 1080px; margin: 0 auto; padding: 0 16px; }
+
+/* top bar */
+.bar { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; padding: 20px 0; flex-wrap: wrap; }
+.bar .who { font-weight: 800; letter-spacing: -0.01em; }
+.bar .role { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); margin-left: 10px; }
+.bar nav { display: flex; gap: 20px; font-family: var(--mono); font-size: 0.8125rem; }
+
+/* hero */
+.hero { padding: 40px 0 28px; }
+.hero h1 {
+  margin: 0 0 18px;
+  font-size: clamp(2.1rem, 6vw, 4rem);
+  line-height: 1.02;
+  letter-spacing: -0.03em;
+  font-weight: 800;
+  max-width: 17ch;
+}
+.hero p { margin: 0; max-width: 56ch; color: var(--muted); font-size: 1.125rem; }
+
+/* the gate */
+.gate {
+  display: grid;
+  grid-template-columns: minmax(0, 1.1fr) minmax(0, 0.9fr);
+  grid-template-areas: "verdict verdict" "draft findings" "marked findings";
+  grid-template-rows: auto auto 1fr;
+  gap: 20px 40px;
+  margin: 12px 0 72px;
+  padding-top: 28px;
+  border-top: 1px solid var(--line);
+}
+.g-verdict { grid-area: verdict; display: flex; align-items: center; gap: 20px; flex-wrap: wrap; }
+.g-draft { grid-area: draft; }
+.g-marked { grid-area: marked; }
+.g-findings { grid-area: findings; }
+
+.label { display: block; font-family: var(--mono); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: var(--muted); margin-bottom: 8px; }
+
+textarea, .marked {
+  width: 100%;
+  min-height: 190px;
+  margin: 0;
+  padding: 16px;
+  background: var(--panel);
+  color: var(--ink);
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  font-family: var(--display);
+  font-size: 1.0625rem;
+  line-height: 1.7;
+}
+textarea { resize: vertical; }
+.marked { min-height: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.marked .empty { color: var(--muted); }
+
+.stamp {
+  display: inline-block;
+  padding: 6px 16px;
+  border: 3px solid currentColor;
+  border-radius: 4px;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 1.375rem;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  transform: rotate(-2deg);
+  color: var(--muted);
+}
+.stamp[data-state="held"] { color: var(--hold); }
+.stamp[data-state="review"] { color: var(--review); }
+.stamp[data-state="cleared"] { color: var(--clear); }
+@media (prefers-reduced-motion: no-preference) {
+  .stamp.pop { animation: pop 0.22s ease-out; }
+  @keyframes pop { from { transform: rotate(-2deg) scale(1.25); opacity: 0.4; } to { transform: rotate(-2deg) scale(1); opacity: 1; } }
+}
+.summary { margin: 0; color: var(--muted); }
+
+/* redline marks */
+mark { background: none; color: inherit; padding: 0 1px; }
+mark[data-sev="hold"] { text-decoration: underline wavy var(--hold); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+mark[data-sev="review"] { text-decoration: underline dashed var(--review); text-decoration-thickness: 1.5px; text-underline-offset: 4px; }
+mark sup { font-family: var(--mono); font-size: 0.6875rem; margin-left: 1px; font-weight: 500; }
+mark[data-sev="hold"] sup { color: var(--hold); }
+mark[data-sev="review"] sup { color: var(--review); }
+
+.findings { list-style: none; margin: 0; padding: 0; }
+.findings li { padding: 14px 0; border-top: 1px solid var(--line); }
+.findings li:first-child { border-top: 0; padding-top: 0; }
+.f-head { display: flex; flex-wrap: wrap; gap: 4px 10px; align-items: baseline; }
+.f-num { font-family: var(--mono); font-weight: 500; }
+.f-name { font-weight: 600; }
+.f-sev { font-family: var(--mono); font-size: 0.6875rem; text-transform: uppercase; letter-spacing: 0.08em; }
+.f-sev[data-sev="hold"] { color: var(--hold); }
+.f-sev[data-sev="review"] { color: var(--review); }
+.f-hit { font-family: var(--mono); font-size: 0.875rem; color: var(--muted); overflow-wrap: anywhere; }
+.f-why, .f-fix { margin: 4px 0 0; font-size: 0.9375rem; }
+.f-fix { color: var(--muted); }
+.f-fix b { font-weight: 600; color: var(--ink); }
+.none { color: var(--muted); margin: 0; }
+
+.actions { margin-top: 14px; display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+button {
+  font: inherit;
+  font-family: var(--mono);
+  font-size: 0.8125rem;
+  padding: 9px 14px;
+  background: var(--ink);
+  color: var(--paper);
+  border: 0;
+  border-radius: 4px;
+  cursor: pointer;
+}
+button:hover { background: var(--hold); color: #fff; }
+.note { font-family: var(--mono); font-size: 0.75rem; color: var(--muted); }
+
+/* what I build */
+.build { margin-bottom: 72px; }
+.build h2, .proof h2 { font-size: 1.75rem; letter-spacing: -0.02em; margin: 0 0 24px; }
+.row { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.6fr); gap: 8px 40px; padding: 22px 0; border-top: 1px solid var(--line); }
+.row h3 { margin: 0; font-size: 1.125rem; }
+.row p { margin: 0 0 8px; }
+.row .see { font-family: var(--mono); font-size: 0.8125rem; color: var(--muted); }
+.row .see a { margin-right: 14px; }
+
+.proof { margin-bottom: 64px; }
+.proof p { max-width: 62ch; margin: 0 0 14px; }
+.proof img { vertical-align: middle; }
+
+footer { border-top: 1px solid var(--line); padding: 28px 0 48px; color: var(--muted); font-size: 0.9375rem; }
+footer p { margin: 0 0 8px; max-width: 70ch; }
+
+@media (max-width: 820px) {
+  .gate { grid-template-columns: minmax(0, 1fr); grid-template-rows: none; grid-template-areas: "verdict" "draft" "marked" "findings"; }
+  .row { grid-template-columns: minmax(0, 1fr); }
+  .hero { padding-top: 24px; }
+}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header class="bar">
+    <div><span class="who">Jhurald Hilary Lantape</span><span class="role">automation + data pipelines</span></div>
+    <nav aria-label="Links">
+      <a href="https://github.com/Ainz47/Projects">GitHub</a>
+      <a href="https://linkedin.com/in/jhuraldhilarylantape">LinkedIn</a>
+    </nav>
+  </header>
+
+  <main>
+    <section class="hero">
+      <h1>Automation that checks its own work before it sends.</h1>
+      <p>I build AI content, lead and reporting workflows for teams where a wrong sentence has a real cost. Every one has a review gate in front of the send button. Try one below on your own copy.</p>
+    </section>
+
+    <section class="gate" aria-labelledby="gate-title">
+      <div class="g-verdict">
+        <span id="stamp" class="stamp" data-state="empty" role="status" aria-live="polite">Paste a draft</span>
+        <p id="summary" class="summary"></p>
+      </div>
+
+      <div class="g-draft">
+        <label class="label" for="draft" id="gate-title">Draft copy</label>
+        <textarea id="draft" spellcheck="false" autocomplete="off"></textarea>
+        <div class="actions">
+          <button type="button" id="toggle">See a cleared rewrite</button>
+          <span class="note">Runs in your browser. Nothing is sent anywhere.</span>
+        </div>
+      </div>
+
+      <div class="g-marked">
+        <span class="label">Marked-up copy</span>
+        <div id="marked" class="marked" aria-live="off"></div>
+      </div>
+
+      <div class="g-findings">
+        <span class="label">Findings</span>
+        <ol id="findings" class="findings"></ol>
+      </div>
+    </section>
+
+    <section class="build">
+      <h2>What I build</h2>
+
+      <div class="row">
+        <h3>Content systems</h3>
+        <div>
+          <p>An AI first draft, then validation before anything is published. Built for CMS-driven sites where volume is the problem.</p>
+          <div class="see">See
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj11_Rank_Rent_Automation">Rank &amp; Rent deployer</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj9_GeoData_AI_Ingestion_Engine">Directory ingestion engine</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <h3>Lead and CRM automation</h3>
+        <div>
+          <p>Find prospects, qualify them, write outreach that references what is actually on their site, and send through Brevo with gates that stop bad sends.</p>
+          <div class="see">See
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj12_AI_Lead_Generator">AI lead generator</a>
+            <a href="https://github.com/Ainz47/Projects/blob/main/case-studies/multi-state-lead-pipeline.md">Lead pipeline case study</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <h3>Reports without the spreadsheet work</h3>
+        <div>
+          <p>Raw data in, a branded PDF or a dashboard out, with no one assembling it by hand.</p>
+          <div class="see">See
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj6_Cloud_Report_Engine">Report engine</a>
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj8_Arxiv_Pipeline">Data pipeline with dashboard</a>
+          </div>
+        </div>
+      </div>
+
+      <div class="row">
+        <h3>Guardrails for AI agents</h3>
+        <div>
+          <p>A rule the agent has to remember will eventually get skipped, so the important ones are enforced by the tooling. The gate above is the same idea in miniature.</p>
+          <div class="see">See
+            <a href="https://github.com/Ainz47/Projects/tree/main/Proj15_Claude_Code_Tooling">Claude Code tooling</a>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="proof">
+      <h2>Checked, not just claimed</h2>
+      <p>Two of the projects run their tests on a clean Windows machine on every push. The badge is that run, live.</p>
+      <p><a href="https://github.com/Ainz47/Projects/actions/workflows/tests.yml"><img src="https://github.com/Ainz47/Projects/actions/workflows/tests.yml/badge.svg" alt="Tests status" height="20"></a></p>
+      <p>Client work stays private, so it is written up as case studies without names or figures.
+        <a href="https://github.com/Ainz47/Projects/tree/main/case-studies">Read the case studies</a>.</p>
+    </section>
+  </main>
+
+  <footer>
+    <p>The gate above is a demo. It matches phrases with rules, so it catches patterns and not meaning, and it is not medical, legal or compliance advice. A person still signs off.</p>
+    <p>To talk about a project, message me on <a href="https://linkedin.com/in/jhuraldhilarylantape">LinkedIn</a>.</p>
+  </footer>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  var HELD_SAMPLE =
+    "Struggling with anxiety? Our app cures anxiety in 7 days, guaranteed. It's clinically proven, so you can skip therapy. " +
+    "Don't wait, spots are limited. Questions? Email sam.reyes@example.com or call +63 917 555 0142.";
+
+  var CLEARED_SAMPLE =
+    "Feeling anxious lately? Our app gives you short daily exercises for managing stress and worry. " +
+    "It's built to sit alongside professional care, not replace it. " +
+    "If you're in crisis, contact your local emergency number or a crisis line. Questions? Message us in the app.";
+
+  var RULES = [
+    { sev: "hold", name: "Treatment or cure claim",
+      why: "Promises to treat or cure a condition. Marketing copy can't claim that.",
+      fix: "Say what the product does, such as \"gives you tools for managing stress\".",
+      re: /\b(cures?|cured)\b|\b(treats?|treating|heals?)\s+(your\s+)?(anxiety|depression|ptsd|adhd|ocd|bipolar|trauma|panic|burnout)\b/gi },
+    { sev: "hold", name: "Replaces professional care",
+      why: "Tells the reader they can do without a therapist or doctor.",
+      fix: "Position it alongside professional care, not instead of it.",
+      re: /\b(instead of|no need for|replaces?|replaced|skip|without needing)\s+(a\s+|your\s+)?(therapy|therapist|counsell?or|psychiatrist|doctor)\b/gi },
+    { sev: "hold", name: "Diagnoses the reader",
+      why: "Labels the reader with a condition. Only a clinician can diagnose.",
+      fix: "Describe experiences (\"feeling low\") and leave labels out.",
+      re: /\byou (have|are suffering from|suffer from|are)\s+(depress(?:ed|ion)|anxious|anxiety|bipolar|ptsd|adhd)\b/gi },
+    { sev: "hold", name: "Crisis language",
+      why: "Needs safe-messaging review and crisis resources. Never auto-publish.",
+      fix: "Route to a person, and link a crisis line instead of engaging with the topic in copy.",
+      re: /\b(suicid(?:e|al)|kill (?:myself|yourself)|self[- ]harm|end it all|want to die)\b/gi },
+    { sev: "hold", name: "Email address in copy",
+      why: "Personal contact details shouldn't sit in outbound copy.",
+      fix: "Point to a shared inbox or a form.",
+      re: /[\w.+-]+@[\w-]+\.[\w.-]+/g },
+    { sev: "hold", name: "Phone number in copy",
+      why: "Personal contact details shouldn't sit in outbound copy.",
+      fix: "Point to a shared line or a form.",
+      re: /(?<![\w])\+?\d[\d\s().-]{8,}\d(?![\w])/g },
+    { sev: "review", name: "Absolute promise",
+      why: "Guarantees results that vary from person to person.",
+      fix: "Say what people typically get, and that results vary.",
+      re: /\b(guaranteed|guarantees?|100%|always works|never fails|works for everyone|risk-free)\b/gi },
+    { sev: "review", name: "Authority claim",
+      why: "Needs a linked source, or it should come out.",
+      fix: "Link the study, or describe what you actually did.",
+      re: /\b(clinically proven|scientifically proven|clinically tested|doctor[- ]recommended|therapist[- ]approved|backed by science|proven to)\b/gi },
+    { sev: "review", name: "Urgency pressure",
+      why: "Pushes people who may be vulnerable to decide fast.",
+      fix: "Drop the countdown and let the value carry it.",
+      re: /\b(act now|before it'?s too late|don'?t wait|last chance|limited spots|spots are limited)\b/gi }
+  ];
+
+  var $ = function (id) { return document.getElementById(id); };
+  var draft = $("draft"), marked = $("marked"), findingsEl = $("findings");
+  var stamp = $("stamp"), summary = $("summary"), toggle = $("toggle");
+  var showingCleared = false, lastState = "";
+
+  function esc(s) {
+    return s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
+  }
+
+  function analyze(text) {
+    var hits = [];
+    RULES.forEach(function (rule, ri) {
+      var re = new RegExp(rule.re.source, rule.re.flags), m;
+      while ((m = re.exec(text)) !== null) {
+        if (m[0].length === 0) { re.lastIndex++; continue; }
+        hits.push({ start: m.index, end: m.index + m[0].length, rule: rule, order: ri, text: m[0] });
+      }
+    });
+    hits.sort(function (a, b) {
+      return a.start - b.start || (b.end - b.start) - (a.end - a.start);
+    });
+    var kept = [], lastEnd = -1;
+    hits.forEach(function (h) {
+      if (h.start >= lastEnd) { kept.push(h); lastEnd = h.end; }
+    });
+    return kept;
+  }
+
+  function render() {
+    var text = draft.value;
+    var hits = text.trim() ? analyze(text) : [];
+
+    // marked-up copy
+    if (!text.trim()) {
+      marked.innerHTML = '<span class="empty">Your copy appears here with the flagged phrases marked.</span>';
+    } else {
+      var html = "", pos = 0;
+      hits.forEach(function (h, i) {
+        html += esc(text.slice(pos, h.start));
+        html += '<mark data-sev="' + h.rule.sev + '">' + esc(text.slice(h.start, h.end)) +
+                "<sup>" + (i + 1) + "</sup></mark>";
+        pos = h.end;
+      });
+      html += esc(text.slice(pos));
+      marked.innerHTML = html;
+    }
+
+    // findings
+    if (!text.trim()) {
+      findingsEl.innerHTML = '<li class="none">Add some copy to run the gate.</li>';
+    } else if (!hits.length) {
+      findingsEl.innerHTML = '<li class="none">No rules matched.</li>';
+    } else {
+      findingsEl.innerHTML = hits.map(function (h, i) {
+        return "<li>" +
+          '<div class="f-head"><span class="f-num">' + (i + 1) + '</span>' +
+          '<span class="f-name">' + esc(h.rule.name) + "</span>" +
+          '<span class="f-sev" data-sev="' + h.rule.sev + '">' + (h.rule.sev === "hold" ? "Hold" : "Review") + "</span></div>" +
+          '<div class="f-hit">' + esc(h.text) + "</div>" +
+          '<p class="f-why">' + esc(h.rule.why) + "</p>" +
+          '<p class="f-fix"><b>Try:</b> ' + esc(h.rule.fix) + "</p></li>";
+      }).join("");
+    }
+
+    // verdict
+    var holds = hits.filter(function (h) { return h.rule.sev === "hold"; }).length;
+    var reviews = hits.length - holds;
+    var state, label, line;
+    if (!text.trim()) { state = "empty"; label = "Paste a draft"; line = ""; }
+    else if (holds) { state = "held"; label = "Held"; line = holds + (holds === 1 ? " problem" : " problems") + " to fix before this can send" + (reviews ? ", and " + reviews + " for a person to check." : "."); }
+    else if (reviews) { state = "review"; label = "Needs review"; line = "Nothing blocked. " + reviews + (reviews === 1 ? " phrase" : " phrases") + " for a person to check."; }
+    else { state = "cleared"; label = "Cleared"; line = "No rules matched. A person still signs off."; }
+
+    stamp.textContent = label;
+    stamp.setAttribute("data-state", state);
+    summary.textContent = line;
+    if (state !== lastState) {
+      stamp.classList.remove("pop"); void stamp.offsetWidth; stamp.classList.add("pop");
+      lastState = state;
+    }
+  }
+
+  toggle.addEventListener("click", function () {
+    showingCleared = !showingCleared;
+    draft.value = showingCleared ? CLEARED_SAMPLE : HELD_SAMPLE;
+    toggle.textContent = showingCleared ? "Back to the held draft" : "See a cleared rewrite";
+    render();
+  });
+  draft.addEventListener("input", render);
+
+  draft.value = HELD_SAMPLE;
+  render();
+})();
+</script>
+</body>
+</html>
