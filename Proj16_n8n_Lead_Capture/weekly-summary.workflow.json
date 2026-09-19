@@ -1,0 +1,204 @@
+{
+  "name": "Weekly lead summary",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "cronExpression",
+              "expression": "0 9 * * 1"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Every Monday 9am"
+    },
+    {
+      "parameters": {
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "Leads"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        240,
+        0
+      ],
+      "name": "Read leads",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_IN_UI",
+          "name": "Google Sheets account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const WEEK_MS = 7 * 24 * 60 * 60 * 1000;\n\nfunction summarize(rows, nowMs) {\n  const counts = { hot: 0, warm: 0, cold: 0, needs_review: 0, rejected: 0 };\n  const hotLeads = [];\n  for (const row of rows) {\n    const at = Date.parse(row.timestamp);\n    if (!Number.isFinite(at) || at < nowMs - WEEK_MS) continue;\n    const tier = Object.hasOwn(counts, row.tier) ? row.tier : 'needs_review';\n    counts[tier] += 1;\n    if (tier === 'hot') hotLeads.push({ company: row.company, reason: row.reason });\n  }\n  const total = Object.values(counts).reduce((sum, n) => sum + n, 0);\n  return { total, counts, hotLeads };\n}\n\nconst rows = $input.all().map((item) => item.json);\nreturn [{ json: summarize(rows, Date.now()) }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        0
+      ],
+      "name": "Summarize week"
+    },
+    {
+      "parameters": {
+        "resource": "text",
+        "operation": "message",
+        "modelId": {
+          "__rl": true,
+          "value": "models/gemini-2.5-flash",
+          "mode": "list",
+          "cachedResultName": "models/gemini-2.5-flash"
+        },
+        "messages": {
+          "values": [
+            {
+              "content": "=Write a 3-line weekly lead summary for a freelance automation developer. Plain text, no markdown, no greeting.\nLine 1: the total number of leads and the count per tier.\nLine 2: the hot leads by company with the reason, or \"No hot leads.\"\nLine 3: one suggestion for next week.\n\nData (JSON):\n{{ JSON.stringify($json) }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.googleGemini",
+      "typeVersion": 1,
+      "position": [
+        720,
+        0
+      ],
+      "name": "Gemini summary",
+      "credentials": {
+        "googlePalmApi": {
+          "id": "REPLACE_IN_UI",
+          "name": "Gemini account"
+        }
+      },
+      "onError": "continueRegularOutput"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "llm-text",
+              "name": "llm_text",
+              "value": "={{ $json.content?.parts?.[0]?.text ?? '' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        960,
+        0
+      ],
+      "name": "Normalize LLM output"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "",
+        "recipientPhoneNumber": "",
+        "textBody": "={{ $json.llm_text }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1200,
+        0
+      ],
+      "name": "WhatsApp summary",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "REPLACE_IN_UI",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Every Monday 9am": {
+      "main": [
+        [
+          {
+            "node": "Read leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read leads": {
+      "main": [
+        [
+          {
+            "node": "Summarize week",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize week": {
+      "main": [
+        [
+          {
+            "node": "Gemini summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Gemini summary": {
+      "main": [
+        [
+          {
+            "node": "Normalize LLM output",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Normalize LLM output": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp summary",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

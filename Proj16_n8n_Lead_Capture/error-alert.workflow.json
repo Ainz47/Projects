@@ -1,0 +1,53 @@
+{
+  "name": "Workflow error alert",
+  "nodes": [
+    {
+      "parameters": {},
+      "type": "n8n-nodes-base.errorTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Error Trigger"
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "",
+        "recipientPhoneNumber": "",
+        "textBody": "={{ 'n8n workflow failed: ' + $json.workflow.name + ' at ' + $json.execution.lastNodeExecuted + ' - ' + $json.execution.error.message }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        240,
+        0
+      ],
+      "name": "WhatsApp alert",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "REPLACE_IN_UI",
+          "name": "WhatsApp account"
+        }
+      }
+    }
+  ],
+  "connections": {
+    "Error Trigger": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
