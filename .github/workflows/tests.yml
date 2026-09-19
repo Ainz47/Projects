@@ -54,3 +54,15 @@ jobs:
           python-version: "3.14"
       - run: node --test "tests/*.test.js"
       - run: python -X utf8 -m unittest discover -s tests -p "test_*.py"
+
+  proj17-email-deliverability:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Proj17_Email_Deliverability_Checker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - run: node --test "tests/*.test.js"

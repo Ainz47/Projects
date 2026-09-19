@@ -2,9 +2,9 @@
 
 [![tests](https://github.com/Ainz47/Projects/actions/workflows/tests.yml/badge.svg)](https://github.com/Ainz47/Projects/actions/workflows/tests.yml)
 
-A collection of 16 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
+A collection of 17 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
 
-**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. The other projects are documented with architecture notes and diagrams, not automated tests.
+**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. Proj17's checks are unit-tested against fake DNS in the same run, and its page was tried by hand in a browser against live DNS. The other projects are documented with architecture notes and diagrams, not automated tests.
 
 ---
 
@@ -17,13 +17,14 @@ Pick the row that matches what you are hiring for.
 | Web scraping, data extraction, anti-bot handling | [Proj1](#1-schooljobs), [Proj2](#2-shopeehijacker), [Proj9](#9-geodata-ai-ingestion-engine) |
 | Backend APIs and webhooks | [Proj6](#6-cloud-report-engine), [Proj7](#7-fastapi-etl-alerts), [Proj13](#13-astorga-flood-watch) |
 | Workflow automation in n8n | [Proj16](#16-n8n-lead-capture) |
+| Email deliverability (SPF, DKIM, DMARC) | [Proj17](#17-email-deliverability-checker) |
 | Data engineering (dbt, orchestration, IaC) | [Proj8](#8-arxiv-pipeline) |
 | WordPress and CMS automation | [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine) |
 | AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling), [Proj16](#16-n8n-lead-capture) |
 | Claude Code skills, hooks and guardrails | [Proj15](#15-claude-code-tooling) |
 | Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [storefront case study](case-studies/storefront-spa-port.md) |
 | Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md) |
-| Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md), [Proj16](#16-n8n-lead-capture) |
+| Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md), [Proj16](#16-n8n-lead-capture), [Proj17](#17-email-deliverability-checker) |
 | Embedded and IoT | [Proj4](#4-smartparkingiot), [Proj13](#13-astorga-flood-watch) |
 
 ---
@@ -48,6 +49,7 @@ Pick the row that matches what you are hiring for.
 | 14 | [Schedule PWA](#14-schedule-pwa) | Offline-first App | JavaScript, PouchDB, CouchDB, Python |
 | 15 | [Claude Code Tooling](#15-claude-code-tooling) | Agent Tooling | Python, Claude Code hooks, guardrails |
 | 16 | [n8n Lead Capture](#16-n8n-lead-capture) | Workflow Automation | n8n, Gemini, Google Sheets, WhatsApp API, JavaScript |
+| 17 | [Email Deliverability Checker](#17-email-deliverability-checker) | Email / DNS Tooling | JavaScript, DNS-over-HTTPS, node:test |
 
 ---
 
@@ -227,6 +229,17 @@ A self-hosted n8n pipeline: a contact form feeds an LLM scorer, every lead is lo
 
 ---
 
+## 17. Email Deliverability Checker
+
+A page that reads a domain's SPF, DKIM, DMARC and MX records over DNS-over-HTTPS and explains each problem in plain sentences, with a fix. The checks are plain modules with unit tests against fake DNS, and the live page is generated from them.
+
+**Stack:** JavaScript (ES modules) · DNS-over-HTTPS · node:test  
+**Highlights:** A lookup that fails is its own result, so a network problem can never read as "no SPF"; SPF includes are followed and counted against the 10-lookup limit, with a loop guard and a request cap; DNS answers are written to the page as text only; the first live browser runs found four faults the tests had missed, now fixed and covered.
+
+[→ Try it](https://ainz47.github.io/Projects/deliverability/) · [→ View project](Proj17_Email_Deliverability_Checker/)
+
+---
+
 ## Case studies
 
 Client work where the code stays private, written up by situation, constraint, build and outcome.
@@ -243,7 +256,7 @@ Client work where the code stays private, written up by situation, constraint, b
 **Data / ETL:** dbt · MotherDuck (DuckDB) · Supabase (PostgreSQL) · CouchDB / PouchDB · SQLite · Parquet  
 **AI / LLMs:** Anthropic Claude · Google Gemini (text + vision + image gen)  
 **Orchestration & Infra:** Kestra · n8n (self-hosted) · Azure Blob Storage · Terraform · Docker  
-**Web / APIs:** FastAPI · WordPress REST API · Shopify Admin GraphQL · Brevo API · Playwright · BeautifulSoup4  
+**Web / APIs:** FastAPI · WordPress REST API · Shopify Admin GraphQL · Brevo API · Playwright · BeautifulSoup4 · DNS-over-HTTPS  
 **Agent tooling:** Claude Code hooks, skills and guardrails · MCP  
 **Hardware:** ESP32 / ESP8266 · LoRa · ultrasonic sensing  
 **Visualization:** Metabase · Jinja2 / WeasyPrint (PDF)
