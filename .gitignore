@@ -14,4 +14,8 @@ __pycache__/
 *.pdf
 !Sample_Dominance_Report.pdf
 *.jar
+# Generated databases: each project's script rebuilds its own.
+*.db
+*.mv.db
+*.sqlite
 node_modules/
