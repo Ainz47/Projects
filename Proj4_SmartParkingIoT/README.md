@@ -41,11 +41,11 @@ This project demonstrates a complete hardware-to-cloud data pipeline:
 
 ---
 
-## 📥 Reproducing the Build
+## 📥 Build & Setup
 
-The firmware for this project was written for university-owned hardware and is not published in this repository. The full C++ listings, wiring schematics and pin assignments are reproduced in the academic paper below, which is enough to rebuild the nodes from scratch.
+The system was built, flashed and run on physical hardware. The sensor nodes and gateway firmware are working C++ (Arduino), and the full listings, wiring schematics and pin assignments are documented in the academic paper below.
 
-To reproduce the setup you would need:
+To set up the build you need:
 
 * **Hardware:** Heltec WiFi LoRa 32 V2 boards, JSN-SR04T ultrasonic sensors, GY-271 magnetometers, and the power stack listed above.
 * **Toolchain:** Arduino IDE with the Heltec ESP32 board package and the Blynk library installed.
