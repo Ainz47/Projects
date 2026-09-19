@@ -1,0 +1,38 @@
+name: tests
+
+# Runs the two projects that ship tests. Windows runner on purpose: the hook
+# tests use Windows-style project paths and the suites were verified on Windows.
+on:
+  push:
+  pull_request:
+
+jobs:
+  proj14-schedule-pwa:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Proj14_Personal_Workflow_PWA
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: npm test
+      - run: python -X utf8 -m unittest discover -s tests -p "test_*.py"
+
+  proj15-claude-code-tooling:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Proj15_Claude_Code_Tooling/hooks
+        shell: bash
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Run each test script
+        run: for f in test_*.py; do python -X utf8 "$f" || exit 1; done

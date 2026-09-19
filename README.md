@@ -1,6 +1,25 @@
 # Projects
 
-A collection of 12 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, and automation. Built in Python with occasional cloud infrastructure (Azure, Supabase, GCP).
+A collection of 15 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
+
+---
+
+## Start here
+
+Pick the row that matches what you are hiring for.
+
+| If you need | Look at |
+|---|---|
+| Web scraping, data extraction, anti-bot handling | [Proj1](#1-schooljobs), [Proj2](#2-shopeehijacker), [Proj9](#9-geodata-ai-ingestion-engine) |
+| Backend APIs and webhooks | [Proj6](#6-cloud-report-engine), [Proj7](#7-fastapi-etl-alerts), [Proj13](#13-astorga-flood-watch) |
+| Data engineering (dbt, orchestration, IaC) | [Proj8](#8-arxiv-pipeline) |
+| WordPress and CMS automation | [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine) |
+| AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling) |
+| Claude Code skills, hooks and guardrails | [Proj15](#15-claude-code-tooling) |
+| Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [storefront case study](case-studies/storefront-spa-port.md) |
+| Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md) |
+| Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md) |
+| Embedded and IoT | [Proj4](#4-smartparkingiot), [Proj13](#13-astorga-flood-watch) |
 
 ---
 
@@ -20,6 +39,9 @@ A collection of 12 production-oriented projects spanning data engineering, AI pi
 | 10 | [NYC BIS Violation Monitor](#10-nyc-bis-violation-monitor) | Public Data / ETL | Python, NYC Open Data API |
 | 11 | [Rank Rent Automation](#11-rank-rent-automation) | SEO Automation | Python, Flask, Gemini, Pexels, WordPress REST API |
 | 12 | [AI Lead Generator](#12-ai-lead-generator) | B2B Lead Gen | Python, Claude, Gemini, Apify |
+| 13 | [Astorga Flood Watch](#13-astorga-flood-watch) | IoT / Alerting | Python, FastAPI, SQLite, Leaflet, ESP32 |
+| 14 | [Schedule PWA](#14-schedule-pwa) | Offline-first App | JavaScript, PouchDB, CouchDB, Python |
+| 15 | [Claude Code Tooling](#15-claude-code-tooling) | Agent Tooling | Python, Claude Code hooks, guardrails |
 
 ---
 
@@ -155,11 +177,56 @@ B2B lead generation system for web design agencies. Scrapes local service busine
 
 ---
 
+## 13. Astorga Flood Watch
+
+Low-cost flood early-warning system for a Philippine barangay. Ultrasonic sensors at choke points classify water level as Normal, Watch or Critical and fire webhook alerts, residents report flooding from their phones, and officials act on a live map.
+
+**Stack:** Python · FastAPI · SQLite · Leaflet · ESP32 / ESP8266 (C++) · Discord webhook  
+**Highlights:** Fail-safe rule that treats an untrustworthy sensor reading as Critical; alerts fire on status change, not every reading; generic `core/` reused by feature modules; seed script and simulator make the whole system demoable with one real sensor.
+
+[→ View project](Proj13_Astorga_Flood_Watch/)
+
+---
+
+## 14. Schedule PWA
+
+Offline-first daily schedule app that installs on a phone, syncs through CouchDB, and pushes the week to Google Calendar and an Obsidian note. Streaks, coins and a reward shop make the routine a game.
+
+**Stack:** JavaScript (ES modules, no bundler) · PouchDB · CouchDB · service worker · Python (standard library only)  
+**Highlights:** Revision merging that keeps both devices' edits instead of losing the CouchDB loser; a seed script that respects which keys the file owns and which the app owns; atomic single-PUT deploy; 282 JS and 88 Python tests.
+
+[→ View project](Proj14_Personal_Workflow_PWA/)
+
+---
+
+## 15. Claude Code Tooling
+
+The hooks, skills and guardrails I run Claude Code with, published with paths and names stripped. Rules that matter are enforced by the harness instead of the agent's memory: verify-before-done, delivery gates, vault drift checks, session-state injection.
+
+**Stack:** Python · Claude Code hooks and skills · JSON guardrail rules  
+**Highlights:** Fails open and reports its own traceback; tracks hook wiring in git so a rebuilt config cannot silently stop running gates; one module holds every size cap so write-time and read-time checks cannot drift; 211 checks in five test files.
+
+[→ View project](Proj15_Claude_Code_Tooling/)
+
+---
+
+## Case studies
+
+Client work where the code stays private, written up by situation, constraint, build and outcome.
+
+- [Porting a Next.js storefront into WordPress](case-studies/storefront-spa-port.md)
+- [Shopify fixes and SEO tooling for a handmade-jewelry store](case-studies/jewelry-store-seo.md)
+- [A multi-state lead pipeline with pre-send gates](case-studies/multi-state-lead-pipeline.md)
+
+---
+
 ## Tech at a Glance
 
-**Languages:** Python (primary), C++ (IoT firmware), HCL (Terraform)  
-**Data / ETL:** dbt · MotherDuck (DuckDB) · Supabase (PostgreSQL) · SQLite · Parquet  
+**Languages:** Python (primary), JavaScript (ES modules), C++ (IoT firmware), HCL (Terraform), Liquid (Shopify)  
+**Data / ETL:** dbt · MotherDuck (DuckDB) · Supabase (PostgreSQL) · CouchDB / PouchDB · SQLite · Parquet  
 **AI / LLMs:** Anthropic Claude · Google Gemini (text + vision + image gen)  
 **Orchestration & Infra:** Kestra · Azure Blob Storage · Terraform · Docker  
-**Web / APIs:** FastAPI · WordPress REST API · Playwright · BeautifulSoup4  
+**Web / APIs:** FastAPI · WordPress REST API · Shopify Admin GraphQL · Brevo API · Playwright · BeautifulSoup4  
+**Agent tooling:** Claude Code hooks, skills and guardrails · MCP  
+**Hardware:** ESP32 / ESP8266 · LoRa · ultrasonic sensing  
 **Visualization:** Metabase · Jinja2 / WeasyPrint (PDF)
