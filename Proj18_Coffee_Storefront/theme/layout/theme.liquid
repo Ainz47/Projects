@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
-    <title>{{ page_title }}</title>
+    <title>{% if product %}{{ product.title | escape }} | Lantern Roasters (demo){% else %}Lantern Roasters (demo){% endif %}</title>
     {%- if page_description != blank %}
     <meta name="description" content="{{ page_description | escape }}">
     {%- endif %}

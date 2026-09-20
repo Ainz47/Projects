@@ -46,3 +46,13 @@ test('the catalog snippet keeps the two limits in view: Liquid loops stop at 50 
 test('the built assets are ignored by git, so the theme folder holds source only', () => {
   expect(readFileSync(resolve(process.cwd(), '.gitignore'), 'utf8')).toMatch(/theme\/assets/);
 });
+
+test('the server-rendered title uses the app\'s own store name, so link previews and search results do not show the admin default', () => {
+  const store = /const STORE = '([^']+)'/.exec(readFileSync(resolve(process.cwd(), 'src/App.tsx'), 'utf8'))?.[1];
+  expect(store).toBeTruthy();
+  const title = /<title>([\s\S]*?)<\/title>/.exec(read('layout/theme.liquid'))?.[1] ?? '';
+  expect(title).toContain(store!);
+  expect(title).not.toMatch(/page_title/);
+  // a product page reads "<product> | <store>", as the app sets it once it runs
+  expect(title).toMatch(/product\.title/);
+});
