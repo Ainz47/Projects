@@ -1,0 +1,485 @@
+{
+  "name": "Order stock sync",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "field": "minutes",
+              "minutesInterval": 5
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        0
+      ],
+      "name": "Every 5 minutes"
+    },
+    {
+      "parameters": {
+        "jsCode": "const OVERLAP_MS = 10 * 60 * 1000;\nconst MAX_ORDERS = 250;\n\n// Re-reading the last 10 minutes on every tick is safe: the sync writes Shopify's current stock, so a repeat changes nothing.\nfunction planOrdersQuery(cursorIso, nowMs) {\n  const parsed = Date.parse(cursorIso);\n  const base = Number.isFinite(parsed) ? Math.min(parsed, nowMs) : nowMs;\n  const since = new Date(base - OVERLAP_MS).toISOString();\n  return { since, search: `updated_at:>=${since}`, first: MAX_ORDERS };\n}\n\nconst ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst cursor = $getWorkflowStaticData('global').cursor ?? null;\nconst plan = planOrdersQuery(cursor, Date.now());\nreturn [{ json: { query: ORDERS_QUERY, variables: { first: plan.first, search: plan.search } } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        240,
+        0
+      ],
+      "name": "Plan orders query"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jhurald05.myshopify.com/admin/oauth/access_token",
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpCustomAuth"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        0
+      ],
+      "name": "Shopify token",
+      "credentials": {
+        "httpCustomAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "Shopify client credentials"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jhurald05.myshopify.com/admin/api/2026-07/graphql.json",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Shopify-Access-Token",
+              "value": "={{ $('Shopify token').first().json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $('Plan orders query').first().json.query, variables: $('Plan orders query').first().json.variables }) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        720,
+        0
+      ],
+      "name": "Shopify orders"
+    },
+    {
+      "parameters": {
+        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\nfunction collectSkus(orders) {\n  const seen = new Set();\n  for (const order of orders ?? []) {\n    for (const line of order?.lineItems?.nodes ?? []) {\n      const sku = typeof line?.sku === 'string' ? line.sku.trim() : '';\n      if (sku) seen.add(sku);\n    }\n  }\n  return [...seen].sort();\n}\n\nconst quoteSearch = (s) => `\"${String(s).replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"')}\"`;\nconst quoteFormula = (s) => `'${String(s).replace(/\\\\/g, '\\\\\\\\').replace(/'/g, \"\\\\'\")}'`;\n\nfunction skusSearch(skus) {\n  return skus.map((s) => `sku:${quoteSearch(s)}`).join(' OR ');\n}\n\nfunction airtableFormula(skus) {\n  return `OR(${skus.map((s) => `{SKU}=${quoteFormula(s)}`).join(',')})`;\n}\n\nconst ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst body = $input.first().json;\nassertNoGraphqlErrors(body, 'Shopify orders');\nconst skus = collectSkus(body.data.orders.nodes);\nreturn [{ json: { hasSkus: skus.length > 0, skus, query: STOCK_QUERY, variables: { search: skusSearch(skus) }, formula: airtableFormula(skus) } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        0
+      ],
+      "name": "Plan stock lookup"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Any SKUs?-cond",
+              "leftValue": "={{ $json.hasSkus }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        0
+      ],
+      "name": "Any SKUs?"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jhurald05.myshopify.com/admin/api/2026-07/graphql.json",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Shopify-Access-Token",
+              "value": "={{ $('Shopify token').first().json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $('Plan stock lookup').first().json.query, variables: $('Plan stock lookup').first().json.variables }) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1440,
+        -120
+      ],
+      "name": "Shopify stock"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appXXXXXXXXXXXXXX/Variants/listRecords",
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ filterByFormula: $('Plan stock lookup').first().json.formula, fields: ['SKU', 'Stock'] }) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        -120
+      ],
+      "name": "Airtable rows",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "Airtable token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\n// Shopify's search can match neighbours (a hyphen splits words), so the answer is picked by exact SKU here.\n// undefined: not found. null: no single tracked stock (untracked, ambiguous, or not a whole number).\nfunction stockFromVariants(nodes, sku) {\n  const hits = (nodes ?? []).filter((v) => v?.sku === sku);\n  if (hits.length === 0) return undefined;\n  if (hits.length > 1) return null;\n  const variant = hits[0];\n  if (variant.inventoryItem?.tracked !== true) return null;\n  return Number.isInteger(variant.inventoryQuantity) ? variant.inventoryQuantity : null;\n}\n\nconst isWholeStock = (n) => Number.isInteger(n) && n >= 0;\n\nfunction planUpdates(skus, shopifyStock, airtableRows) {\n  const bySku = new Map();\n  const duplicated = new Set();\n  for (const row of airtableRows ?? []) {\n    if (bySku.has(row.sku)) duplicated.add(row.sku);\n    else bySku.set(row.sku, row);\n  }\n  const result = { updates: [], skipped: [], rejected: [], unchanged: 0 };\n  for (const sku of skus ?? []) {\n    if (duplicated.has(sku)) {\n      result.rejected.push({ sku, reason: 'duplicate SKU in Airtable' });\n      continue;\n    }\n    const row = bySku.get(sku);\n    if (!row) {\n      result.skipped.push({ sku, reason: 'no Airtable row' });\n      continue;\n    }\n    const stock = shopifyStock?.[sku];\n    if (stock === undefined) {\n      result.rejected.push({ sku, reason: 'SKU not found in Shopify' });\n    } else if (stock === null) {\n      result.rejected.push({ sku, reason: 'Shopify has no single tracked stock for this SKU' });\n    } else if (!isWholeStock(stock)) {\n      result.rejected.push({ sku, reason: 'Shopify stock is not a whole number of 0 or more' });\n    } else if (row.stock === stock) {\n      result.unchanged += 1;\n    } else {\n      result.updates.push({ recordId: row.id, sku, oldStock: row.stock ?? null, newStock: stock });\n    }\n  }\n  return result;\n}\n\nfunction chunkUpdates(updates, size) {\n  const chunks = [];\n  for (let i = 0; i < (updates ?? []).length; i += size) chunks.push(updates.slice(i, i + size));\n  return chunks;\n}\n\nconst plan = $('Plan stock lookup').first().json;\nconst stockBody = $('Shopify stock').first().json;\nassertNoGraphqlErrors(stockBody, 'Shopify stock');\nconst air = $input.first().json;\nif (air.offset) throw new Error('Airtable returned more than one page of affected variants; this workflow does not paginate');\nconst rows = (air.records ?? []).map((r) => ({ id: r.id, sku: r.fields.SKU, stock: r.fields.Stock ?? null }));\nconst variants = stockBody.data.productVariants.nodes;\nconst stock = {};\nfor (const sku of plan.skus) stock[sku] = stockFromVariants(variants, sku);\nconst result = planUpdates(plan.skus, stock, rows);\nreturn [{ json: { ...result, hasUpdates: result.updates.length > 0 } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        -120
+      ],
+      "name": "Plan updates"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Any updates?-cond",
+              "leftValue": "={{ $json.hasUpdates }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        2160,
+        -120
+      ],
+      "name": "Any updates?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const isWholeStock = (n) => Number.isInteger(n) && n >= 0;\n\nfunction planUpdates(skus, shopifyStock, airtableRows) {\n  const bySku = new Map();\n  const duplicated = new Set();\n  for (const row of airtableRows ?? []) {\n    if (bySku.has(row.sku)) duplicated.add(row.sku);\n    else bySku.set(row.sku, row);\n  }\n  const result = { updates: [], skipped: [], rejected: [], unchanged: 0 };\n  for (const sku of skus ?? []) {\n    if (duplicated.has(sku)) {\n      result.rejected.push({ sku, reason: 'duplicate SKU in Airtable' });\n      continue;\n    }\n    const row = bySku.get(sku);\n    if (!row) {\n      result.skipped.push({ sku, reason: 'no Airtable row' });\n      continue;\n    }\n    const stock = shopifyStock?.[sku];\n    if (stock === undefined) {\n      result.rejected.push({ sku, reason: 'SKU not found in Shopify' });\n    } else if (stock === null) {\n      result.rejected.push({ sku, reason: 'Shopify has no single tracked stock for this SKU' });\n    } else if (!isWholeStock(stock)) {\n      result.rejected.push({ sku, reason: 'Shopify stock is not a whole number of 0 or more' });\n    } else if (row.stock === stock) {\n      result.unchanged += 1;\n    } else {\n      result.updates.push({ recordId: row.id, sku, oldStock: row.stock ?? null, newStock: stock });\n    }\n  }\n  return result;\n}\n\nfunction chunkUpdates(updates, size) {\n  const chunks = [];\n  for (let i = 0; i < (updates ?? []).length; i += size) chunks.push(updates.slice(i, i + size));\n  return chunks;\n}\n\nconst { updates } = $('Plan updates').first().json;\nreturn chunkUpdates(updates, 10).map((records) => ({ json: { records: records.map((u) => ({ id: u.recordId, fields: { Stock: u.newStock } })) } }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2400,
+        -240
+      ],
+      "name": "Chunk updates"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.airtable.com/v0/appXXXXXXXXXXXXXX/Variants",
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ records: $json.records }) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2640,
+        -240
+      ],
+      "name": "Airtable update",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "Airtable token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.github.com/repos/Ainz47/Projects/actions/workflows/refresh-catalog.yml/dispatches",
+        "options": {},
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Accept",
+              "value": "application/vnd.github+json"
+            },
+            {
+              "name": "X-GitHub-Api-Version",
+              "value": "2022-11-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ ref: \"main\" }) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        2880,
+        -240
+      ],
+      "name": "Dispatch refresh",
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "GitHub Actions token"
+        }
+      },
+      "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "function nextCursor(prevCursorIso, orders, nowMs) {\n  const times = [Date.parse(prevCursorIso), ...(orders ?? []).map((o) => Date.parse(o?.updatedAt))].filter(Number.isFinite);\n  const newest = times.length > 0 ? Math.max(...times) : nowMs;\n  return new Date(Math.min(newest, nowMs)).toISOString();\n}\n\nconst orders = $('Shopify orders').first().json.data.orders.nodes;\nconst store = $getWorkflowStaticData('global');\nstore.cursor = nextCursor(store.cursor ?? null, orders, Date.now());\nreturn [{ json: { cursor: store.cursor, orders: orders.length } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        3120,
+        0
+      ],
+      "name": "Advance cursor",
+      "executeOnce": true
+    }
+  ],
+  "connections": {
+    "Every 5 minutes": {
+      "main": [
+        [
+          {
+            "node": "Plan orders query",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan orders query": {
+      "main": [
+        [
+          {
+            "node": "Shopify token",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify token": {
+      "main": [
+        [
+          {
+            "node": "Shopify orders",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify orders": {
+      "main": [
+        [
+          {
+            "node": "Plan stock lookup",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan stock lookup": {
+      "main": [
+        [
+          {
+            "node": "Any SKUs?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any SKUs?": {
+      "main": [
+        [
+          {
+            "node": "Shopify stock",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Advance cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Shopify stock": {
+      "main": [
+        [
+          {
+            "node": "Airtable rows",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable rows": {
+      "main": [
+        [
+          {
+            "node": "Plan updates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan updates": {
+      "main": [
+        [
+          {
+            "node": "Any updates?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any updates?": {
+      "main": [
+        [
+          {
+            "node": "Chunk updates",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Advance cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Chunk updates": {
+      "main": [
+        [
+          {
+            "node": "Airtable update",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Airtable update": {
+      "main": [
+        [
+          {
+            "node": "Dispatch refresh",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Dispatch refresh": {
+      "main": [
+        [
+          {
+            "node": "Advance cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
