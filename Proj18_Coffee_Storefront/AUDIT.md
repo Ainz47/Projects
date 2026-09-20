@@ -73,3 +73,21 @@ The `refresh-catalog` workflow, run on GitHub Actions against the same Airtable 
 | 11 | `tests/refresh-workflow.test.ts` | Pass | 9 tests on the workflow file (triggers, where the secrets are used, permissions, what is committed, step order). Suite: 26 test files, 163 tests. |
 
 Not checked: a token with only the two read scopes in the secret (the runs used the same token as the seed, which can also write), Make or an Airtable automation sending the dispatch (only the GitHub CLI was used), starting the workflow without write access to the repo, two dispatches overlapping (the queueing is configured, not exercised), what a refresh does after the Airtable trial ends (it should fail at the export and commit nothing, as in step 7, but I have not run that), and Linux CI.
+
+## Shopify source: live check (2026-09-20)
+
+Run against a real development store, `jhurald05`, with an app from the Shopify Dev Dashboard and its client id and secret kept in the gitignored `.env.local`. Results are the actual output of each step. The export was written to a scratch file outside the repo, so `data/catalog.export.json` (the Airtable snapshot the page uses) was not touched.
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | Token request from `exporter/auth.mjs` with the credentials in `.env.local` | Fail | `400 - Oauth error app_not_installed`, on three runs earlier in the day. The cause was not an uninstalled app: `.env.local` held a client id and secret from a different app. A control handle that cannot exist returned `404 Store unavailable`, so the error did say the store was real. |
+| 2 | Same request with the client id and secret copied from the Dev Dashboard | Pass | HTTP 200, `access_token`, `scope: write_products`, `expires_in: 86399`. The request format in `exporter/auth.mjs` (form-encoded `client_credentials` grant) was right as written. |
+| 3 | Read-only probe: token, then `fetchAllProducts` on the empty store | Pass | `products: 0`. |
+| 4 | `npm run seed:shopify -- --to jhurald05` with scope `write_products` only | Fail | `GraphQL error: Access denied for locations field.` The seed reads the store's stock location and Online Store channel. A recount straight after showed 0 products: the preflight stopped it before any write. |
+| 5 | Scopes changed in the Dev Dashboard by the store owner and accepted on the store | Pass | The token response then listed `write_inventory,write_locations,write_products,write_publications`. The first check after releasing the new version still returned `write_products`; the update takes effect once the store accepts it. |
+| 6 | `npm run seed:shopify -- --to jhurald05` again | Pass | 30 lines of `<handle>: loaded and published`, then `seeded 30 products and 124 variants into jhurald05`. |
+| 7 | Export from the store to a scratch file, then `npm run compare -- data/catalog.fixture.json <scratch file>` | Fail, then fixed | `exported 30 products`. The compare reported `differs in tags` on 24 products. A script over the two files found all 24 were the same tags in a different order (Shopify returns tags sorted; the fixture keeps the author's order) and 0 differed in content. |
+| 8 | Compare changed to sort tags before comparing, with a test that reordered tags pass and a test that a removed tag still fails, then the compare again | Pass | `identical apart from ids and tag order (30 products)`, exit 0. The 6 tests in `tests/compare-tool.test.ts` pass. |
+| 9 | Typecheck and suite after the change | Pass | `tsc --noEmit` clean; 27 test files, 171 tests passing. |
+
+Not checked: a token with only read scopes (every run used write scopes), which of the four scopes the seed strictly needs (I did not remove any one to see), whether the store has metafield definitions for `custom.origin` and `custom.roast` beyond the values matching in the export, the exporter's throttling and retry behaviour against a real rate limit (fake responses only), a store with more than one location, the built page reading the Shopify export (the page still uses the Airtable snapshot), and a second seed run to confirm the update-by-handle path. The token in the step 2 output was printed once in the session log during diagnosis; it expires after 24 hours, but the client secret was pasted into the chat and should be rotated in the Dev Dashboard.

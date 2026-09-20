@@ -26,7 +26,18 @@ function run(a: unknown[], b: unknown[]) {
 test('says two catalogs are identical when only the ids differ', () => {
   const r = run([node()], [node({ id: 'rec1', variants: { nodes: [{ id: 'rec2', sku: 'S', price: '1.00' }] } })]);
   expect(r.code).toBe(0);
-  expect(r.out).toMatch(/identical apart from ids \(1 products\)/);
+  expect(r.out).toMatch(/identical apart from ids and tag order \(1 products\)/);
+});
+
+test('treats reordered tags as identical, since Shopify returns tags sorted', () => {
+  const r = run([node({ tags: ['coffee', 'light-roast', 'jasmine'] })], [node({ tags: ['coffee', 'jasmine', 'light-roast'] })]);
+  expect(r.code).toBe(0);
+});
+
+test('still names the product when a tag was added or removed', () => {
+  const r = run([node({ tags: ['coffee', 'jasmine'] })], [node({ tags: ['coffee'] })]);
+  expect(r.code).toBe(1);
+  expect(r.out).toMatch(/a: differs in tags/);
 });
 
 test('names the product and the field when a price changed', () => {

@@ -1,5 +1,6 @@
 // Compares two catalog files and says whether they hold the same products, ignoring ids (Shopify and Airtable
-// ids differ by design). Run: npm run compare -- data/catalog.fixture.json data/catalog.export.json
+// ids differ by design) and the order of tags (Shopify keeps tags as a set and returns them sorted).
+// Run: npm run compare -- data/catalog.fixture.json data/catalog.export.json
 import { readFileSync } from 'node:fs';
 import { isDeepStrictEqual } from 'node:util';
 
@@ -10,8 +11,9 @@ if (!aPath || !bPath) {
 }
 
 const load = (path) =>
-  JSON.parse(readFileSync(path, 'utf8')).data.products.nodes.map(({ id, variants, ...rest }) => ({
+  JSON.parse(readFileSync(path, 'utf8')).data.products.nodes.map(({ id, variants, tags, ...rest }) => ({
     ...rest,
+    tags: Array.isArray(tags) ? [...tags].sort() : tags,
     variants: variants.nodes.map(({ id: variantId, ...v }) => v),
   }));
 
@@ -33,7 +35,7 @@ for (const p of b) {
 }
 
 if (problems.length === 0) {
-  console.log(`identical apart from ids (${a.length} products)`);
+  console.log(`identical apart from ids and tag order (${a.length} products)`);
 } else {
   console.log(problems.join('\n'));
   process.exit(1);

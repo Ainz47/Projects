@@ -19,16 +19,18 @@ Checked automatically (vitest, and on every push in GitHub Actions on a Windows 
 
 Checked by hand in a real browser (Chromium via Playwright), against the built page: search/filter/sort by URL with correct back-button and reload behaviour, the sold-out variant styling, adding to cart with focus moving correctly on open/close/Escape, cart persistence across a reload, a full keyboard-only pass with visible focus rings, no horizontal overflow at 390px width, `prefers-reduced-motion` actually swapping the animation used, a blocked-storage fallback that degrades to an in-memory cart with a visible note instead of breaking, an unknown-product route showing the not-found page, and that every network request stays on the same origin. Also reviewed against a design/accessibility guideline checklist and a UI-pattern detector, twice (before and after adding the front-page hero). Full results, including two items intentionally left as-is with reasons: `AUDIT.md`.
 
-Not done, and not claimed: any Shopify integration or live store (see below), a checkout, payments, accounts, a backend, or that the products exist.
+Not done, and not claimed: the published page showing Shopify data (it shows the Airtable snapshot; see below), a checkout, payments, accounts, a backend, or that the products exist.
 
 ## Using data from a real Shopify store
-`data/catalog.fixture.json` has the same shape as the `products` query in `exporter/client.mjs` (Admin GraphQL API version 2026-07). To try a real store, create an app in the Shopify Dev Dashboard with read access to products, install it on a development store, then in a Bash shell:
+`data/catalog.fixture.json` has the same shape as the `products` query in `exporter/client.mjs` (Admin GraphQL API version 2026-07). To try a real store, create an app in the Shopify Dev Dashboard, install it on a development store, then in a Bash shell. I ran everything below with the scopes `write_products`, `write_inventory`, `write_locations` and `write_publications` (the seed needs to read the store's stock location and Online Store channel as well as write products); I have not tried a read-only set or narrowed that list, so treat it as more than the minimum.
 
     SHOPIFY_SHOP=your-store SHOPIFY_CLIENT_ID=your-client-id SHOPIFY_CLIENT_SECRET=your-client-secret npm run export
 
 That writes `data/catalog.export.json`. The built page picks it up automatically. The `custom.origin` and `custom.roast` metafields feed the origin and roast filters; without them those filters are empty.
 
-The exporter has only ever run against fake API responses. It has not been run against a real store, and the token request in `exporter/auth.mjs` is my reading of Shopify's client credentials grant, so the first live run may need a fix there. The exporter never prints or writes the token.
+To load the 30 fixture products into an empty development store first, run `npm run seed:shopify -- --to your-store` (the store has to be named on the command line as well as in `.env.local`, so a wrong `.env.local` cannot seed the wrong store). It checks the store before writing anything, and it updates products by handle, so a second run does not duplicate them.
+
+This has run against a real development store: the token request in `exporter/auth.mjs` worked as written, the seed loaded 30 products and 124 variants and published them, and an export from the store matched the fixture apart from ids and tag order (Shopify returns a product's tags sorted; 24 of the 30 products had the same tags in a different order). Results are in `AUDIT.md`. The exporter never prints or writes the token. The published page still shows the Airtable snapshot, not the Shopify store.
 
 ## Using data from Airtable
 The catalog can come from an Airtable base with two linked tables, Products and Variants. `npm run seed:airtable` creates them and loads the 30 fixture products, and `npm run export:airtable` reads them back into `data/catalog.export.json`. The page never talks to Airtable: the export is a snapshot you commit and the build reads it, so no token is ever in the page.
@@ -44,7 +46,7 @@ This has run against a live Airtable base: the seed loaded 30 products and 124 v
 
 ![The product page after the edits, showing 1kg with only 2 left](screenshots/airtable-live-check.png)
 
-`data/catalog.export.json` is written by whichever exporter ran last, this one or the Shopify one, in the same shape. When it exists the built page uses it; the tests always read the fixture. Columns are matched by name, so renaming one in Airtable makes the export fail with a message naming the row, instead of publishing a half-empty page. Each product holds up to two options (for example Weight and Grind) and its rows keep their order through a Position column. `npm run compare -- <catalog a> <catalog b>` shows what differs between two catalogs, ignoring ids.
+`data/catalog.export.json` is written by whichever exporter ran last, this one or the Shopify one, in the same shape. When it exists the built page uses it; the tests always read the fixture. Columns are matched by name, so renaming one in Airtable makes the export fail with a message naming the row, instead of publishing a half-empty page. Each product holds up to two options (for example Weight and Grind) and its rows keep their order through a Position column. `npm run compare -- <catalog a> <catalog b>` shows what differs between two catalogs, ignoring ids and the order of tags.
 
 ## Known limits
 - The catalog is 30 made-up products, prices in US dollars, held in an Airtable base and shown as a committed snapshot (the fixture is the fallback and what the tests use).
