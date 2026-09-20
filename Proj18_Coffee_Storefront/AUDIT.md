@@ -52,4 +52,24 @@ Run against a real Airtable base (two linked tables, Products and Variants) with
 | 7 | Suite with the snapshot committed | Pass | Typecheck clean; 25 test files, 154 tests passing (the snapshot test now runs); entry bundle 88.33 kB gzip as reported by the build, inside the size test's budget. |
 | 8 | Preview server stopped | Pass | Checked by process command line: none left. |
 
-Not checked: how the tool behaves when Airtable rate-limits a request (fake responses only), a token with fewer scopes than the four listed (the 401, 403 and 404 messages are tested against fake responses only), a table with more than 100 rows (paging is tested against fake responses only), what happens to the base or its API access when the Airtable trial ends, and any automated rebuild from an Airtable change (not built).
+Not checked: how the tool behaves when Airtable rate-limits a request (fake responses only), a token with fewer scopes than the four listed (the 401, 403 and 404 messages are tested against fake responses only), a table with more than 100 rows (paging is tested against fake responses only), and what happens to the base or its API access when the Airtable trial ends. The automated rebuild is checked in the next section.
+
+## Airtable refresh workflow: live check (2026-09-20)
+
+The `refresh-catalog` workflow, run on GitHub Actions against the same Airtable base, with the token and base id held as repo secrets. Results are the actual output of each step. Run ids are from `Ainz47/Projects`.
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | Set the two secrets by piping from the gitignored `.env.local` into `gh secret set` (never printed) | Pass | `gh secret list` shows `AIRTABLE_BASE_ID` and `AIRTABLE_TOKEN` with update times and no values. |
+| 2 | One cell changed through Airtable's API: `YIRGACHE-250g-WH` Price 19 to 23.45 | Pass | Output: `Price 19 -> 23.45`. Before it, the live entry bundle `index-CHxL1_Di.js` had 0 matches for `23.45`. |
+| 3 | Repository dispatch with event type `catalog-refresh`, sent with the GitHub CLI (run 35503759707) | Pass | Succeeded in 55 s. Log: `exported 30 products (124 variants)`, 26 test files passed, then a commit and push. |
+| 4 | The commit that run made (`075a11d`, by `github-actions[bot]`) | Pass | One line changed in `data/catalog.export.json`, `"19.00"` to `"23.45"`, plus 3 rebuilt files in `docs/coffee-store/`. |
+| 5 | The live page after that commit | Pass | The entry bundle changed to `index-B-5TPdHI.js` and had a match for `23.45` at the first check after the run. So GitHub Pages rebuilt after a push made with the built-in token. |
+| 6 | Cell put back (`23.45 -> 19`), then a manual run, workflow dispatch (run 35503868532) | Pass | Succeeded in 58 s, commit `c72ec3b`. `git diff c3c410b HEAD` on the snapshot is empty. The live bundle went back to `index-CHxL1_Di.js` with 0 matches: the same file name as before the test, so the CI build reproduced the earlier build. |
+| 7 | A bad edit: `YIRGACHE-250g-WH` Price cleared in Airtable, then a manual run (run 35503978132) | Pass | Failed in 33 s at the export step: `export failed: Airtable data is not usable (1 problem): - Variants recb9NI5QUKfK3ouX: Price must be a number of 0 or more`. Nothing was committed; `main` stayed at `c72ec3b`. |
+| 8 | Cell put back to 19, then `npm run export:airtable` locally | Pass | `exported 30 products (124 variants)`, and `git status` on `data/` is clean: the export equals the committed snapshot. |
+| 9 | The `tests` workflow after the bot commits | Observed | It ran for the commit that added the workflow (`eaeb339`) and did not run for `075a11d` or `c72ec3b`, as GitHub documents for commits made with the built-in token. That is why the refresh runs the type check, tests and build itself before committing. |
+| 10 | The three run logs searched for the shape of a base id or a token | Pass | 0 matches in each. GitHub masks secret values in logs. |
+| 11 | `tests/refresh-workflow.test.ts` | Pass | 9 tests on the workflow file (triggers, where the secrets are used, permissions, what is committed, step order). Suite: 26 test files, 163 tests. |
+
+Not checked: a token with only the two read scopes in the secret (the runs used the same token as the seed, which can also write), Make or an Airtable automation sending the dispatch (only the GitHub CLI was used), starting the workflow without write access to the repo, two dispatches overlapping (the queueing is configured, not exercised), what a refresh does after the Airtable trial ends (it should fail at the export and commit nothing, as in step 7, but I have not run that), and Linux CI.
