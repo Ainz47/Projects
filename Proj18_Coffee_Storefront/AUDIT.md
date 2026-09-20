@@ -132,3 +132,17 @@ The same React storefront, built as a Shopify theme and pushed to the developmen
 | 11 | Typecheck and suite | Pass | `tsc --noEmit` clean; 32 test files, 205 tests. |
 
 Not checked: publishing the theme, a phone-width layout in the theme, other browsers, Shopify refusing an add to cart (unit-tested only), more than 50 products (a Liquid loop stops at 50), a sold-out variant inside the theme, `/collections/<handle>` routes mapping to the app's filters (they open the full list), and the theme editor (the layout is not editable there). Not fixed: the currency mismatch above.
+
+## Shopify theme: currency fix and publish (2026-09-20)
+
+Follow-up to the theme live check above. Results are the actual output of each step.
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | Store currency added to the catalog JSON (`shop.currency`) and used by the price formatter | Pass | New `tests/currency.test.ts` (4 tests) and one snippet test. On the preview theme the cards read `From ₱16.50`, `From ₱34.00`, `₱28.00`, `From ₱15.00`, matching the peso amounts on Shopify's checkout. Without a theme the page stays in dollars. |
+| 2 | Typecheck and suite | Pass | `tsc --noEmit` clean; 33 test files, 210 tests. The GitHub page was rebuilt because the source changed (entry bundle under the budget). |
+| 3 | `theme publish` by the store owner's instruction | Pass | CLI output: `The theme 'Lantern storefront' (#165749850348) is now live`. The previous live theme (Horizon) stays on the store, unpublished, so the change can be reversed by publishing it again. |
+| 4 | The public home page fetched with no cookie or preview parameter | Pass | HTTP 200; the HTML contains the `catalog-data` element and the `coffee-storefront.js` script. |
+| 5 | The public home page in Chromium | Pass | Title "Lantern Roasters (demo)", 30 product cards, every image from `jhurald05.myshopify.com`, prices in pesos. |
+
+Not checked: placing an order (deliberately, PayPal is still switched on for this store), the server-rendered page title (it is "My Store" until the script runs, so link previews and search results show that name), the theme in the theme editor, and a phone-width layout.
