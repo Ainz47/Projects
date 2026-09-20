@@ -33,8 +33,8 @@ const shopifyProduct = (n: any, i: number, image = true) => ({
 const engine = new Liquid();
 engine.registerFilter('image_url', (img: any) => (img ? `//cdn.test/${img.src}` : ''));
 
-async function render(products: unknown[]) {
-  const html = await engine.parseAndRender(snippet, { collections: { all: { products } } });
+async function render(products: unknown[], currency = 'USD') {
+  const html = await engine.parseAndRender(snippet, { collections: { all: { products } }, shop: { currency } });
   // The browser's own parser decodes the attribute, exactly as it will on the storefront.
   document.body.innerHTML = html;
   const el = document.getElementById('catalog-data');
@@ -91,6 +91,11 @@ test('text that could break out of the element cannot, and comes back unchanged'
   expect(document.querySelectorAll('script, b')).toHaveLength(0);
   expect(json.data.products.nodes[0].title).toBe('A "quoted" </script><b>title');
   expect(json.data.products.nodes[0].description).toBe('Line one\nline "two" & more');
+});
+
+test('the catalog carries the store currency, so prices show what checkout will charge', async () => {
+  const { json } = await render([], 'PHP');
+  expect(json.data.shop.currencyCode).toBe('PHP');
 });
 
 test('an empty store renders an empty, valid catalog', async () => {

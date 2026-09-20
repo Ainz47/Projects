@@ -5,7 +5,7 @@
   break out of it (the browser decodes the attribute back to the exact original text).
 {%- endcomment -%}
 {%- capture catalog -%}
-{"data":{"products":{"nodes":[
+{"data":{"shop":{"currencyCode":{{ shop.currency | json }}},"products":{"nodes":[
 {%- for product in collections.all.products limit: 50 -%}
 {
 "id":"{{ product.id }}",
