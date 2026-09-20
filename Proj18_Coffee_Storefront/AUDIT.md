@@ -36,3 +36,20 @@ Chromium via Playwright MCP, `vite preview` on port 4173, checked 2026-09-20 aga
 | 11 | Blocked storage (`localStorage.setItem` made to throw) | Pass | No crash, no console errors; cart still works in memory; drawer shows "Your cart could not be saved on this device, so it will be empty after a reload." |
 | 12 | `#/product/nope` (unknown handle) | Pass | Shows "Not found" / "That product could not be found." with a working "Back to all products" link, zero console errors |
 | 13 | `browser_network_requests`, full reload + a client-side route change | Pass | Every request is to `localhost:4173`; nothing external |
+
+## Airtable source: live check (2026-09-20)
+
+Run against a real Airtable base (two linked tables, Products and Variants) with a personal access token kept in the gitignored `.env.local`. Results are the actual output of each step.
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | `npm run seed:airtable` on an empty base | Pass | Output: `Products: table created`, `Variants: table created`, `Products: 30 records loaded`, `Variants: 124 records loaded`, `seeded 30 products and 124 variants`. The create-records batch size of 10 was accepted. |
+| 2 | `npm run export:airtable`, then `npm run compare -- data/catalog.fixture.json data/catalog.export.json` | Pass | `exported 30 products (124 variants)`, then `identical apart from ids (30 products)`: the live round trip returns the fixture. |
+| 3 | Two cells changed through Airtable's API (not by hand): `YIRGACHE-250g-WH` Price 18 to 19, `YIRGACHE-1kg-WH` Stock 18 to 2 | Pass | Read back from Airtable straight after: Price=19, Stock=2. |
+| 4 | Re-export and compare again | Pass | `yirgacheffe-washed-ethiopia: differs in variants`. The snapshot holds `YIRGACHE-250g-WH` price 19.00 and `YIRGACHE-1kg-WH` stock 2. |
+| 5 | Built page, product page, in Chromium via Playwright | Pass | 250g / Whole bean showed `$19.00` (fixture: $18.00). Selecting 1kg / Whole bean showed `$65.00` and "Only 2 left". Screenshot: `screenshots/airtable-live-check.png`. |
+| 6 | Network requests from that page | Pass | 3 requests, all to `localhost:4173`, none to Airtable. |
+| 7 | Suite with the snapshot committed | Pass | Typecheck clean; 25 test files, 154 tests passing (the snapshot test now runs); entry bundle 88.33 kB gzip as reported by the build, inside the size test's budget. |
+| 8 | Preview server stopped | Pass | Checked by process command line: none left. |
+
+Not checked: how the tool behaves when Airtable rate-limits a request (fake responses only), a token with fewer scopes than the four listed (the 401, 403 and 404 messages are tested against fake responses only), a table with more than 100 rows (paging is tested against fake responses only), what happens to the base or its API access when the Airtable trial ends, and any automated rebuild from an Airtable change (not built).
