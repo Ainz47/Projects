@@ -1,5 +1,5 @@
 import fixture from '../data/catalog.fixture.json';
-import { chooseCatalog } from '../src/data/source';
+import { chooseCatalog, notLoadedOf } from '../src/data/source';
 
 const exported = { data: { products: { nodes: [] } } } as unknown as typeof fixture;
 
@@ -14,4 +14,19 @@ test('outside test the export is used when there is one', () => {
 
 test('the fixture is the fallback when there is no export', () => {
   expect(chooseCatalog('production', undefined)).toBe(fixture);
+});
+
+const withCount = (productCount: unknown, printed: number) =>
+  ({ data: { shop: { productCount }, products: { nodes: Array.from({ length: printed }, () => ({})) } } });
+
+test('the number of products the theme did not print is the store count minus what it printed', () => {
+  expect(notLoadedOf(withCount(70, 50))).toBe(20);
+  expect(notLoadedOf(withCount(30, 30))).toBe(0);
+});
+
+test('a missing, odd or smaller store count means nothing is reported as missing', () => {
+  expect(notLoadedOf(withCount(undefined, 30))).toBe(0);
+  expect(notLoadedOf(withCount('many', 30))).toBe(0);
+  expect(notLoadedOf(withCount(10, 30))).toBe(0);
+  expect(notLoadedOf({ data: { products: { nodes: [] } } })).toBe(0);
 });

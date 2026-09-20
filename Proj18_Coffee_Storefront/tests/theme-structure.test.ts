@@ -56,3 +56,9 @@ test('the server-rendered title uses the app\'s own store name, so link previews
   // a product page reads "<product> | <store>", as the app sets it once it runs
   expect(title).toMatch(/product\.title/);
 });
+
+test('a collection page opens the listing filtered to that collection, and /collections/all opens the plain listing', () => {
+  const t = read('templates/collection.liquid');
+  expect(t).toMatch(/\/\?collection=.*collection\.handle/);
+  expect(t).toMatch(/collection\.handle\s*!=\s*'all'/);
+});

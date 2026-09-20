@@ -33,8 +33,8 @@ const shopifyProduct = (n: any, i: number, image = true) => ({
 const engine = new Liquid();
 engine.registerFilter('image_url', (img: any) => (img ? `//cdn.test/${img.src}` : ''));
 
-async function render(products: unknown[], currency = 'USD') {
-  const html = await engine.parseAndRender(snippet, { collections: { all: { products } }, shop: { currency } });
+async function render(products: unknown[], currency = 'USD', productsCount = products.length) {
+  const html = await engine.parseAndRender(snippet, { collections: { all: { products, products_count: productsCount } }, shop: { currency } });
   // The browser's own parser decodes the attribute, exactly as it will on the storefront.
   document.body.innerHTML = html;
   const el = document.getElementById('catalog-data');
@@ -101,4 +101,17 @@ test('the catalog carries the store currency, so prices show what checkout will 
 test('an empty store renders an empty, valid catalog', async () => {
   const { json } = await render([]);
   expect(json.data.products.nodes).toEqual([]);
+});
+
+test('each product lists the collections it is in, and a product in none gets an empty list', async () => {
+  const inTwo = { ...shopifyProduct(nodes[0], 0), collections: [{ handle: 'coffee', title: 'Coffee' }, { handle: 'light-roast', title: 'Light "roast"' }] };
+  const { json } = await render([inTwo, shopifyProduct(nodes[1], 1)]);
+  expect(json.data.products.nodes[0].collections).toEqual([{ handle: 'coffee', title: 'Coffee' }, { handle: 'light-roast', title: 'Light "roast"' }]);
+  expect(json.data.products.nodes[1].collections).toEqual([]);
+  expect(normalizeProducts(json.data.products.nodes).products[0]!.collections.map((c) => c.handle)).toEqual(['coffee', 'light-roast']);
+});
+
+test('the catalog says how many products the store has, so a truncated loop can be noticed', async () => {
+  const { json } = await render([shopifyProduct(nodes[0], 0)], 'USD', 75);
+  expect(json.data.shop.productCount).toBe(75);
 });

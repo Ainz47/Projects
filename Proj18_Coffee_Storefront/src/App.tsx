@@ -16,7 +16,7 @@ const ProductPage = lazy(() => import('./ui/ProductPage'));
 const STORE = 'Lantern Roasters (demo)';
 const focusMain = () => document.getElementById('main-content')?.focus();
 
-function Store({ products, rejectedCount }: { products: Product[]; rejectedCount: number }) {
+function Store({ products, rejectedCount, notLoadedCount }: { products: Product[]; rejectedCount: number; notLoadedCount: number }) {
   const route = useRoute();
   const { isOpen } = useCart();
 
@@ -42,6 +42,7 @@ function Store({ products, rejectedCount }: { products: Product[]; rejectedCount
         products={products}
         query={route.query}
         rejectedCount={rejectedCount}
+        notLoadedCount={notLoadedCount}
         onQueryChange={(q: Query) => replaceHash(listHref(q))}
       />
     );
@@ -93,7 +94,7 @@ export default function App() {
   }
   return (
     <CartProvider products={catalog.products}>
-      <Store products={catalog.products} rejectedCount={catalog.rejectedCount} />
+      <Store products={catalog.products} rejectedCount={catalog.rejectedCount} notLoadedCount={catalog.notLoadedCount} />
     </CartProvider>
   );
 }

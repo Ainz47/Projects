@@ -2,11 +2,11 @@ import type { NormalizeResult, Product } from '../model/types';
 import { loadCatalog } from './source';
 
 export type CatalogState =
-  | { ok: true; products: Product[]; rejectedCount: number }
+  | { ok: true; products: Product[]; rejectedCount: number; notLoadedCount: number }
   | { ok: false; reason: string };
 
-export function resolveCatalog(load: () => NormalizeResult = loadCatalog): CatalogState {
-  let result: NormalizeResult;
+export function resolveCatalog(load: () => NormalizeResult & { notLoaded?: number } = loadCatalog): CatalogState {
+  let result: NormalizeResult & { notLoaded?: number };
   try {
     result = load();
   } catch (err) {
@@ -20,5 +20,5 @@ export function resolveCatalog(load: () => NormalizeResult = loadCatalog): Catal
       .join('; ');
     return { ok: false, reason: `No valid products (${result.rejected.length} rejected). ${why}` };
   }
-  return { ok: true, products: result.products, rejectedCount: result.rejected.length };
+  return { ok: true, products: result.products, rejectedCount: result.rejected.length, notLoadedCount: result.notLoaded ?? 0 };
 }

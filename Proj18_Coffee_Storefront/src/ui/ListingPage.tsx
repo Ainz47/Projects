@@ -34,17 +34,21 @@ interface Props {
   products: Product[];
   query: Query;
   rejectedCount: number;
+  notLoadedCount: number;
   onQueryChange: (q: Query) => void;
 }
 
-export function ListingPage({ products, query, rejectedCount, onQueryChange }: Props) {
+export function ListingPage({ products, query, rejectedCount, notLoadedCount, onQueryChange }: Props) {
   const f = useMemo(() => facets(products), [products]);
   const shown = useMemo(() => applyQuery(products, query), [products, query]);
   const preview = useMemo(() => heroPreview(products), [products]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const changed = serializeQuery(query) !== '';
+  // A collection's name comes from any product in it; an unknown handle shows as typed.
+  const collectionTitle =
+    query.collection === '' ? '' : products.flatMap((p) => p.collections).find((c) => c.handle === query.collection)?.title ?? query.collection;
   const activeCount =
-    query.types.length + query.origins.length + query.roasts.length +
+    query.types.length + query.origins.length + query.roasts.length + (query.collection !== '' ? 1 : 0) +
     (query.inStockOnly ? 1 : 0) + (query.minCents !== null ? 1 : 0) + (query.maxCents !== null ? 1 : 0);
 
   return (
@@ -94,6 +98,14 @@ export function ListingPage({ products, query, rejectedCount, onQueryChange }: P
         </aside>
 
         <section aria-label="Products">
+          {collectionTitle !== '' && (
+            <p className="collection-line">
+              <span className="collection-name">{collectionTitle}</span>
+              <button type="button" className="link-button" onClick={() => onQueryChange({ ...query, collection: '' })}>
+                Show all products
+              </button>
+            </p>
+          )}
           <p className="result-count" role="status">
             {countLabel(shown.length)}
           </p>
@@ -115,6 +127,11 @@ export function ListingPage({ products, query, rejectedCount, onQueryChange }: P
         </section>
       </div>
 
+      {notLoadedCount > 0 && (
+        <p className="fineprint">
+          {notLoadedCount === 1 ? '1 more product is' : `${notLoadedCount} more products are`} in the store but were not loaded: the theme prints the first 50.
+        </p>
+      )}
       {rejectedCount > 0 && (
         <p className="fineprint">{rejectedCount === 1 ? '1 product' : `${rejectedCount} products`} could not be loaded.</p>
       )}

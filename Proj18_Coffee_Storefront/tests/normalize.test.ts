@@ -98,3 +98,12 @@ test('rejects non-object entries without throwing', () => {
   expect(products).toEqual([]);
   expect(rejected).toHaveLength(3);
 });
+
+test('a product keeps its collections, drops malformed entries, and has none when the store sent none', () => {
+  const sent = node({ collections: [{ handle: 'light-roast', title: 'Light roast' }, { handle: 'coffee' }, { handle: 'Not A Handle', title: 'x' }, null, 'coffee'] });
+  expect(normalizeProducts([sent]).products[0]!.collections).toEqual([
+    { handle: 'light-roast', title: 'Light roast' },
+    { handle: 'coffee', title: 'coffee' },
+  ]);
+  expect(normalizeProducts([node()]).products[0]!.collections).toEqual([]);
+});

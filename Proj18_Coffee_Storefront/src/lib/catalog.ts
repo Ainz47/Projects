@@ -7,6 +7,7 @@ export interface Query {
   types: string[];
   origins: string[];
   roasts: string[];
+  collection: string;
   inStockOnly: boolean;
   minCents: number | null;
   maxCents: number | null;
@@ -14,7 +15,7 @@ export interface Query {
 }
 
 export const defaultQuery: Query = {
-  q: '', types: [], origins: [], roasts: [], inStockOnly: false, minCents: null, maxCents: null, sort: 'featured',
+  q: '', types: [], origins: [], roasts: [], collection: '', inStockOnly: false, minCents: null, maxCents: null, sort: 'featured',
 };
 
 const SORTS: SortKey[] = ['featured', 'price-asc', 'price-desc', 'name'];
@@ -31,6 +32,7 @@ export function applyQuery(products: Product[], q: Query): Product[] {
       (q.types.length === 0 || q.types.includes(p.type)) &&
       (q.origins.length === 0 || (p.origin !== null && q.origins.includes(p.origin))) &&
       (q.roasts.length === 0 || (p.roast !== null && q.roasts.includes(p.roast))) &&
+      (q.collection === '' || p.collections.some((c) => c.handle === q.collection)) &&
       (!q.inStockOnly || p.available) &&
       (q.minCents === null || p.maxCents >= q.minCents) &&
       (q.maxCents === null || p.minCents <= q.maxCents),
@@ -74,6 +76,7 @@ export function parseQuery(search: string): Query {
     types: params.getAll('type'),
     origins: params.getAll('origin'),
     roasts: params.getAll('roast'),
+    collection: params.get('collection') ?? '',
     inStockOnly: params.get('stock') === '1',
     minCents: toCents(params.get('min')),
     maxCents: toCents(params.get('max')),
@@ -87,6 +90,7 @@ export function serializeQuery(q: Query): string {
   q.types.forEach((v) => params.append('type', v));
   q.origins.forEach((v) => params.append('origin', v));
   q.roasts.forEach((v) => params.append('roast', v));
+  if (q.collection) params.set('collection', q.collection);
   if (q.inStockOnly) params.set('stock', '1');
   if (q.minCents !== null) params.set('min', String(q.minCents / 100));
   if (q.maxCents !== null) params.set('max', String(q.maxCents / 100));

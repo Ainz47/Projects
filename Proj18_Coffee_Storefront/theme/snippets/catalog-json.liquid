@@ -1,11 +1,11 @@
 {%- comment -%}
   Prints the store's products as JSON, in the same shape as data/catalog.fixture.json, so the app reads its products
-  from Shopify. Two limits to keep in view: a Liquid loop over a collection stops at 50 items (this store has 30; more
-  would need the paginate tag), and the JSON travels in an HTML attribute run through `escape`, so no product text can
+  from Shopify. Two limits to keep in view: a Liquid loop over a collection stops at 50 items (this store has 30; the count
+  in `shop.productCount` lets the page say when some were not printed, and more would need the paginate tag), and the JSON travels in an HTML attribute run through `escape`, so no product text can
   break out of it (the browser decodes the attribute back to the exact original text).
 {%- endcomment -%}
 {%- capture catalog -%}
-{"data":{"shop":{"currencyCode":{{ shop.currency | json }}},"products":{"nodes":[
+{"data":{"shop":{"currencyCode":{{ shop.currency | json }},"productCount":{{ collections.all.products_count | default: 0 }}},"products":{"nodes":[
 {%- for product in collections.all.products limit: 50 -%}
 {
 "id":"{{ product.id }}",
@@ -16,6 +16,11 @@
 "tags":{{ product.tags | json }},
 "description":{{ product.description | strip_html | strip | json }},
 "image":{% if product.featured_image %}{{ product.featured_image | image_url: width: 800 | json }}{% else %}null{% endif %},
+"collections":[
+{%- for c in product.collections -%}
+{"handle":{{ c.handle | json }},"title":{{ c.title | json }}}{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+],
 "options":[
 {%- for option in product.options_with_values -%}
 {"name":{{ option.name | json }},"values":{{ option.values | json }}}{% unless forloop.last %},{% endunless %}

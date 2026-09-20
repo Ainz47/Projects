@@ -23,9 +23,18 @@ export function chooseCatalog(mode: string, exported: typeof fixture | undefined
 export const currencyCodeOf = (catalog: unknown): string | undefined =>
   (catalog as { data?: { shop?: { currencyCode?: unknown } } }).data?.shop?.currencyCode as string | undefined;
 
-export function loadCatalog(): NormalizeResult {
+// How many of the store's products the theme's snippet did not print (its Liquid loop stops at 50). Anything odd in the
+// count means "nothing known to be missing", never a made-up number.
+export function notLoadedOf(catalog: unknown): number {
+  const c = catalog as { data?: { shop?: { productCount?: unknown }; products?: { nodes?: unknown[] } } };
+  const total = c.data?.shop?.productCount;
+  const printed = c.data?.products?.nodes?.length ?? 0;
+  return typeof total === 'number' && Number.isInteger(total) && total > printed ? total - printed : 0;
+}
+
+export function loadCatalog(): NormalizeResult & { notLoaded: number } {
   const exported = Object.values(snapshots)[0];
   const catalog = chooseCatalog(import.meta.env.MODE, exported, readInjectedCatalog());
   setCurrency(currencyCodeOf(catalog));
-  return normalizeProducts(catalog.data.products.nodes);
+  return { ...normalizeProducts(catalog.data.products.nodes), notLoaded: notLoadedOf(catalog) };
 }

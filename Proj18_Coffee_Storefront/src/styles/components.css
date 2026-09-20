@@ -159,6 +159,19 @@ select {
   width: 100%;
 }
 
+.collection-line {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 16px;
+  margin-bottom: 4px;
+}
+
+.collection-name {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+}
+
 .result-count {
   margin-bottom: 14px;
   color: var(--muted);

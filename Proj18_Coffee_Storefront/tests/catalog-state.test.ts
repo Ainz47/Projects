@@ -5,7 +5,7 @@ const oneProduct = { handle: 'a' } as Product;
 
 test('a loaded catalog reports how many nodes were rejected', () => {
   const result: NormalizeResult = { products: [oneProduct], rejected: [{ index: 3, handle: 'b', reason: 'no variants' }] };
-  expect(resolveCatalog(() => result)).toEqual({ ok: true, products: [oneProduct], rejectedCount: 1 });
+  expect(resolveCatalog(() => result)).toEqual({ ok: true, products: [oneProduct], rejectedCount: 1, notLoadedCount: 0 });
 });
 
 test('a loader that throws becomes an error state with the message', () => {
@@ -26,4 +26,9 @@ test('zero valid products is an error state that says why', () => {
 
 test('an empty catalog is an error state', () => {
   expect(resolveCatalog(() => ({ products: [], rejected: [] }))).toEqual({ ok: false, reason: 'The catalog is empty.' });
+});
+
+test('products the store has but the theme did not print are counted, so the page can say so', () => {
+  const result = { products: [oneProduct], rejected: [], notLoaded: 20 };
+  expect(resolveCatalog(() => result)).toEqual({ ok: true, products: [oneProduct], rejectedCount: 0, notLoadedCount: 20 });
 });

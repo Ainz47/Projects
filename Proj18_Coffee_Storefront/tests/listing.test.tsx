@@ -3,6 +3,7 @@ import userEvent from '@testing-library/user-event';
 import App from '../src/App';
 import { loadCatalog } from '../src/data/source';
 import { applyQuery, defaultQuery, type Query } from '../src/lib/catalog';
+import { ListingPage } from '../src/ui/ListingPage';
 
 const { products } = loadCatalog();
 const count = (n: number) => (n === 1 ? '1 product' : `${n} products`);
@@ -103,4 +104,21 @@ test('moving to another page moves focus to the main region', async () => {
   renderAt();
   window.location.hash = '#/nope';
   await waitFor(() => expect(screen.getByRole('main')).toHaveFocus());
+});
+
+test('a collection view lists only its members, names the collection, and can show everything again', async () => {
+  const user = userEvent.setup();
+  const picks = [{ handle: 'picks', title: 'Staff picks' }];
+  const tagged = products.map((p, i) => (i < 3 ? { ...p, collections: picks } : p));
+  const onQueryChange = vi.fn();
+  render(<ListingPage products={tagged} query={{ ...defaultQuery, collection: 'picks' }} rejectedCount={0} notLoadedCount={0} onQueryChange={onQueryChange} />);
+  expect(screen.getByRole('status')).toHaveTextContent('3 products');
+  expect(screen.getByText('Staff picks')).toBeInTheDocument();
+  await user.click(screen.getByRole('button', { name: /show all products/i }));
+  expect(onQueryChange).toHaveBeenCalledWith(defaultQuery);
+});
+
+test('products the theme could not load are said out loud, not silently missing', () => {
+  render(<ListingPage products={products} query={defaultQuery} rejectedCount={0} notLoadedCount={4} onQueryChange={() => {}} />);
+  expect(screen.getByText(/4 more products are in the store but were not loaded/i)).toBeInTheDocument();
 });

@@ -10,6 +10,11 @@ export interface Variant {
   options: Record<string, string>;
 }
 
+export interface CollectionRef {
+  handle: string;
+  title: string;
+}
+
 export interface Product {
   id: string;
   handle: string;
@@ -21,6 +26,7 @@ export interface Product {
   image: string | null;
   origin: string | null;
   roast: string | null;
+  collections: CollectionRef[];
   optionNames: string[];
   optionValues: Record<string, string[]>;
   variants: Variant[];

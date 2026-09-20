@@ -3,7 +3,7 @@ import type { Product } from '../src/model/types';
 
 const p = (over: Partial<Product>): Product => ({
   id: 'x', handle: 'x', title: 'X', vendor: 'V', type: 'Coffee', tags: [], description: '', image: null,
-  origin: null, roast: null, optionNames: [], optionValues: {}, variants: [],
+  origin: null, roast: null, collections: [], optionNames: [], optionValues: {}, variants: [],
   minCents: 1000, maxCents: 1000, available: true, lowStock: false, ...over,
 });
 
@@ -59,4 +59,20 @@ test('a query survives a round trip through the URL', () => {
 test('parseQuery ignores junk instead of throwing', () => {
   expect(parseQuery('sort=bogus&min=abc&max=-5&stock=maybe')).toEqual(defaultQuery);
   expect(parseQuery('?q=hello')).toEqual({ ...defaultQuery, q: 'hello' });
+});
+
+test('a collection keeps only its members, and combines with the other filters', () => {
+  const inPicks = [{ handle: 'picks', title: 'Staff picks' }];
+  const list = [p({ handle: 'a', collections: inPicks }), p({ handle: 'b' }), p({ handle: 'c', collections: inPicks, type: 'Dripper' })];
+  expect(handles(applyQuery(list, q({ collection: 'picks' })))).toEqual(['a', 'c']);
+  expect(handles(applyQuery(list, q({ collection: 'picks', types: ['Dripper'] })))).toEqual(['c']);
+  expect(applyQuery(list, q({ collection: 'nope' }))).toEqual([]);
+  expect(handles(applyQuery(list, q({ collection: '' })))).toEqual(['a', 'b', 'c']);
+});
+
+test('the collection travels in the URL and comes back unchanged', () => {
+  const query = q({ collection: 'light-roast', roasts: ['Light'] });
+  expect(serializeQuery(query)).toBe('roast=Light&collection=light-roast');
+  expect(parseQuery(serializeQuery(query))).toEqual(query);
+  expect(parseQuery('')).toEqual(defaultQuery);
 });

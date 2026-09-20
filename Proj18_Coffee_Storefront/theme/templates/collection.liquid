@@ -1,1 +1,8 @@
-{% render 'storefront-app' %}
+{%- comment -%}
+  /collections/<handle> opens the listing filtered to that collection. /collections/all is every product, so it
+  opens the plain listing.
+{%- endcomment -%}
+{%- if collection.handle != 'all' -%}
+  {%- assign route = '/?collection=' | append: collection.handle -%}
+{%- endif -%}
+{% render 'storefront-app', initial_route: route %}

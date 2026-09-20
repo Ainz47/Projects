@@ -1,4 +1,4 @@
-import { LOW_STOCK_MAX, type NormalizeResult, type Product, type Rejected, type Variant } from './types';
+import { LOW_STOCK_MAX, type CollectionRef, type NormalizeResult, type Product, type Rejected, type Variant } from './types';
 
 type Raw = Record<string, any>;
 const HANDLE = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
@@ -23,6 +23,18 @@ function meta(node: Raw, key: string): string | null {
   const nodes: Raw[] = Array.isArray(node.metafields?.nodes) ? node.metafields.nodes : [];
   const hit = nodes.find((m) => m?.namespace === 'custom' && m?.key === key);
   return str(hit?.value);
+}
+
+// The collections a product is in, as the store prints them. An entry without a usable handle is dropped; a missing
+// title falls back to the handle, so the collection view always has a name to show.
+function toCollections(raw: unknown): CollectionRef[] {
+  if (!Array.isArray(raw)) return [];
+  const out: CollectionRef[] = [];
+  for (const c of raw) {
+    const handle = str(c?.handle);
+    if (handle && HANDLE.test(handle)) out.push({ handle, title: str(c?.title) ?? handle });
+  }
+  return out;
 }
 
 function toVariant(raw: Raw): Variant | string {
@@ -87,6 +99,7 @@ function toProduct(raw: Raw): Product | string {
     image: httpsUrl(raw.image),
     origin: meta(raw, 'origin'),
     roast: meta(raw, 'roast'),
+    collections: toCollections(raw.collections),
     optionNames,
     optionValues,
     variants,
