@@ -243,7 +243,7 @@
     },
     {
       "parameters": {
-        "method": "POST",
+        "method": "PATCH",
         "url": "https://api.airtable.com/v0/appXXXXXXXXXXXXXX/Variants",
         "options": {},
         "authentication": "genericCredentialType",

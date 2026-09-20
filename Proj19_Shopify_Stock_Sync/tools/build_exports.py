@@ -76,8 +76,8 @@ def if_node(name, position, left):
     })
 
 
-def http_node(name, position, url, *, cred_type=None, cred_name=None, headers=None, json_body=None, **extra):
-    parameters = {"method": "POST", "url": url, "options": {}}
+def http_node(name, position, url, *, method="POST", cred_type=None, cred_name=None, headers=None, json_body=None, **extra):
+    parameters = {"method": method, "url": url, "options": {}}
     if cred_type:
         parameters["authentication"] = "genericCredentialType"
         parameters["genericAuthType"] = cred_type
@@ -137,7 +137,7 @@ def order_stock_sync():
         code_node("Chunk updates", [2400, -240], js("plan_updates.js", tail=(
             "const { updates } = $('Plan updates').first().json;\n"
             "return chunkUpdates(updates, 10).map((records) => ({ json: { records: records.map((u) => ({ id: u.recordId, fields: { Stock: u.newStock } })) } }));"))),
-        http_node("Airtable update", [2640, -240], AIRTABLE_URL,
+        http_node("Airtable update", [2640, -240], AIRTABLE_URL, method="PATCH",
                   cred_type="httpHeaderAuth", cred_name="Airtable token",
                   json_body="={{ JSON.stringify({ records: $json.records }) }}"),
         http_node("Dispatch refresh", [2880, -240], GITHUB_URL,

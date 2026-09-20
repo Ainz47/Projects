@@ -49,6 +49,15 @@ class ExportTests(unittest.TestCase):
             "n8n-nodes-base.httpRequest", "n8n-nodes-base.if",
         })
 
+    def test_airtable_update_uses_patch_not_post(self):
+        # Discovered live (2026-09-20, exec 49): Airtable's batch endpoint treats a POST
+        # carrying record ids as an invalid create request. Updating existing records by
+        # id needs PATCH. Every other HTTP node here creates/reads, so stays POST.
+        nodes = by_name(load())
+        self.assertEqual(nodes["Airtable update"]["parameters"]["method"], "PATCH")
+        for name in ("Shopify token", "Shopify orders", "Shopify stock", "Airtable rows", "Dispatch refresh"):
+            self.assertEqual(nodes[name]["parameters"]["method"], "POST", name)
+
     def test_wiring(self):
         w = load()
         chain = ["Every 5 minutes", "Plan orders query", "Shopify token", "Shopify orders", "Plan stock lookup", "Any SKUs?"]
