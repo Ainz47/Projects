@@ -1,0 +1,58 @@
+name: refresh-catalog
+
+# Rebuilds the Proj18 storefront from the Airtable base and commits the result to main.
+# Two triggers, and both need write access to this repo, so nothing from a fork can start it or reach the
+# secrets. To start it from outside GitHub (a Make scenario, an Airtable automation), send a repository
+# dispatch to /repos/Ainz47/Projects/dispatches with {"event_type": "catalog-refresh"}.
+on:
+  workflow_dispatch:
+  repository_dispatch:
+    types: [catalog-refresh]
+
+# The repo default is read-only. The last step pushes a commit, so it needs contents: write and nothing else.
+permissions:
+  contents: write
+
+# Two refreshes at once would both try to push. Queue them, do not cancel one halfway.
+concurrency:
+  group: refresh-catalog
+  cancel-in-progress: false
+
+jobs:
+  refresh:
+    # Windows on purpose, like tests.yml: the committed page has to match a Windows build.
+    runs-on: windows-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: Proj18_Coffee_Storefront
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: Proj18_Coffee_Storefront/package-lock.json
+      - run: npm ci
+      # The only step that sees the Airtable credentials. The script never prints them.
+      - name: Export the catalog from Airtable
+        env:
+          AIRTABLE_TOKEN: ${{ secrets.AIRTABLE_TOKEN }}
+          AIRTABLE_BASE_ID: ${{ secrets.AIRTABLE_BASE_ID }}
+        run: node airtable/cli.mjs
+      # Verify before publishing: a bad edit in Airtable fails here and nothing reaches main.
+      - run: npm run typecheck
+      - run: npm test
+      - run: npm run build
+      - name: Commit the refreshed snapshot and page
+        shell: bash
+        run: |
+          if [ -z "$(git status --porcelain -- data/catalog.export.json ../docs/coffee-store)" ]; then
+            echo "Airtable matches the committed snapshot: nothing to commit"
+            exit 0
+          fi
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/catalog.export.json ../docs/coffee-store
+          git commit -m "Proj18: refresh the catalog snapshot from Airtable"
+          git push
