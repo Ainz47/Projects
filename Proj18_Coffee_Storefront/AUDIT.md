@@ -91,3 +91,24 @@ Run against a real development store, `jhurald05`, with an app from the Shopify 
 | 9 | Typecheck and suite after the change | Pass | `tsc --noEmit` clean; 27 test files, 171 tests passing. |
 
 Not checked: a token with only read scopes (every run used write scopes), which of the four scopes the seed strictly needs (I did not remove any one to see), whether the store has metafield definitions for `custom.origin` and `custom.roast` beyond the values matching in the export, the exporter's throttling and retry behaviour against a real rate limit (fake responses only), a store with more than one location, the built page reading the Shopify export (the page still uses the Airtable snapshot), and a second seed run to confirm the update-by-handle path. The token in the step 2 output was printed once in the session log during diagnosis; it expires after 24 hours, but the client secret was pasted into the chat and should be rotated in the Dev Dashboard.
+
+## Shopify store dressing: live check (2026-09-20)
+
+The seeded store `jhurald05` had 30 products and nothing else: no pictures, one default collection, a stock theme. `npm run seed:store` adds a picture per product and rule-based collections. Results are the actual output of each step. Public checks were made without logging in.
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | Storefront as an anonymous visitor, before | Observed | Redirected to `/password`; `products.json` returned 401. The store owner then switched the storefront password off. |
+| 2 | Same checks after that | Pass | Home page 200; `products.json` 200 with 30 products, 124 variants and 0 images. |
+| 3 | Home page in Chromium via Playwright, before | Observed | Stock theme ("My Store", "Welcome to our store", stock hero); the four product cards on screen showed the product name on a grey block. |
+| 4 | `@resvg/resvg-js` installed and run in a scratch folder | Pass | Native module loads on this machine and returned a valid PNG, so no browser is needed to render the art. |
+| 5 | Two products rendered locally from `artFor()` and looked at | Pass | A clean bag illustration (Ethiopia) at 1600 px; all 30 products normalize (0 rejected). |
+| 6 | 9 new tests in `tests/shopify-store-dressing.test.ts`, against a fake store that keeps state | Pass | Preflight before any write, upload order, skip when media exists, a named error when Shopify rejects an image, collection rules, front page only adds what is missing, a second run adds nothing. |
+| 7 | Mutation check: the skip-if-media test line replaced with `false` | Pass | Exactly one test failed (the second-run test); the file was restored. |
+| 8 | `npm run seed:store -- all --to jhurald05` | Pass | `images: 30 added, 0 already had one`, five collections `created and published`, `frontpage: 7 featured products added`. Exit 0 on the first live run: staged uploads, `productUpdate` with media, `collectionCreate` and `collectionAddProducts` all worked with the existing scopes. |
+| 9 | Counts read back from the public storefront | Pass | `products.json`: 30 of 30 products have one image (30 images). Collection product counts: coffee 18, brewing-gear 12, light-roast 6, medium-roast 9, dark-roast 3, frontpage 8. These equal the fixture's types and tags. |
+| 10 | The same command run again | Pass | `images: 0 added, 30 already had one`; `0 created, 5 already there, 0 featured products added`. Nothing changed. |
+| 11 | Home page in Chromium after | Pass | The product cards show the bag and dripper illustrations. The theme text is unchanged: "My Store", "Welcome to our store", "Browse our latest products", and the home page "Products" section lists products alphabetically instead of using the `frontpage` collection. Those are theme settings, not something this script sets. |
+| 12 | Typecheck and suite | Pass | `tsc --noEmit` clean; 28 test files, 180 tests. |
+
+Not checked: whether checkout can take a payment (payments were not looked at; the storefront is public), a demo notice on the store (the theme editor is not reachable by the app), navigation links to the new collections, the collection pages in a browser (counts were read from the public product feeds), image sizes on a slow connection, and a second store.

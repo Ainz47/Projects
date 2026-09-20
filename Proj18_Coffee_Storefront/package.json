@@ -9,6 +9,7 @@
     "fixture": "node tools/make_fixture.mjs",
     "export": "node exporter/cli.mjs",
     "seed:shopify": "node --env-file=.env.local exporter/seed-cli.mjs",
+    "seed:store": "node --env-file=.env.local exporter/seed-store-cli.mjs",
     "export:airtable": "node --env-file=.env.local airtable/cli.mjs",
     "seed:airtable": "node --env-file=.env.local airtable/seed-cli.mjs",
     "compare": "node tools/compare_catalog.mjs",
@@ -19,6 +20,7 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@resvg/resvg-js": "^2.6.2",
     "@testing-library/jest-dom": "^7.0.1",
     "@testing-library/react": "^16.3.3",
     "@testing-library/user-event": "^14.6.7",
