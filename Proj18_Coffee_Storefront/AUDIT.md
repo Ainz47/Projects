@@ -170,3 +170,15 @@ Not checked: the theme editor and a phone-width layout (unchanged from above). S
 | 4 | Public storefront fetched with no cookie | Pass | Home: `<title>Lantern Roasters (demo)</title>`. Product page: `Tamper and Brush Set \| Lantern Roasters (demo)`. Home still 200 with the `catalog-data` element. Before, the server-rendered title was "My Store" until the script ran. |
 
 The store's own name in Shopify is still "My Store" (checkout reads "Checkout - My Store"): that is an admin setting the app cannot change.
+
+## Shopify theme gaps: collection pages, the 50-product limit, phone width (2026-09-20)
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | 12 new tests written first (normalizer, query filter and URL, listing page, snippet, source, state, collection template) | Pass | All 12 failed first, for the right reasons. Suite: 33 files, 222 tests; `tsc --noEmit` clean; page and theme rebuilt (entry bundle 89.37 kB gzip, budget 94,000). |
+| 2 | Pushed to a new unpublished theme, then `?preview_theme_id=` in Chromium: `/collections/light-roast`, `/collections/brewing-gear`, `/collections/all` | Pass | Light roast opened `#/?collection=light-roast` with "Light roast", 6 products; brewing gear 12 products; both match the collection counts on the store. "Show all products" returned all 30. `/collections/all` opened the plain listing with no collection line. |
+| 3 | Same files pushed to the live theme, public storefront fetched with no cookie | Pass | Home, `/collections/light-roast` and `/collections/all` are HTTP 200. The catalog JSON has `productCount` 30, 30 products printed, currency USD, and all 30 carry their collections. The live pages were fetched, not opened in a browser. |
+| 4 | 50-product limit | Reduced, not removed | The snippet now prints the store's product count and the page says "N more products are in the store but were not loaded" when the Liquid loop hid some. Covered by unit tests only: the store has 30, so the message has never shown on a real page. Real pagination is still not built. |
+| 5 | Phone width (375 x 812) on the preview: listing, filters open, product page, cart drawer | Pass | No horizontal overflow on any of them (scroll width equals viewport width); the drawer fills the width and reads clearly. Only finding: the product-title links in the cards are 23px tall, one pixel under the 24px WCAG 2.2 minimum; not changed (the image link to the same page is a larger equivalent target). Not checked: a real phone, landscape, other widths. |
+
+Not checked: the theme editor, and `/collections/<handle>` for a collection that is empty or does not exist (an empty one would show "Nothing matches" under its name).
