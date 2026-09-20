@@ -1,0 +1,80 @@
+/*
+  Motion rules for this app: transform and opacity only, nothing over 300ms, ease-out curves,
+  and only short transitions or one-shot animations, so any of it can be interrupted mid-way.
+  Nothing loops. Buttons give a small press response; the drawer eases in.
+*/
+
+@media (hover: hover) and (pointer: fine) {
+  .card-art {
+    transition: transform 280ms var(--ease-out);
+  }
+
+  .card:hover .card-art {
+    transform: scale(1.03);
+  }
+}
+
+.button,
+.icon-button,
+.cart-button,
+.qty button {
+  transition: transform 120ms var(--ease-out);
+}
+
+.button:active:not(:disabled),
+.icon-button:active,
+.cart-button:active,
+.qty button:active:not(:disabled) {
+  transform: scale(0.97);
+}
+
+.drawer-backdrop {
+  animation: fade-in 180ms var(--ease-out) both;
+}
+
+.drawer {
+  animation: drawer-in 240ms var(--ease-out) both;
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes drawer-in {
+  from {
+    opacity: 0;
+    transform: translateX(32px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+/* Reduced motion keeps the fades (they carry meaning) and drops the movement. */
+@media (prefers-reduced-motion: reduce) {
+  .card-art,
+  .button,
+  .icon-button,
+  .cart-button,
+  .qty button {
+    transition: none;
+  }
+
+  .card:hover .card-art,
+  .button:active:not(:disabled),
+  .icon-button:active,
+  .cart-button:active,
+  .qty button:active:not(:disabled) {
+    transform: none;
+  }
+
+  .drawer {
+    animation-name: fade-in;
+  }
+}
