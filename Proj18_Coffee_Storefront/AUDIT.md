@@ -146,3 +146,16 @@ Follow-up to the theme live check above. Results are the actual output of each s
 | 5 | The public home page in Chromium | Pass | Title "Lantern Roasters (demo)", 30 product cards, every image from `jhurald05.myshopify.com`, prices in pesos. |
 
 Not checked: placing an order (deliberately, PayPal is still switched on for this store), the server-rendered page title (it is "My Store" until the script runs, so link previews and search results show that name), the theme in the theme editor, and a phone-width layout.
+
+## Shopify store: payments off and currency USD (2026-09-20)
+
+The store owner switched PayPal off and changed the store currency from PHP to USD in the Shopify admin (neither setting is reachable through the app's API scopes). Results are what I read afterwards, with nothing entered at checkout.
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | `meta.json` and `products.json` from the public storefront | Pass | Currency `USD`. Still 30 products and 124 variants, priced 9.00 to 219.00: switching currency did not touch the prices, which were already dollar amounts. |
+| 2 | Home page in Chromium | Pass | Cards read `$16.50`, `$34.00`, `$28.00`, `$15.00`, `$219.00`. No redeploy was needed, the page reads `shop.currency`. |
+| 3 | Add one product to the cart with `/cart/add.js`, open `/checkout`, read the page | Pass | Payment section reads "This store can't accept payments right now" and "Available payment methods have been updated." The Pay now button is disabled. Totals in USD (`USD $32.00`). No PayPal button. |
+| 4 | Cart cleared afterwards | Pass | `/cart/clear.js`. No order was placed and nothing was typed into the checkout form. |
+
+Not checked: the theme editor and a phone-width layout (unchanged from above). Supersedes the two "PayPal is still switched on" and peso notes in the earlier sections; those describe the state at the time.
