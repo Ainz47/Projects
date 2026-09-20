@@ -112,3 +112,23 @@ The seeded store `jhurald05` had 30 products and nothing else: no pictures, one 
 | 12 | Typecheck and suite | Pass | `tsc --noEmit` clean; 28 test files, 180 tests. |
 
 Not checked: whether checkout can take a payment (payments were not looked at; the storefront is public), a demo notice on the store (the theme editor is not reachable by the app), navigation links to the new collections, the collection pages in a browser (counts were read from the public product feeds), image sizes on a slow connection, and a second store.
+
+## Shopify theme: live check (2026-09-20)
+
+The same React storefront, built as a Shopify theme and pushed to the development store as a new, unpublished theme (`Lantern storefront`, #165749850348). The live theme (Horizon, #165746049260) was not touched. Results are the actual output of each step.
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | Shopify CLI (`npx @shopify/cli`) login | Pass | Device-code login approved by the store owner in a browser; `theme list` showed Horizon as the only theme, live. |
+| 2 | Tests written first: 4 new files (theme catalog snippet, checkout hand-off, injected source, theme structure) | Pass | All 4 failed before any code existed (7 test failures plus 4 files that could not import). |
+| 3 | Snippet rendered with a Liquid engine from the real fixture, then normalized | Pass | 30 products come out identical to the fixture's, apart from ids and images. The test caught a real problem: `'\u003c'` in a Liquid string is read differently by different engines, so the JSON now travels in an HTML attribute run through `escape`. |
+| 4 | `npm run build:theme` | Pass | `coffee-storefront.js` 333 kB (90 kB gzip), `coffee-storefront.css` 11 kB, `favicon.svg`. Git ignores `theme/assets/`. |
+| 5 | `theme push --unpublished`, then the preview link in Chromium | Pass | Page title "Lantern Roasters (demo)", which only the app sets. The catalog element held 30 products and 124 variants with Shopify ids, prices (16.50), stock (33) and the origin and roast metafields, read from the store. |
+| 6 | Card images on the preview | Fail, then fixed | All 30 cards still used the generated art. Shopify's image urls are protocol-relative (`//store.myshopify.com/cdn/...`) and my test stub used `https://`, so the normalizer rejected them. Fixed in the normalizer, the test now uses Shopify's real shape. After a re-push all 30 cards load `jhurald05.myshopify.com/cdn/shop/files/<handle>.png`. |
+| 7 | Opened the Shopify URL `/products/antigua-volcanic-guatemala` | Pass | The app opened on that product (title "Antigua Volcanic Guatemala | Lantern Roasters (demo)"), through the product template's initial route. |
+| 8 | Add to cart, then Checkout in the drawer | Pass | The drawer showed the line and an enabled Checkout button. The click emptied and filled Shopify's cart and landed on `/checkouts/cn/.../en-ph` ("Checkout - My Store") with the item at 1. Nothing was entered or submitted. |
+| 9 | What that checkout page shows | Observed | An Express checkout PayPal button is present, so a payment can be attempted on this store. The store currency is PHP: checkout shows ₱16.50 where the app shows $16.50 for the same number. |
+| 10 | Requests made by the preview page | Observed | Its own store host, `cdn.shopify.com` and a Shopify telemetry host. The "no request to another origin" check applies to the GitHub build, not the theme. |
+| 11 | Typecheck and suite | Pass | `tsc --noEmit` clean; 32 test files, 205 tests. |
+
+Not checked: publishing the theme, a phone-width layout in the theme, other browsers, Shopify refusing an add to cart (unit-tested only), more than 50 products (a Liquid loop stops at 50), a sold-out variant inside the theme, `/collections/<handle>` routes mapping to the app's filters (they open the full list), and the theme editor (the layout is not editable there). Not fixed: the currency mismatch above.

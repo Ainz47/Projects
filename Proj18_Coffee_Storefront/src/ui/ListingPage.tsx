@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { artDataUri } from '../art';
+import { imageFor } from '../art';
 import { applyQuery, defaultQuery, facets, serializeQuery, type Query, type SortKey } from '../lib/catalog';
 import type { Product } from '../model/types';
 import { FilterPanel } from './FilterPanel';
@@ -60,7 +60,7 @@ export function ListingPage({ products, query, rejectedCount, onQueryChange }: P
         {preview.length > 0 && (
           <div className="hero-art" aria-hidden="true">
             {preview.map((p) => (
-              <img key={p.id} src={artDataUri(p)} width={96} height={96} alt="" loading="lazy" />
+              <img key={p.id} src={imageFor(p)} width={96} height={96} alt="" loading="lazy" />
             ))}
           </div>
         )}

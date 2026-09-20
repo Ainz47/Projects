@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { artDataUri } from '../art';
+import { imageFor } from '../art';
 import { formatMoney } from '../lib/money';
 import { defaultSelection, isValueAvailable, pickVariant, type Selection } from '../lib/variants';
 import { LOW_STOCK_MAX, type Product, type Variant } from '../model/types';
@@ -17,7 +17,7 @@ function ProductView({ product }: { product: Product }) {
   const cart = useCart();
   const [selection, setSelection] = useState<Selection>(() => defaultSelection(product));
   const [wanted, setWanted] = useState(1);
-  const art = useMemo(() => artDataUri(product), [product]);
+  const art = useMemo(() => imageFor(product), [product]);
 
   const variant = pickVariant(product, selection);
   const room = variant && variant.available ? Math.max(0, variant.inventory - cart.qtyOf(variant.id)) : 0;

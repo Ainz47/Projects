@@ -2,7 +2,7 @@ import { applyQuery, defaultQuery, facets, parseQuery, serializeQuery, type Quer
 import type { Product } from '../src/model/types';
 
 const p = (over: Partial<Product>): Product => ({
-  id: 'x', handle: 'x', title: 'X', vendor: 'V', type: 'Coffee', tags: [], description: '',
+  id: 'x', handle: 'x', title: 'X', vendor: 'V', type: 'Coffee', tags: [], description: '', image: null,
   origin: null, roast: null, optionNames: [], optionValues: {}, variants: [],
   minCents: 1000, maxCents: 1000, available: true, lowStock: false, ...over,
 });

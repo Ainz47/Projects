@@ -1,11 +1,11 @@
 import { useMemo } from 'react';
-import { artDataUri } from '../art';
+import { imageFor } from '../art';
 import { priceLabel } from '../lib/money';
 import type { Product } from '../model/types';
 import { productHref } from './router';
 
 export function ProductCard({ product }: { product: Product }) {
-  const src = useMemo(() => artDataUri(product), [product]);
+  const src = useMemo(() => imageFor(product), [product]);
   const meta = product.origin && product.roast ? `${product.origin} · ${product.roast} roast` : product.type;
   return (
     <li className="card" data-unavailable={!product.available || undefined}>

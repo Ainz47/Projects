@@ -50,3 +50,6 @@ export function artFor(p: Pick<Product, 'handle' | 'type' | 'origin' | 'roast'>)
 // The UI only ever shows art through <img src>, so it can never run script or load anything.
 export const artDataUri = (p: Pick<Product, 'handle' | 'type' | 'origin' | 'roast'>): string =>
   `data:image/svg+xml,${encodeURIComponent(artFor(p))}`;
+
+// The picture a product shows: its Shopify image when the theme provided one, the generated art otherwise.
+export const imageFor = (p: Pick<Product, 'handle' | 'type' | 'origin' | 'roast' | 'image'>): string => p.image ?? artDataUri(p);

@@ -1,0 +1,17 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/svg+xml" href="{{ 'favicon.svg' | asset_url }}">
+    <title>{{ page_title }}</title>
+    {%- if page_description != blank %}
+    <meta name="description" content="{{ page_description | escape }}">
+    {%- endif %}
+    {{ 'coffee-storefront.css' | asset_url | stylesheet_tag }}
+    {{ content_for_header }}
+  </head>
+  <body>
+    {{ content_for_layout }}
+  </body>
+</html>

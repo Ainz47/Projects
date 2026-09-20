@@ -1,7 +1,9 @@
-import { useEffect, useMemo, useRef, type KeyboardEvent } from 'react';
-import { artDataUri } from '../art';
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from 'react';
+import { imageFor } from '../art';
+import { inShopifyTheme } from '../data/injected';
 import { shippingProgress, type DetailedLine } from '../lib/cart';
 import { formatMoney } from '../lib/money';
+import { handOffToShopify } from '../lib/shopifyCart';
 import type { Product } from '../model/types';
 import { productHref } from './router';
 import { useCart } from './useCart';
@@ -20,7 +22,7 @@ function ShippingBar({ subtotalCents }: { subtotalCents: number }) {
 
 function CartLineItem({ line, product }: { line: DetailedLine; product: Product | undefined }) {
   const { setQty, remove, close } = useCart();
-  const src = useMemo(() => (product ? artDataUri(product) : ''), [product]);
+  const src = useMemo(() => (product ? imageFor(product) : ''), [product]);
   // Shopify names the only variant of an option-less product "Default Title"; do not show that to shoppers.
   const variantLabel = line.variantTitle === 'Default Title' ? '' : line.variantTitle;
   const name = [line.productTitle, variantLabel].filter(Boolean).join(', ');
@@ -54,6 +56,20 @@ function DrawerPanel({ products }: { products: Product[] }) {
   const { detail, close, clear, storageOk, getOpener } = useCart();
   const panelRef = useRef<HTMLDivElement>(null);
   const byHandle = useMemo(() => new Map(products.map((p) => [p.handle, p])), [products]);
+  const inTheme = useMemo(() => inShopifyTheme(), []);
+  const [handingOff, setHandingOff] = useState(false);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
+
+  async function checkout() {
+    setHandingOff(true);
+    setCheckoutError(null);
+    try {
+      await handOffToShopify(detail.lines);
+    } catch (err) {
+      setCheckoutError(err instanceof Error ? err.message : 'Checkout could not start.');
+      setHandingOff(false);
+    }
+  }
 
   // Focus goes in on open and back to whatever opened the drawer on close. If that button is now
   // disabled (the cart holds all the stock), gone, or was never focused (Safari does not focus a
@@ -133,10 +149,26 @@ function DrawerPanel({ products }: { products: Product[] }) {
                 <span>Subtotal</span> <strong>{formatMoney(detail.subtotalCents)}</strong>
               </p>
               {!storageOk && <p className="hint">Your cart could not be saved on this device, so it will be empty after a reload.</p>}
-              <button type="button" className="button button-primary" disabled>
-                Checkout (demo, not available)
-              </button>
-              <p className="hint">This is a demo store. There is no checkout and nothing is sold.</p>
+              {inTheme ? (
+                <>
+                  <button type="button" className="button button-primary" disabled={handingOff} onClick={checkout}>
+                    {handingOff ? 'Opening checkout...' : 'Checkout'}
+                  </button>
+                  {checkoutError && (
+                    <p className="hint" role="alert">
+                      {checkoutError}
+                    </p>
+                  )}
+                  <p className="hint">This is a demo store with made-up products. Checkout opens Shopify&rsquo;s checkout page; nothing here is for sale.</p>
+                </>
+              ) : (
+                <>
+                  <button type="button" className="button button-primary" disabled>
+                    Checkout (demo, not available)
+                  </button>
+                  <p className="hint">This is a demo store. There is no checkout and nothing is sold.</p>
+                </>
+              )}
               <button type="button" className="link-button" onClick={clear}>
                 Clear cart
               </button>

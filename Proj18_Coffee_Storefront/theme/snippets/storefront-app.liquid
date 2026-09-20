@@ -1,0 +1,10 @@
+{%- comment -%}
+  Mounts the React storefront. `initial_route` (optional) is the hash route to open when the visitor arrived on a
+  Shopify URL such as /products/<handle>; the app itself routes by hash.
+{%- endcomment -%}
+{% render 'catalog-json' %}
+<div id="root"></div>
+{%- if initial_route != blank %}
+<script>if (!location.hash) location.replace('#{{ initial_route }}');</script>
+{%- endif %}
+<script type="module" src="{{ 'coffee-storefront.js' | asset_url }}"></script>

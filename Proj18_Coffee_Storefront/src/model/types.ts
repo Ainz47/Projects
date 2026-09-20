@@ -18,6 +18,7 @@ export interface Product {
   type: string;
   tags: string[];
   description: string;
+  image: string | null;
   origin: string | null;
   roast: string | null;
   optionNames: string[];

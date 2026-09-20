@@ -1,0 +1,53 @@
+{%- comment -%}
+  Prints the store's products as JSON, in the same shape as data/catalog.fixture.json, so the app reads its products
+  from Shopify. Two limits to keep in view: a Liquid loop over a collection stops at 50 items (this store has 30; more
+  would need the paginate tag), and the JSON travels in an HTML attribute run through `escape`, so no product text can
+  break out of it (the browser decodes the attribute back to the exact original text).
+{%- endcomment -%}
+{%- capture catalog -%}
+{"data":{"products":{"nodes":[
+{%- for product in collections.all.products limit: 50 -%}
+{
+"id":"{{ product.id }}",
+"title":{{ product.title | json }},
+"handle":{{ product.handle | json }},
+"vendor":{{ product.vendor | json }},
+"productType":{{ product.type | json }},
+"tags":{{ product.tags | json }},
+"description":{{ product.description | strip_html | strip | json }},
+"image":{% if product.featured_image %}{{ product.featured_image | image_url: width: 800 | json }}{% else %}null{% endif %},
+"options":[
+{%- for option in product.options_with_values -%}
+{"name":{{ option.name | json }},"values":{{ option.values | json }}}{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+],
+"variants":{"nodes":[
+{%- for variant in product.variants -%}
+{
+"id":"{{ variant.id }}",
+"title":{{ variant.title | json }},
+"sku":{{ variant.sku | json }},
+"price":"{{ variant.price | divided_by: 100 | floor }}.{{ variant.price | modulo: 100 | prepend: '00' | slice: -2, 2 }}",
+"inventoryQuantity":{{ variant.inventory_quantity | default: 0 }},
+"selectedOptions":[
+{%- for name in product.options -%}
+{"name":{{ name | json }},"value":{{ variant.options[forloop.index0] | json }}}{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+]
+}{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+]},
+"metafields":{"nodes":[
+{%- if product.metafields.custom.origin.value != blank -%}
+{"namespace":"custom","key":"origin","value":{{ product.metafields.custom.origin.value | json }}}
+{%- endif -%}
+{%- if product.metafields.custom.origin.value != blank and product.metafields.custom.roast.value != blank -%},{%- endif -%}
+{%- if product.metafields.custom.roast.value != blank -%}
+{"namespace":"custom","key":"roast","value":{{ product.metafields.custom.roast.value | json }}}
+{%- endif -%}
+]}
+}{% unless forloop.last %},{% endunless %}
+{%- endfor -%}
+]}}}
+{%- endcapture -%}
+<div id="catalog-data" data-catalog="{{ catalog | escape }}" hidden></div>

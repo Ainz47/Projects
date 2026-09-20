@@ -1,3 +1,6 @@
 node_modules
 dist
 .env.local
+
+# The theme build (npm run build:theme) writes its bundle here
+theme/assets/

@@ -10,6 +10,15 @@ function toCents(price: unknown): number | null {
   return Math.round(parseFloat(price) * 100);
 }
 
+// A product picture is only trusted when it is an https url; anything else falls back to the generated art.
+function httpsUrl(v: unknown): string | null {
+  const s = str(v);
+  if (s === null) return null;
+  // Shopify's image urls are protocol-relative (//store.myshopify.com/cdn/...), and the page is served over https.
+  const url = s.startsWith('//') ? `https:${s}` : s;
+  return /^https:\/\//i.test(url) ? url : null;
+}
+
 function meta(node: Raw, key: string): string | null {
   const nodes: Raw[] = Array.isArray(node.metafields?.nodes) ? node.metafields.nodes : [];
   const hit = nodes.find((m) => m?.namespace === 'custom' && m?.key === key);
@@ -75,6 +84,7 @@ function toProduct(raw: Raw): Product | string {
     type: str(raw.productType) ?? 'Other',
     tags: (Array.isArray(raw.tags) ? raw.tags : []).map(str).filter((t): t is string => t !== null),
     description: str(raw.description) ?? '',
+    image: httpsUrl(raw.image),
     origin: meta(raw, 'origin'),
     roast: meta(raw, 'roast'),
     optionNames,
