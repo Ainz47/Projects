@@ -8,6 +8,9 @@
     "build": "vite build",
     "fixture": "node tools/make_fixture.mjs",
     "export": "node exporter/cli.mjs",
+    "export:airtable": "node --env-file=.env.local airtable/cli.mjs",
+    "seed:airtable": "node --env-file=.env.local airtable/seed-cli.mjs",
+    "compare": "node tools/compare_catalog.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
