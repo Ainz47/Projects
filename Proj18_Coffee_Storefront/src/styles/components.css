@@ -1,0 +1,541 @@
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 20px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: none;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  background: var(--ink);
+  color: var(--paper);
+}
+
+.button-primary {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.button-primary:hover:not(:disabled) {
+  background: var(--accent-deep);
+  border-color: var(--accent-deep);
+  color: #fff;
+}
+
+.button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.link-button {
+  padding: 8px 0;
+  border: 0;
+  background: none;
+  color: var(--accent);
+  font-weight: 600;
+  text-align: left;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+  cursor: pointer;
+}
+
+.icon-button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  font-size: 1.6rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.icon-button:hover {
+  background: var(--line);
+}
+
+input[type="search"],
+input[type="text"],
+select {
+  min-height: 44px;
+  padding: 0 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+
+.cart-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 44px;
+  padding: 0 14px 0 18px;
+  border: 1px solid var(--ink);
+  border-radius: 999px;
+  background: transparent;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.cart-count {
+  display: inline-grid;
+  place-items: center;
+  min-width: 24px;
+  height: 24px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  color: #fff;
+  font-size: 0.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.notice {
+  display: grid;
+  gap: 12px;
+  max-width: 56ch;
+  padding-block: 48px;
+}
+
+.loading {
+  padding-block: 48px;
+  color: var(--muted);
+}
+
+.filters-body {
+  display: grid;
+  gap: 18px;
+  padding-bottom: 8px;
+}
+
+.filter-group {
+  display: grid;
+  gap: 6px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.filter-group legend {
+  padding: 0;
+  margin-bottom: 6px;
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--muted);
+}
+
+.check {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 32px;
+  cursor: pointer;
+}
+
+.check input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--accent);
+}
+
+.price-field {
+  display: grid;
+  gap: 4px;
+  font-size: 0.9rem;
+}
+
+.price-field input {
+  width: 100%;
+}
+
+.result-count {
+  margin-bottom: 14px;
+  color: var(--muted);
+}
+
+.empty {
+  display: grid;
+  justify-items: start;
+  gap: 10px;
+  padding-block: 32px;
+}
+
+.fineprint {
+  margin-top: 32px;
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.card {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.card:has(a:focus-visible) {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.card-art {
+  width: 100%;
+  aspect-ratio: 1;
+  object-fit: cover;
+}
+
+.card[data-unavailable] .card-art {
+  opacity: 0.55;
+}
+
+.card-body {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px 16px;
+}
+
+.card-title {
+  font-size: 1.05rem;
+}
+
+.card-title a {
+  color: var(--ink);
+  text-decoration: none;
+}
+
+/* The whole card is the click target. */
+.card-title a::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+}
+
+.card-title a:focus-visible {
+  outline: none;
+}
+
+.card-meta {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.card-price {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.badge {
+  justify-self: start;
+  margin-top: 4px;
+  padding: 2px 10px;
+  border-radius: var(--radius-sm);
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.badge-out {
+  background: #ece4d6;
+  color: #4a3f34;
+}
+
+.badge-low {
+  background: #fdebc8;
+  color: #6b4200;
+}
+
+.crumb {
+  margin-bottom: 16px;
+}
+
+.product-art {
+  width: 100%;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.product-meta {
+  color: var(--muted);
+}
+
+.product-price {
+  font-family: var(--font-display);
+  font-size: 1.8rem;
+  font-variant-numeric: tabular-nums;
+}
+
+.stock {
+  font-weight: 600;
+}
+
+.stock[data-state="ok"] {
+  color: var(--ok);
+}
+
+.stock[data-state="low"] {
+  color: var(--warn);
+}
+
+.stock[data-state="out"] {
+  color: var(--bad);
+}
+
+.product-desc {
+  max-width: 52ch;
+}
+
+.options {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  border: 0;
+}
+
+.options legend {
+  padding: 0;
+  margin-bottom: 8px;
+  font-weight: 700;
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.chip {
+  position: relative;
+}
+
+.chip input {
+  position: absolute;
+  inset: 0;
+  margin: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.chip > span:first-of-type {
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 16px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+  background: var(--card);
+}
+
+.chip input:checked + span {
+  border-color: var(--ink);
+  box-shadow: inset 0 0 0 1px var(--ink);
+  font-weight: 700;
+}
+
+.chip input:focus-visible + span {
+  outline: 3px solid var(--accent);
+  outline-offset: 2px;
+}
+
+/* Unavailable values stay selectable: dashed and struck through, so it is not colour alone. */
+.chip[data-unavailable] > span:first-of-type {
+  border-style: dashed;
+  color: var(--muted);
+  text-decoration: line-through;
+}
+
+.buy {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.qty {
+  display: inline-flex;
+  align-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--card);
+}
+
+.qty button {
+  width: 40px;
+  height: 40px;
+  border: 0;
+  border-radius: var(--radius-sm);
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.qty button:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+
+.qty-value {
+  min-width: 2.2ch;
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.drawer-root {
+  position: fixed;
+  inset: 0;
+  z-index: 50;
+}
+
+.drawer-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgb(33 26 20 / 0.45);
+}
+
+.drawer {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  width: min(420px, 100%);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  background: var(--paper);
+  box-shadow: var(--shadow);
+}
+
+.drawer-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 12px 12px 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+.drawer-empty {
+  display: grid;
+  justify-items: start;
+  gap: 12px;
+  padding: 24px 20px;
+}
+
+.shipping {
+  display: grid;
+  gap: 8px;
+  padding: 16px 20px 4px;
+  font-size: 0.95rem;
+}
+
+.shipping progress {
+  width: 100%;
+  height: 8px;
+  accent-color: var(--accent);
+}
+
+.cart-lines {
+  margin: 0;
+  padding: 0 20px;
+  list-style: none;
+}
+
+.cart-line {
+  display: grid;
+  grid-template-columns: 64px 1fr auto;
+  gap: 12px;
+  padding-block: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.cart-line img {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-sm);
+}
+
+.cart-line-main {
+  display: grid;
+  justify-items: start;
+  gap: 4px;
+}
+
+.cart-line-variant {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+.cart-line-total {
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.drawer-foot {
+  position: sticky;
+  bottom: 0;
+  display: grid;
+  gap: 10px;
+  margin-top: auto;
+  padding: 16px 20px 20px;
+  border-top: 1px solid var(--line);
+  background: var(--paper);
+}
+
+.subtotal {
+  display: flex;
+  justify-content: space-between;
+  font-size: 1.1rem;
+}
+
+.hint {
+  font-size: 0.88rem;
+  color: var(--muted);
+}
+
+/* Static placeholder for the lazy-loaded product page: no shimmer, this app's motion never loops. */
+.skeleton {
+  background: var(--line);
+}
+
+.skeleton-art {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+}
+
+.skeleton-line {
+  height: 14px;
+  width: 100%;
+  border-radius: 999px;
+}
+
+.skeleton-line-title {
+  height: 30px;
+  width: 70%;
+}
+
+.skeleton-line-meta {
+  width: 45%;
+}
+
+.skeleton-line-price {
+  height: 22px;
+  width: 35%;
+}
+
+.skeleton-line-short {
+  width: 40%;
+}

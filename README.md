@@ -2,9 +2,9 @@
 
 [![tests](https://github.com/Ainz47/Projects/actions/workflows/tests.yml/badge.svg)](https://github.com/Ainz47/Projects/actions/workflows/tests.yml)
 
-A collection of 17 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
+A collection of 18 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, a storefront UI, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
 
-**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. Proj17's checks are unit-tested against fake DNS in the same run, and its page was tried by hand in a browser against live DNS. The other projects are documented with architecture notes and diagrams, not automated tests.
+**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. Proj17's checks are unit-tested against fake DNS in the same run, and its page was tried by hand in a browser against live DNS. Proj18's logic, cart and Shopify exporter are unit-tested in the same run (the exporter against fake API responses only, never a real store), alongside a type check, a size budget and a check that the committed page matches the build; the built page was also checked by hand in a browser (search, filters, keyboard navigation, reduced motion, blocked storage, an unknown-product route) — see `Proj18_Coffee_Storefront/AUDIT.md`. The other projects are documented with architecture notes and diagrams, not automated tests.
 
 ---
 
@@ -22,8 +22,8 @@ Pick the row that matches what you are hiring for.
 | WordPress and CMS automation | [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine) |
 | AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling), [Proj16](#16-n8n-lead-capture) |
 | Claude Code skills, hooks and guardrails | [Proj15](#15-claude-code-tooling) |
-| Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [storefront case study](case-studies/storefront-spa-port.md) |
-| Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md) |
+| Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [Proj18](#18-dynamic-coffee-storefront), [storefront case study](case-studies/storefront-spa-port.md) |
+| Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md), [Proj18](#18-dynamic-coffee-storefront) (data shapes and export code, not a live store) |
 | Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md), [Proj16](#16-n8n-lead-capture), [Proj17](#17-email-deliverability-checker) |
 | Embedded and IoT | [Proj4](#4-smartparkingiot), [Proj13](#13-astorga-flood-watch) |
 
@@ -50,6 +50,7 @@ Pick the row that matches what you are hiring for.
 | 15 | [Claude Code Tooling](#15-claude-code-tooling) | Agent Tooling | Python, Claude Code hooks, guardrails |
 | 16 | [n8n Lead Capture](#16-n8n-lead-capture) | Workflow Automation | n8n, Gemini, Google Sheets, WhatsApp API, JavaScript |
 | 17 | [Email Deliverability Checker](#17-email-deliverability-checker) | Email / DNS Tooling | JavaScript, DNS-over-HTTPS, node:test |
+| 18 | [Dynamic Coffee Storefront](#18-dynamic-coffee-storefront) | Storefront UI | TypeScript, React, Vite, Shopify Admin GraphQL, vitest |
 
 ---
 
@@ -240,6 +241,17 @@ A page that reads a domain's SPF, DKIM, DMARC and MX records over DNS-over-HTTPS
 
 ---
 
+## 18. Dynamic Coffee Storefront
+
+A React storefront for a made-up coffee shop: search and filters that live in the URL, variant logic where weight and grind change the price and stock, and a cart that survives a reload. It runs on fixture data shaped like Shopify's Admin GraphQL products response, and a separate exporter can fetch the same shape from a real store.
+
+**Stack:** TypeScript · React · Vite · vitest · Shopify Admin GraphQL  
+**Highlights:** The logic (search, filters, variants, cart) is plain tested modules and the components only render it; a malformed product is rejected with a reason instead of guessed at; the cart clamps to stock and starts empty if browser storage is blocked; the exporter handles pagination, query-cost throttling and retries, tested against fake API responses. The exporter has not been run against a real store.
+
+[→ Try it](https://ainz47.github.io/Projects/coffee-store/) · [→ View project](Proj18_Coffee_Storefront/)
+
+---
+
 ## Case studies
 
 Client work where the code stays private, written up by situation, constraint, build and outcome.
@@ -252,11 +264,11 @@ Client work where the code stays private, written up by situation, constraint, b
 
 ## Tech at a Glance
 
-**Languages:** Python (primary), JavaScript (ES modules), C++ (IoT firmware), HCL (Terraform), Liquid (Shopify)  
+**Languages:** Python (primary), JavaScript (ES modules), TypeScript, C++ (IoT firmware), HCL (Terraform), Liquid (Shopify)  
 **Data / ETL:** dbt · MotherDuck (DuckDB) · Supabase (PostgreSQL) · CouchDB / PouchDB · SQLite · Parquet  
 **AI / LLMs:** Anthropic Claude · Google Gemini (text + vision + image gen)  
 **Orchestration & Infra:** Kestra · n8n (self-hosted) · Azure Blob Storage · Terraform · Docker  
-**Web / APIs:** FastAPI · WordPress REST API · Shopify Admin GraphQL · Brevo API · Playwright · BeautifulSoup4 · DNS-over-HTTPS  
+**Web / APIs:** React · Vite · FastAPI · WordPress REST API · Shopify Admin GraphQL · Brevo API · Playwright · BeautifulSoup4 · DNS-over-HTTPS  
 **Agent tooling:** Claude Code hooks, skills and guardrails · MCP  
 **Hardware:** ESP32 / ESP8266 · LoRa · ultrasonic sensing  
 **Visualization:** Metabase · Jinja2 / WeasyPrint (PDF)

@@ -1,0 +1,3280 @@
+{
+  "data": {
+    "products": {
+      "nodes": [
+        {
+          "id": "gid://shopify/Product/1",
+          "title": "Yirgacheffe Washed Ethiopia",
+          "handle": "yirgacheffe-washed-ethiopia",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "light-roast",
+            "jasmine",
+            "lemon",
+            "tea-like"
+          ],
+          "description": "Tasting notes of jasmine, lemon, tea-like. Roasted in small batches for a light profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/11",
+                "title": "250g / Whole bean",
+                "sku": "YIRGACHE-250g-WH",
+                "price": "18.00",
+                "inventoryQuantity": 15,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/12",
+                "title": "250g / Espresso",
+                "sku": "YIRGACHE-250g-ES",
+                "price": "18.00",
+                "inventoryQuantity": 26,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/13",
+                "title": "250g / Filter",
+                "sku": "YIRGACHE-250g-FI",
+                "price": "18.00",
+                "inventoryQuantity": 7,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/14",
+                "title": "1kg / Whole bean",
+                "sku": "YIRGACHE-1kg-WH",
+                "price": "65.00",
+                "inventoryQuantity": 18,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/15",
+                "title": "1kg / Espresso",
+                "sku": "YIRGACHE-1kg-ES",
+                "price": "65.00",
+                "inventoryQuantity": 29,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/16",
+                "title": "1kg / Filter",
+                "sku": "YIRGACHE-1kg-FI",
+                "price": "65.00",
+                "inventoryQuantity": 10,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Ethiopia"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Light"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/2",
+          "title": "Guji Natural Ethiopia",
+          "handle": "guji-natural-ethiopia",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "light-roast",
+            "blueberry",
+            "floral",
+            "sweet"
+          ],
+          "description": "Tasting notes of blueberry, floral, sweet. Roasted in small batches for a light profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/21",
+                "title": "250g / Whole bean",
+                "sku": "GUJI-NAT-250g-WH",
+                "price": "20.00",
+                "inventoryQuantity": 18,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/22",
+                "title": "250g / Espresso",
+                "sku": "GUJI-NAT-250g-ES",
+                "price": "20.00",
+                "inventoryQuantity": 29,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/23",
+                "title": "250g / Filter",
+                "sku": "GUJI-NAT-250g-FI",
+                "price": "20.00",
+                "inventoryQuantity": 10,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/24",
+                "title": "1kg / Whole bean",
+                "sku": "GUJI-NAT-1kg-WH",
+                "price": "72.00",
+                "inventoryQuantity": 21,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/25",
+                "title": "1kg / Espresso",
+                "sku": "GUJI-NAT-1kg-ES",
+                "price": "72.00",
+                "inventoryQuantity": 32,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/26",
+                "title": "1kg / Filter",
+                "sku": "GUJI-NAT-1kg-FI",
+                "price": "72.00",
+                "inventoryQuantity": 13,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Ethiopia"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Light"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/3",
+          "title": "Huila Reserve Colombia",
+          "handle": "huila-reserve-colombia",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "caramel",
+            "red-apple",
+            "balanced"
+          ],
+          "description": "Tasting notes of caramel, red apple, balanced. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/31",
+                "title": "250g / Whole bean",
+                "sku": "HUILA-RE-250g-WH",
+                "price": "17.00",
+                "inventoryQuantity": 21,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/32",
+                "title": "250g / Espresso",
+                "sku": "HUILA-RE-250g-ES",
+                "price": "17.00",
+                "inventoryQuantity": 32,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/33",
+                "title": "250g / Filter",
+                "sku": "HUILA-RE-250g-FI",
+                "price": "17.00",
+                "inventoryQuantity": 13,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/34",
+                "title": "1kg / Whole bean",
+                "sku": "HUILA-RE-1kg-WH",
+                "price": "61.00",
+                "inventoryQuantity": 24,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/35",
+                "title": "1kg / Espresso",
+                "sku": "HUILA-RE-1kg-ES",
+                "price": "61.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/36",
+                "title": "1kg / Filter",
+                "sku": "HUILA-RE-1kg-FI",
+                "price": "61.00",
+                "inventoryQuantity": 16,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Colombia"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/4",
+          "title": "Narino Honey Colombia",
+          "handle": "narino-honey-colombia",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "honey",
+            "plum",
+            "smooth"
+          ],
+          "description": "Tasting notes of honey, plum, smooth. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/41",
+                "title": "250g / Whole bean",
+                "sku": "NARINO-H-250g-WH",
+                "price": "17.50",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/42",
+                "title": "250g / Espresso",
+                "sku": "NARINO-H-250g-ES",
+                "price": "17.50",
+                "inventoryQuantity": 5,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/43",
+                "title": "250g / Filter",
+                "sku": "NARINO-H-250g-FI",
+                "price": "17.50",
+                "inventoryQuantity": 16,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/44",
+                "title": "1kg / Whole bean",
+                "sku": "NARINO-H-1kg-WH",
+                "price": "63.00",
+                "inventoryQuantity": 27,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/45",
+                "title": "1kg / Espresso",
+                "sku": "NARINO-H-1kg-ES",
+                "price": "63.00",
+                "inventoryQuantity": 8,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/46",
+                "title": "1kg / Filter",
+                "sku": "NARINO-H-1kg-FI",
+                "price": "63.00",
+                "inventoryQuantity": 19,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Colombia"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/5",
+          "title": "Kiambu AA Kenya",
+          "handle": "kiambu-aa-kenya",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "light-roast",
+            "blackcurrant",
+            "grapefruit",
+            "juicy"
+          ],
+          "description": "Tasting notes of blackcurrant, grapefruit, juicy. Roasted in small batches for a light profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/51",
+                "title": "250g / Whole bean",
+                "sku": "KIAMBU-A-250g-WH",
+                "price": "21.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/52",
+                "title": "250g / Espresso",
+                "sku": "KIAMBU-A-250g-ES",
+                "price": "21.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/53",
+                "title": "250g / Filter",
+                "sku": "KIAMBU-A-250g-FI",
+                "price": "21.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/54",
+                "title": "1kg / Whole bean",
+                "sku": "KIAMBU-A-1kg-WH",
+                "price": "76.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/55",
+                "title": "1kg / Espresso",
+                "sku": "KIAMBU-A-1kg-ES",
+                "price": "76.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/56",
+                "title": "1kg / Filter",
+                "sku": "KIAMBU-A-1kg-FI",
+                "price": "76.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Kenya"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Light"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/6",
+          "title": "Nyeri Peaberry Kenya",
+          "handle": "nyeri-peaberry-kenya",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "tomato",
+            "brown-sugar",
+            "bright"
+          ],
+          "description": "Tasting notes of tomato, brown sugar, bright. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/61",
+                "title": "250g / Whole bean",
+                "sku": "NYERI-PE-250g-WH",
+                "price": "22.00",
+                "inventoryQuantity": 30,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/62",
+                "title": "250g / Espresso",
+                "sku": "NYERI-PE-250g-ES",
+                "price": "22.00",
+                "inventoryQuantity": 11,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/63",
+                "title": "250g / Filter",
+                "sku": "NYERI-PE-250g-FI",
+                "price": "22.00",
+                "inventoryQuantity": 22,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/64",
+                "title": "1kg / Whole bean",
+                "sku": "NYERI-PE-1kg-WH",
+                "price": "79.00",
+                "inventoryQuantity": 33,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/65",
+                "title": "1kg / Espresso",
+                "sku": "NYERI-PE-1kg-ES",
+                "price": "79.00",
+                "inventoryQuantity": 14,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/66",
+                "title": "1kg / Filter",
+                "sku": "NYERI-PE-1kg-FI",
+                "price": "79.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Kenya"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/7",
+          "title": "Antigua Volcanic Guatemala",
+          "handle": "antigua-volcanic-guatemala",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "cocoa",
+            "orange",
+            "rounded"
+          ],
+          "description": "Tasting notes of cocoa, orange, rounded. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/71",
+                "title": "250g / Whole bean",
+                "sku": "ANTIGUA--250g-WH",
+                "price": "16.50",
+                "inventoryQuantity": 33,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/72",
+                "title": "250g / Espresso",
+                "sku": "ANTIGUA--250g-ES",
+                "price": "16.50",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/73",
+                "title": "250g / Filter",
+                "sku": "ANTIGUA--250g-FI",
+                "price": "16.50",
+                "inventoryQuantity": 25,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/74",
+                "title": "1kg / Whole bean",
+                "sku": "ANTIGUA--1kg-WH",
+                "price": "59.00",
+                "inventoryQuantity": 6,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/75",
+                "title": "1kg / Espresso",
+                "sku": "ANTIGUA--1kg-ES",
+                "price": "59.00",
+                "inventoryQuantity": 17,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/76",
+                "title": "1kg / Filter",
+                "sku": "ANTIGUA--1kg-FI",
+                "price": "59.00",
+                "inventoryQuantity": 28,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Guatemala"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/8",
+          "title": "Huehuetenango Highland Guatemala",
+          "handle": "huehuetenango-highland-guatemala",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "toffee",
+            "stone-fruit",
+            "clean"
+          ],
+          "description": "Tasting notes of toffee, stone fruit, clean. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/81",
+                "title": "250g / Whole bean",
+                "sku": "HUEHUETE-250g-WH",
+                "price": "17.00",
+                "inventoryQuantity": 6,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/82",
+                "title": "250g / Espresso",
+                "sku": "HUEHUETE-250g-ES",
+                "price": "17.00",
+                "inventoryQuantity": 17,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/83",
+                "title": "250g / Filter",
+                "sku": "HUEHUETE-250g-FI",
+                "price": "17.00",
+                "inventoryQuantity": 28,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/84",
+                "title": "1kg / Whole bean",
+                "sku": "HUEHUETE-1kg-WH",
+                "price": "61.00",
+                "inventoryQuantity": 9,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/85",
+                "title": "1kg / Espresso",
+                "sku": "HUEHUETE-1kg-ES",
+                "price": "61.00",
+                "inventoryQuantity": 20,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/86",
+                "title": "1kg / Filter",
+                "sku": "HUEHUETE-1kg-FI",
+                "price": "61.00",
+                "inventoryQuantity": 31,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Guatemala"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/9",
+          "title": "Cerrado Mineiro Brazil",
+          "handle": "cerrado-mineiro-brazil",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "hazelnut",
+            "chocolate",
+            "low-acid"
+          ],
+          "description": "Tasting notes of hazelnut, chocolate, low acid. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/91",
+                "title": "250g / Whole bean",
+                "sku": "CERRADO--250g-WH",
+                "price": "15.00",
+                "inventoryQuantity": 9,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/92",
+                "title": "250g / Espresso",
+                "sku": "CERRADO--250g-ES",
+                "price": "15.00",
+                "inventoryQuantity": 20,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/93",
+                "title": "250g / Filter",
+                "sku": "CERRADO--250g-FI",
+                "price": "15.00",
+                "inventoryQuantity": 31,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/94",
+                "title": "1kg / Whole bean",
+                "sku": "CERRADO--1kg-WH",
+                "price": "54.00",
+                "inventoryQuantity": 12,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/95",
+                "title": "1kg / Espresso",
+                "sku": "CERRADO--1kg-ES",
+                "price": "54.00",
+                "inventoryQuantity": 23,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/96",
+                "title": "1kg / Filter",
+                "sku": "CERRADO--1kg-FI",
+                "price": "54.00",
+                "inventoryQuantity": 4,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Brazil"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/10",
+          "title": "Sul de Minas Brazil",
+          "handle": "sul-de-minas-brazil",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "dark-roast",
+            "dark-chocolate",
+            "toasted-nut",
+            "heavy"
+          ],
+          "description": "Tasting notes of dark chocolate, toasted nut, heavy. Roasted in small batches for a dark profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/101",
+                "title": "250g / Whole bean",
+                "sku": "SUL-DE-M-250g-WH",
+                "price": "15.00",
+                "inventoryQuantity": 12,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/102",
+                "title": "250g / Espresso",
+                "sku": "SUL-DE-M-250g-ES",
+                "price": "15.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/103",
+                "title": "250g / Filter",
+                "sku": "SUL-DE-M-250g-FI",
+                "price": "15.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/104",
+                "title": "1kg / Whole bean",
+                "sku": "SUL-DE-M-1kg-WH",
+                "price": "54.00",
+                "inventoryQuantity": 15,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/105",
+                "title": "1kg / Espresso",
+                "sku": "SUL-DE-M-1kg-ES",
+                "price": "54.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/106",
+                "title": "1kg / Filter",
+                "sku": "SUL-DE-M-1kg-FI",
+                "price": "54.00",
+                "inventoryQuantity": 7,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Brazil"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Dark"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/11",
+          "title": "Mandheling Indonesia",
+          "handle": "mandheling-indonesia",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "dark-roast",
+            "cedar",
+            "molasses",
+            "earthy"
+          ],
+          "description": "Tasting notes of cedar, molasses, earthy. Roasted in small batches for a dark profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/111",
+                "title": "250g / Whole bean",
+                "sku": "MANDHELI-250g-WH",
+                "price": "17.50",
+                "inventoryQuantity": 15,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/112",
+                "title": "250g / Espresso",
+                "sku": "MANDHELI-250g-ES",
+                "price": "17.50",
+                "inventoryQuantity": 26,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/113",
+                "title": "250g / Filter",
+                "sku": "MANDHELI-250g-FI",
+                "price": "17.50",
+                "inventoryQuantity": 7,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/114",
+                "title": "1kg / Whole bean",
+                "sku": "MANDHELI-1kg-WH",
+                "price": "63.00",
+                "inventoryQuantity": 18,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/115",
+                "title": "1kg / Espresso",
+                "sku": "MANDHELI-1kg-ES",
+                "price": "63.00",
+                "inventoryQuantity": 29,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/116",
+                "title": "1kg / Filter",
+                "sku": "MANDHELI-1kg-FI",
+                "price": "63.00",
+                "inventoryQuantity": 10,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Indonesia"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Dark"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/12",
+          "title": "Flores Bajawa Indonesia",
+          "handle": "flores-bajawa-indonesia",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "spice",
+            "sweet-tobacco",
+            "syrupy"
+          ],
+          "description": "Tasting notes of spice, sweet tobacco, syrupy. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/121",
+                "title": "250g / Whole bean",
+                "sku": "FLORES-B-250g-WH",
+                "price": "18.00",
+                "inventoryQuantity": 18,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/122",
+                "title": "250g / Espresso",
+                "sku": "FLORES-B-250g-ES",
+                "price": "18.00",
+                "inventoryQuantity": 29,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/123",
+                "title": "250g / Filter",
+                "sku": "FLORES-B-250g-FI",
+                "price": "18.00",
+                "inventoryQuantity": 10,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/124",
+                "title": "1kg / Whole bean",
+                "sku": "FLORES-B-1kg-WH",
+                "price": "65.00",
+                "inventoryQuantity": 21,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/125",
+                "title": "1kg / Espresso",
+                "sku": "FLORES-B-1kg-ES",
+                "price": "65.00",
+                "inventoryQuantity": 32,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/126",
+                "title": "1kg / Filter",
+                "sku": "FLORES-B-1kg-FI",
+                "price": "65.00",
+                "inventoryQuantity": 13,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Indonesia"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/13",
+          "title": "Tarrazu Costa Rica",
+          "handle": "tarrazu-costa-rica",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "light-roast",
+            "peach",
+            "honey",
+            "crisp"
+          ],
+          "description": "Tasting notes of peach, honey, crisp. Roasted in small batches for a light profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/131",
+                "title": "250g / Whole bean",
+                "sku": "TARRAZU-250g-WH",
+                "price": "19.00",
+                "inventoryQuantity": 21,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/132",
+                "title": "250g / Espresso",
+                "sku": "TARRAZU-250g-ES",
+                "price": "19.00",
+                "inventoryQuantity": 32,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/133",
+                "title": "250g / Filter",
+                "sku": "TARRAZU-250g-FI",
+                "price": "19.00",
+                "inventoryQuantity": 13,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/134",
+                "title": "1kg / Whole bean",
+                "sku": "TARRAZU-1kg-WH",
+                "price": "68.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/135",
+                "title": "1kg / Espresso",
+                "sku": "TARRAZU-1kg-ES",
+                "price": "68.00",
+                "inventoryQuantity": 5,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/136",
+                "title": "1kg / Filter",
+                "sku": "TARRAZU-1kg-FI",
+                "price": "68.00",
+                "inventoryQuantity": 16,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Costa Rica"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Light"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/14",
+          "title": "Boquete Reserve Panama",
+          "handle": "boquete-reserve-panama",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "light-roast",
+            "bergamot",
+            "jasmine",
+            "delicate"
+          ],
+          "description": "Tasting notes of bergamot, jasmine, delicate. Roasted in small batches for a light profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/141",
+                "title": "250g / Whole bean",
+                "sku": "BOQUETE--250g-WH",
+                "price": "34.00",
+                "inventoryQuantity": 3,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/142",
+                "title": "250g / Espresso",
+                "sku": "BOQUETE--250g-ES",
+                "price": "34.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/143",
+                "title": "250g / Filter",
+                "sku": "BOQUETE--250g-FI",
+                "price": "34.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/144",
+                "title": "1kg / Whole bean",
+                "sku": "BOQUETE--1kg-WH",
+                "price": "122.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/145",
+                "title": "1kg / Espresso",
+                "sku": "BOQUETE--1kg-ES",
+                "price": "122.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/146",
+                "title": "1kg / Filter",
+                "sku": "BOQUETE--1kg-FI",
+                "price": "122.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Panama"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Light"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/15",
+          "title": "Marcala Honduras",
+          "handle": "marcala-honduras",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "panela",
+            "almond",
+            "gentle"
+          ],
+          "description": "Tasting notes of panela, almond, gentle. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/151",
+                "title": "250g / Whole bean",
+                "sku": "MARCALA-250g-WH",
+                "price": "16.00",
+                "inventoryQuantity": 27,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/152",
+                "title": "250g / Espresso",
+                "sku": "MARCALA-250g-ES",
+                "price": "16.00",
+                "inventoryQuantity": 8,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/153",
+                "title": "250g / Filter",
+                "sku": "MARCALA-250g-FI",
+                "price": "16.00",
+                "inventoryQuantity": 19,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/154",
+                "title": "1kg / Whole bean",
+                "sku": "MARCALA-1kg-WH",
+                "price": "58.00",
+                "inventoryQuantity": 30,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/155",
+                "title": "1kg / Espresso",
+                "sku": "MARCALA-1kg-ES",
+                "price": "58.00",
+                "inventoryQuantity": 11,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/156",
+                "title": "1kg / Filter",
+                "sku": "MARCALA-1kg-FI",
+                "price": "58.00",
+                "inventoryQuantity": 22,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Honduras"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/16",
+          "title": "Nyamasheke Rwanda",
+          "handle": "nyamasheke-rwanda",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "light-roast",
+            "raspberry",
+            "rose",
+            "lively"
+          ],
+          "description": "Tasting notes of raspberry, rose, lively. Roasted in small batches for a light profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/161",
+                "title": "250g / Whole bean",
+                "sku": "NYAMASHE-250g-WH",
+                "price": "19.50",
+                "inventoryQuantity": 30,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/162",
+                "title": "250g / Espresso",
+                "sku": "NYAMASHE-250g-ES",
+                "price": "19.50",
+                "inventoryQuantity": 11,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/163",
+                "title": "250g / Filter",
+                "sku": "NYAMASHE-250g-FI",
+                "price": "19.50",
+                "inventoryQuantity": 22,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/164",
+                "title": "1kg / Whole bean",
+                "sku": "NYAMASHE-1kg-WH",
+                "price": "70.00",
+                "inventoryQuantity": 33,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/165",
+                "title": "1kg / Espresso",
+                "sku": "NYAMASHE-1kg-ES",
+                "price": "70.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/166",
+                "title": "1kg / Filter",
+                "sku": "NYAMASHE-1kg-FI",
+                "price": "70.00",
+                "inventoryQuantity": 25,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Rwanda"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Light"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/17",
+          "title": "House Espresso Blend",
+          "handle": "house-espresso",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "dark-roast",
+            "dark-cocoa",
+            "caramel",
+            "thick-crema"
+          ],
+          "description": "Tasting notes of dark cocoa, caramel, thick crema. Roasted in small batches for a dark profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/171",
+                "title": "250g / Whole bean",
+                "sku": "HOUSE-ES-250g-WH",
+                "price": "16.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/172",
+                "title": "250g / Espresso",
+                "sku": "HOUSE-ES-250g-ES",
+                "price": "16.00",
+                "inventoryQuantity": 14,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/173",
+                "title": "250g / Filter",
+                "sku": "HOUSE-ES-250g-FI",
+                "price": "16.00",
+                "inventoryQuantity": 25,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/174",
+                "title": "1kg / Whole bean",
+                "sku": "HOUSE-ES-1kg-WH",
+                "price": "58.00",
+                "inventoryQuantity": 6,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/175",
+                "title": "1kg / Espresso",
+                "sku": "HOUSE-ES-1kg-ES",
+                "price": "58.00",
+                "inventoryQuantity": 17,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/176",
+                "title": "1kg / Filter",
+                "sku": "HOUSE-ES-1kg-FI",
+                "price": "58.00",
+                "inventoryQuantity": 28,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Blend"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Dark"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/18",
+          "title": "Decaf Sugarcane Colombia",
+          "handle": "decaf-sugarcane-colombia",
+          "vendor": "Lantern Roasters",
+          "productType": "Coffee",
+          "tags": [
+            "coffee",
+            "medium-roast",
+            "brown-sugar",
+            "cherry",
+            "soft"
+          ],
+          "description": "Tasting notes of brown sugar, cherry, soft. Roasted in small batches for a medium profile.",
+          "options": [
+            {
+              "name": "Weight",
+              "values": [
+                "250g",
+                "1kg"
+              ]
+            },
+            {
+              "name": "Grind",
+              "values": [
+                "Whole bean",
+                "Espresso",
+                "Filter"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/181",
+                "title": "250g / Whole bean",
+                "sku": "DECAF-SU-250g-WH",
+                "price": "18.00",
+                "inventoryQuantity": 6,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/182",
+                "title": "250g / Espresso",
+                "sku": "DECAF-SU-250g-ES",
+                "price": "18.00",
+                "inventoryQuantity": 17,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/183",
+                "title": "250g / Filter",
+                "sku": "DECAF-SU-250g-FI",
+                "price": "18.00",
+                "inventoryQuantity": 28,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "250g"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/184",
+                "title": "1kg / Whole bean",
+                "sku": "DECAF-SU-1kg-WH",
+                "price": "65.00",
+                "inventoryQuantity": 9,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Whole bean"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/185",
+                "title": "1kg / Espresso",
+                "sku": "DECAF-SU-1kg-ES",
+                "price": "65.00",
+                "inventoryQuantity": 20,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Espresso"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/186",
+                "title": "1kg / Filter",
+                "sku": "DECAF-SU-1kg-FI",
+                "price": "65.00",
+                "inventoryQuantity": 31,
+                "selectedOptions": [
+                  {
+                    "name": "Weight",
+                    "value": "1kg"
+                  },
+                  {
+                    "name": "Grind",
+                    "value": "Filter"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": [
+              {
+                "namespace": "custom",
+                "key": "origin",
+                "value": "Colombia"
+              },
+              {
+                "namespace": "custom",
+                "key": "roast",
+                "value": "Medium"
+              }
+            ]
+          }
+        },
+        {
+          "id": "gid://shopify/Product/19",
+          "title": "Ceramic Dripper 02",
+          "handle": "ceramic-dripper-02",
+          "vendor": "Northbound Gear",
+          "productType": "Dripper",
+          "tags": [
+            "pour-over",
+            "ceramic"
+          ],
+          "description": "Ceramic Dripper 02, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Color",
+              "values": [
+                "Sand",
+                "Matte black"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/191",
+                "title": "Sand",
+                "sku": "CERAMIC--1",
+                "price": "28.00",
+                "inventoryQuantity": 15,
+                "selectedOptions": [
+                  {
+                    "name": "Color",
+                    "value": "Sand"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/192",
+                "title": "Matte black",
+                "sku": "CERAMIC--2",
+                "price": "28.00",
+                "inventoryQuantity": 26,
+                "selectedOptions": [
+                  {
+                    "name": "Color",
+                    "value": "Matte black"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/20",
+          "title": "Steel Cone Dripper",
+          "handle": "steel-cone-dripper",
+          "vendor": "Northbound Gear",
+          "productType": "Dripper",
+          "tags": [
+            "pour-over",
+            "steel"
+          ],
+          "description": "Steel Cone Dripper, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Title",
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/201",
+                "title": "Default Title",
+                "sku": "STEEL-CO-1",
+                "price": "34.00",
+                "inventoryQuantity": 18,
+                "selectedOptions": [
+                  {
+                    "name": "Title",
+                    "value": "Default Title"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/21",
+          "title": "Gooseneck Kettle 0.9L",
+          "handle": "gooseneck-kettle-0-9l",
+          "vendor": "Northbound Gear",
+          "productType": "Kettle",
+          "tags": [
+            "kettle",
+            "gooseneck"
+          ],
+          "description": "Gooseneck Kettle 0.9L, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Color",
+              "values": [
+                "Matte black",
+                "Brushed steel"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/211",
+                "title": "Matte black",
+                "sku": "GOOSENEC-1",
+                "price": "79.00",
+                "inventoryQuantity": 21,
+                "selectedOptions": [
+                  {
+                    "name": "Color",
+                    "value": "Matte black"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/212",
+                "title": "Brushed steel",
+                "sku": "GOOSENEC-2",
+                "price": "79.00",
+                "inventoryQuantity": 32,
+                "selectedOptions": [
+                  {
+                    "name": "Color",
+                    "value": "Brushed steel"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/22",
+          "title": "Temperature Kettle Pro",
+          "handle": "temperature-kettle-pro",
+          "vendor": "Northbound Gear",
+          "productType": "Kettle",
+          "tags": [
+            "kettle",
+            "electric"
+          ],
+          "description": "Temperature Kettle Pro, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Title",
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/221",
+                "title": "Default Title",
+                "sku": "TEMPERAT-1",
+                "price": "129.00",
+                "inventoryQuantity": 2,
+                "selectedOptions": [
+                  {
+                    "name": "Title",
+                    "value": "Default Title"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/23",
+          "title": "Hand Grinder Compact",
+          "handle": "hand-grinder-compact",
+          "vendor": "Northbound Gear",
+          "productType": "Grinder",
+          "tags": [
+            "grinder",
+            "manual"
+          ],
+          "description": "Hand Grinder Compact, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Title",
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/231",
+                "title": "Default Title",
+                "sku": "HAND-GRI-1",
+                "price": "89.00",
+                "inventoryQuantity": 27,
+                "selectedOptions": [
+                  {
+                    "name": "Title",
+                    "value": "Default Title"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/24",
+          "title": "Flat Burr Grinder",
+          "handle": "flat-burr-grinder",
+          "vendor": "Northbound Gear",
+          "productType": "Grinder",
+          "tags": [
+            "grinder",
+            "electric"
+          ],
+          "description": "Flat Burr Grinder, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Color",
+              "values": [
+                "Graphite",
+                "Cream"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/241",
+                "title": "Graphite",
+                "sku": "FLAT-BUR-1",
+                "price": "219.00",
+                "inventoryQuantity": 30,
+                "selectedOptions": [
+                  {
+                    "name": "Color",
+                    "value": "Graphite"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/242",
+                "title": "Cream",
+                "sku": "FLAT-BUR-2",
+                "price": "219.00",
+                "inventoryQuantity": 11,
+                "selectedOptions": [
+                  {
+                    "name": "Color",
+                    "value": "Cream"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/25",
+          "title": "Paper Filters 100",
+          "handle": "paper-filters-100",
+          "vendor": "Northbound Gear",
+          "productType": "Accessory",
+          "tags": [
+            "filters",
+            "consumable"
+          ],
+          "description": "Paper Filters 100, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Title",
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/251",
+                "title": "Default Title",
+                "sku": "PAPER-FI-1",
+                "price": "9.00",
+                "inventoryQuantity": 33,
+                "selectedOptions": [
+                  {
+                    "name": "Title",
+                    "value": "Default Title"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/26",
+          "title": "Precision Scale 0.1g",
+          "handle": "precision-scale-0-1g",
+          "vendor": "Northbound Gear",
+          "productType": "Accessory",
+          "tags": [
+            "scale",
+            "timer"
+          ],
+          "description": "Precision Scale 0.1g, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Title",
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/261",
+                "title": "Default Title",
+                "sku": "PRECISIO-1",
+                "price": "59.00",
+                "inventoryQuantity": 6,
+                "selectedOptions": [
+                  {
+                    "name": "Title",
+                    "value": "Default Title"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/27",
+          "title": "Glass Server 600ml",
+          "handle": "glass-server-600ml",
+          "vendor": "Northbound Gear",
+          "productType": "Accessory",
+          "tags": [
+            "server",
+            "glass"
+          ],
+          "description": "Glass Server 600ml, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Title",
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/271",
+                "title": "Default Title",
+                "sku": "GLASS-SE-1",
+                "price": "26.00",
+                "inventoryQuantity": 9,
+                "selectedOptions": [
+                  {
+                    "name": "Title",
+                    "value": "Default Title"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/28",
+          "title": "Enamel Camp Mug",
+          "handle": "enamel-camp-mug",
+          "vendor": "Northbound Gear",
+          "productType": "Accessory",
+          "tags": [
+            "mug",
+            "enamel"
+          ],
+          "description": "Enamel Camp Mug, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Color",
+              "values": [
+                "Cream",
+                "Forest"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/281",
+                "title": "Cream",
+                "sku": "ENAMEL-C-1",
+                "price": "18.00",
+                "inventoryQuantity": 0,
+                "selectedOptions": [
+                  {
+                    "name": "Color",
+                    "value": "Cream"
+                  }
+                ]
+              },
+              {
+                "id": "gid://shopify/ProductVariant/282",
+                "title": "Forest",
+                "sku": "ENAMEL-C-2",
+                "price": "18.00",
+                "inventoryQuantity": 23,
+                "selectedOptions": [
+                  {
+                    "name": "Color",
+                    "value": "Forest"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/29",
+          "title": "Travel Press",
+          "handle": "travel-press",
+          "vendor": "Northbound Gear",
+          "productType": "Accessory",
+          "tags": [
+            "press",
+            "travel"
+          ],
+          "description": "Travel Press, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Title",
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/291",
+                "title": "Default Title",
+                "sku": "TRAVEL-P-1",
+                "price": "36.00",
+                "inventoryQuantity": 15,
+                "selectedOptions": [
+                  {
+                    "name": "Title",
+                    "value": "Default Title"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        },
+        {
+          "id": "gid://shopify/Product/30",
+          "title": "Tamper and Brush Set",
+          "handle": "tamper-and-brush-set",
+          "vendor": "Northbound Gear",
+          "productType": "Accessory",
+          "tags": [
+            "espresso",
+            "tools"
+          ],
+          "description": "Tamper and Brush Set, chosen for everyday brewing at home.",
+          "options": [
+            {
+              "name": "Title",
+              "values": [
+                "Default Title"
+              ]
+            }
+          ],
+          "variants": {
+            "nodes": [
+              {
+                "id": "gid://shopify/ProductVariant/301",
+                "title": "Default Title",
+                "sku": "TAMPER-A-1",
+                "price": "32.00",
+                "inventoryQuantity": 18,
+                "selectedOptions": [
+                  {
+                    "name": "Title",
+                    "value": "Default Title"
+                  }
+                ]
+              }
+            ]
+          },
+          "metafields": {
+            "nodes": []
+          }
+        }
+      ]
+    }
+  }
+}
