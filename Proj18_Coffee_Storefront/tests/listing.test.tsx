@@ -19,6 +19,18 @@ test('lists every product and announces the count', () => {
   expect(screen.getAllByRole('heading', { level: 2 })).toHaveLength(products.length);
 });
 
+test('the hero CTA jumps straight to a filtered, real view', async () => {
+  const user = userEvent.setup();
+  renderAt();
+  const cta = screen.getByRole('link', { name: /light roasts/i });
+  expect(cta).toHaveAttribute('href', '#/?roast=Light');
+  await user.click(cta);
+  const expected = applyQuery(products, { ...defaultQuery, roasts: ['Light'] });
+  expect(expected.length).toBeGreaterThan(0);
+  expect(screen.getByRole('status')).toHaveTextContent(count(expected.length));
+  expect(screen.getByRole('checkbox', { name: 'Light' })).toBeChecked();
+});
+
 test('typing in search narrows the list, keeps the text and writes the URL', async () => {
   const user = userEvent.setup();
   renderAt();

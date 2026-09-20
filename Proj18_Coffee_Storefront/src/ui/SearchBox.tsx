@@ -11,7 +11,7 @@ export function SearchBox({ value, onChange }: { value: string; onChange: (q: st
         id="search-input"
         type="search"
         value={text}
-        placeholder="Search coffee and gear"
+        placeholder="Search coffee and gear…"
         autoComplete="off"
         onChange={(e) => setText(e.target.value)}
       />

@@ -101,7 +101,7 @@ function ProductView({ product }: { product: Product }) {
 
 export default function ProductPage({ products, handle }: { products: Product[]; handle: string }) {
   const product = products.find((p) => p.handle === handle);
-  if (!product) return <NotFound what="We could not find that product." />;
+  if (!product) return <NotFound what="That product could not be found." />;
   // Keyed by handle so choices and quantity start fresh on every product.
   return <ProductView key={product.handle} product={product} />;
 }

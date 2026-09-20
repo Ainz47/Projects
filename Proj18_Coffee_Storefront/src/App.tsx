@@ -6,6 +6,7 @@ import { CartDrawer } from './ui/CartDrawer';
 import { Header } from './ui/Header';
 import { ListingPage } from './ui/ListingPage';
 import { ErrorScreen, NotFound } from './ui/Notices';
+import { ProductSkeleton } from './ui/ProductSkeleton';
 import { listHref, replaceHash, useRoute } from './ui/router';
 import { CartProvider, useCart } from './ui/useCart';
 
@@ -46,7 +47,7 @@ function Store({ products, rejectedCount }: { products: Product[]; rejectedCount
     );
   } else if (route.name === 'product') {
     page = (
-      <Suspense fallback={<p className="loading" role="status">Loading product</p>}>
+      <Suspense fallback={<ProductSkeleton />}>
         <ProductPage products={products} handle={route.handle} />
       </Suspense>
     );

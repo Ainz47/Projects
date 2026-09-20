@@ -1,8 +1,10 @@
 import { useMemo, useState } from 'react';
+import { artDataUri } from '../art';
 import { applyQuery, defaultQuery, facets, serializeQuery, type Query, type SortKey } from '../lib/catalog';
 import type { Product } from '../model/types';
 import { FilterPanel } from './FilterPanel';
 import { ProductCard } from './ProductCard';
+import { listHref } from './router';
 import { SearchBox } from './SearchBox';
 
 const SORT_LABELS: Record<SortKey, string> = {
@@ -14,6 +16,20 @@ const SORT_LABELS: Record<SortKey, string> = {
 
 const countLabel = (n: number): string => (n === 1 ? '1 product' : `${n} products`);
 
+// A handful of real, in-stock products across different types, for a hero preview that shows what
+// is actually in the catalog instead of a decorative stock image.
+function heroPreview(products: Product[]): Product[] {
+  const seen = new Set<string>();
+  const picks: Product[] = [];
+  for (const p of products) {
+    if (!p.available || seen.has(p.type)) continue;
+    seen.add(p.type);
+    picks.push(p);
+    if (picks.length === 4) break;
+  }
+  return picks;
+}
+
 interface Props {
   products: Product[];
   query: Query;
@@ -24,6 +40,7 @@ interface Props {
 export function ListingPage({ products, query, rejectedCount, onQueryChange }: Props) {
   const f = useMemo(() => facets(products), [products]);
   const shown = useMemo(() => applyQuery(products, query), [products, query]);
+  const preview = useMemo(() => heroPreview(products), [products]);
   const [filtersOpen, setFiltersOpen] = useState(false);
   const changed = serializeQuery(query) !== '';
   const activeCount =
@@ -32,9 +49,21 @@ export function ListingPage({ products, query, rejectedCount, onQueryChange }: P
 
   return (
     <div className="listing">
-      <div className="listing-head">
-        <h1>Lantern Roasters (demo)</h1>
-        <p className="lede">Specialty coffee and brewing gear. A demo storefront with made-up products and no checkout.</p>
+      <div className="hero">
+        <div className="hero-copy">
+          <h1>Lantern Roasters (demo)</h1>
+          <p className="lede">Specialty coffee and brewing gear. A demo storefront with made-up products and no checkout.</p>
+          <a className="button button-primary hero-cta" href={listHref({ ...defaultQuery, roasts: ['Light'] })}>
+            Browse light roasts
+          </a>
+        </div>
+        {preview.length > 0 && (
+          <div className="hero-art" aria-hidden="true">
+            {preview.map((p) => (
+              <img key={p.id} src={artDataUri(p)} width={96} height={96} alt="" loading="lazy" />
+            ))}
+          </div>
+        )}
       </div>
 
       <div className="toolbar">

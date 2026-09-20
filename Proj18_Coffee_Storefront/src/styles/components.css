@@ -242,7 +242,7 @@ select {
   justify-self: start;
   margin-top: 4px;
   padding: 2px 10px;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   font-size: 0.78rem;
   font-weight: 700;
 }
@@ -335,7 +335,7 @@ select {
   min-height: 44px;
   padding: 0 16px;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: var(--card);
 }
 
@@ -369,7 +369,7 @@ select {
   display: inline-flex;
   align-items: center;
   border: 1px solid var(--line);
-  border-radius: 999px;
+  border-radius: var(--radius);
   background: var(--card);
 }
 
@@ -377,7 +377,7 @@ select {
   width: 40px;
   height: 40px;
   border: 0;
-  border-radius: 999px;
+  border-radius: var(--radius-sm);
   background: transparent;
   font-size: 1.1rem;
   cursor: pointer;
@@ -415,6 +415,7 @@ select {
   flex-direction: column;
   width: min(420px, 100%);
   overflow-y: auto;
+  overscroll-behavior: contain;
   background: var(--paper);
   box-shadow: var(--shadow);
 }
@@ -502,4 +503,39 @@ select {
 .hint {
   font-size: 0.88rem;
   color: var(--muted);
+}
+
+/* Static placeholder for the lazy-loaded product page: no shimmer, this app's motion never loops. */
+.skeleton {
+  background: var(--line);
+}
+
+.skeleton-art {
+  width: 100%;
+  aspect-ratio: 1;
+  border-radius: var(--radius);
+}
+
+.skeleton-line {
+  height: 14px;
+  width: 100%;
+  border-radius: 999px;
+}
+
+.skeleton-line-title {
+  height: 30px;
+  width: 70%;
+}
+
+.skeleton-line-meta {
+  width: 45%;
+}
+
+.skeleton-line-price {
+  height: 22px;
+  width: 35%;
+}
+
+.skeleton-line-short {
+  width: 40%;
 }
