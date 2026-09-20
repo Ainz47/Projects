@@ -12,7 +12,7 @@ function fakeFetch(replies: Reply[]) {
     if (!next) throw new Error('unexpected extra request');
     return respond(next);
   };
-  return { impl, calls };
+  return { impl: impl as unknown as typeof fetch, calls };
 }
 
 const cost = (requested: number, available: number, restoreRate = 50) => ({
