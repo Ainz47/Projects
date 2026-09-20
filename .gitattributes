@@ -1,0 +1,7 @@
+# Proj18's build (Vite) injects its <script>/<link> tags with LF regardless of the
+# source template's line endings. Without this, a CRLF-checked-out index.html plus
+# LF-injected tags produces a mixed-line-ending file that differs on every rebuild,
+# which fails the "committed page matches the build" CI check non-deterministically
+# depending on the checkout's line endings. Force LF so the build is reproducible.
+/Proj18_Coffee_Storefront/index.html text eol=lf
+/docs/coffee-store/** text eol=lf
