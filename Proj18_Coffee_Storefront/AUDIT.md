@@ -159,3 +159,14 @@ The store owner switched PayPal off and changed the store currency from PHP to U
 | 4 | Cart cleared afterwards | Pass | `/cart/clear.js`. No order was placed and nothing was typed into the checkout form. |
 
 Not checked: the theme editor and a phone-width layout (unchanged from above). Supersedes the two "PayPal is still switched on" and peso notes in the earlier sections; those describe the state at the time.
+
+### Server-rendered title (2026-09-20)
+
+| # | Step | Result | Notes |
+|---|---|---|---|
+| 1 | New test in `tests/theme-structure.test.ts` (the layout title uses the app's `STORE` name and `product.title`, not `page_title`) | Pass | Failed first for the right reason (the layout still printed `page_title`). Suite: 33 files, 211 tests; `tsc --noEmit` clean. |
+| 2 | `shopify theme check` on `theme/` | Pass | 15 files inspected, no offenses. |
+| 3 | `theme push --only layout/theme.liquid --allow-live` to the live theme | Pass | Only the one file was sent; nothing else on the store changed. |
+| 4 | Public storefront fetched with no cookie | Pass | Home: `<title>Lantern Roasters (demo)</title>`. Product page: `Tamper and Brush Set \| Lantern Roasters (demo)`. Home still 200 with the `catalog-data` element. Before, the server-rendered title was "My Store" until the script ran. |
+
+The store's own name in Shopify is still "My Store" (checkout reads "Checkout - My Store"): that is an admin setting the app cannot change.
