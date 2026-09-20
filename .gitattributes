@@ -5,4 +5,5 @@
 # depending on the checkout's line endings. Force LF so the build is reproducible.
 /Proj18_Coffee_Storefront/index.html text eol=lf
 /Proj18_Coffee_Storefront/public/** text eol=lf
+/Proj18_Coffee_Storefront/data/** text eol=lf
 /docs/coffee-store/** text eol=lf
