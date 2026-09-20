@@ -30,7 +30,7 @@ test('the only runtime dependencies are react and react-dom', () => {
 });
 
 test('no exporter or seed CLI ever prints or writes the access token', () => {
-  for (const file of ['exporter/cli.mjs', 'airtable/cli.mjs', 'airtable/seed-cli.mjs']) {
+  for (const file of ['exporter/cli.mjs', 'exporter/seed-cli.mjs', 'airtable/cli.mjs', 'airtable/seed-cli.mjs']) {
     const cli = readFileSync(join(root, file), 'utf8');
     for (const line of cli.split('\n').filter((l) => /console\.|writeFileSync/.test(l))) {
       expect(line, file).not.toMatch(/token|secret/i);

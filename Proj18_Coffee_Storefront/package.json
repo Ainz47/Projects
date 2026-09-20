@@ -8,6 +8,7 @@
     "build": "vite build",
     "fixture": "node tools/make_fixture.mjs",
     "export": "node exporter/cli.mjs",
+    "seed:shopify": "node --env-file=.env.local exporter/seed-cli.mjs",
     "export:airtable": "node --env-file=.env.local airtable/cli.mjs",
     "seed:airtable": "node --env-file=.env.local airtable/seed-cli.mjs",
     "compare": "node tools/compare_catalog.mjs",
