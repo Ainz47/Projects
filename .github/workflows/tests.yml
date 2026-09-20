@@ -91,3 +91,19 @@ jobs:
             git status --porcelain -- ../docs/coffee-store
             exit 1
           fi
+
+  proj19-stock-sync:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Proj19_Shopify_Stock_Sync
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: node --test "tests/*.test.js"
+      - run: python -X utf8 -m unittest discover -s tests -p "test_*.py"
