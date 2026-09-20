@@ -66,8 +66,20 @@ export function createClient({ baseId, token, fetchImpl = fetch, sleep = default
     return created;
   }
 
+  // updates: [{ id, fields }]. PATCH changes only the fields given and leaves every other cell alone.
+  async function updateRecords(table, updates) {
+    const updated = [];
+    for (let i = 0; i < updates.length; i += BATCH_SIZE) {
+      const body = await request('PATCH', `/v0/${baseId}/${encodeURIComponent(table)}`, {
+        records: updates.slice(i, i + BATCH_SIZE),
+      });
+      updated.push(...body.records);
+    }
+    return updated;
+  }
+
   const listTables = async () => (await request('GET', `/v0/meta/bases/${baseId}/tables`)).tables;
   const createTable = (spec) => request('POST', `/v0/meta/bases/${baseId}/tables`, spec);
 
-  return { listAll, createRecords, listTables, createTable };
+  return { listAll, createRecords, updateRecords, listTables, createTable };
 }

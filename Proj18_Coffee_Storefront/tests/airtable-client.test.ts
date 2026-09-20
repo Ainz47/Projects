@@ -71,6 +71,24 @@ test('creates records in batches and returns them all', async () => {
   expect(JSON.parse(f.calls[0]!.init.body).records[0]).toEqual({ fields: { n: 0 } });
 });
 
+test('updates records with PATCH in batches, sending only the fields given', async () => {
+  const sizes: number[] = [];
+  const f = fakeFetch([]);
+  f.impl = (async (url: string, init: any) => {
+    f.calls.push({ url, init });
+    const sent = JSON.parse(init.body).records as unknown[];
+    sizes.push(sent.length);
+    return respond({ body: { records: sent } });
+  }) as unknown as typeof fetch;
+  const updates = Array.from({ length: BATCH_SIZE + 3 }, (_, n) => ({ id: `rec${n}`, fields: { Stock: n } }));
+  const done = await make(f).updateRecords('Variants', updates);
+  expect(sizes).toEqual([10, 3]);
+  expect(done).toHaveLength(13);
+  expect(f.calls[0]!.init.method).toBe('PATCH');
+  expect(f.calls[0]!.url).toBe(`https://api.airtable.com/v0/${BASE}/Variants`);
+  expect(JSON.parse(f.calls[0]!.init.body).records[0]).toEqual({ id: 'rec0', fields: { Stock: 0 } });
+});
+
 test('waits 30 seconds after a 429, then succeeds', async () => {
   const sleeps: number[] = [];
   const f = fakeFetch([{ status: 429 }, { body: { records: [] } }]);
