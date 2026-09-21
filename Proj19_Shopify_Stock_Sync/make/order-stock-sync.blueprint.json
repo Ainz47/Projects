@@ -1,0 +1,122 @@
+{
+  "name": "order-stock-sync",
+  "flow": [
+    {
+      "id": 1,
+      "module": "gateway:CustomWebHook",
+      "version": 1,
+      "parameters": { "hook": 2838878 },
+      "mapper": {}
+    },
+    {
+      "id": 2,
+      "module": "builtin:BasicFeeder",
+      "version": 1,
+      "parameters": {},
+      "mapper": { "array": "{{1.line_items}}" }
+    },
+    {
+      "id": 3,
+      "module": "shopify:makeAnApiCall",
+      "version": 3,
+      "parameters": { "__IMTCONN__": 11222622 },
+      "mapper": {
+        "query": "query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}",
+        "variables": "{\"search\": \"sku:\\\"{{2.sku}}\\\"\"}",
+        "handleErrors": true,
+        "flattenResponse": false,
+        "variablesDataSource": "object"
+      }
+    },
+    {
+      "id": 4,
+      "module": "airtable:ActionSearchRecords",
+      "version": 3,
+      "parameters": { "__IMTCONN__": 11222232 },
+      "mapper": {
+        "base": "applddLjh3EVYvA3x",
+        "table": "tblSpS0xcK3qlA40v",
+        "formula": "{SKU} = '{{2.sku}}'",
+        "maxRecords": 1
+      }
+    },
+    {
+      "id": 5,
+      "module": "airtable:ActionUpdateRecords",
+      "version": 3,
+      "parameters": { "__IMTCONN__": 11222232 },
+      "mapper": {
+        "base": "applddLjh3EVYvA3x",
+        "table": "tblSpS0xcK3qlA40v",
+        "id": "{{4.id}}",
+        "typecast": false,
+        "record": {
+          "fldOKzR4V97mX3pj2": "{{3.body.data.productVariants.nodes[1].inventoryQuantity}}"
+        }
+      },
+      "filter": {
+        "name": "Stock differs",
+        "conditions": [
+          [
+            {
+              "a": "{{3.body.data.productVariants.nodes[1].inventoryQuantity}}",
+              "b": "{{4.Stock}}",
+              "o": "number:notequal"
+            }
+          ]
+        ]
+      }
+    },
+    {
+      "id": 6,
+      "module": "google-sheets:addRow",
+      "version": 2,
+      "parameters": { "__IMTCONN__": 11222239 },
+      "mapper": {
+        "mode": "map",
+        "values": {
+          "0": "{{now}}",
+          "1": "{{2.sku}}",
+          "2": "{{4.Stock}}",
+          "3": "{{3.body.data.productVariants.nodes[1].inventoryQuantity}}",
+          "4": "make",
+          "5": "{{1.name}}"
+        },
+        "sheetId": "StockLog",
+        "spreadsheetId": "1VbnpMSjRZCsIEL3rsB8K4QAR2eHZN79faR1DeCVoeMk",
+        "tableFirstRow": "A1:Z1",
+        "valueInputOption": "USER_ENTERED",
+        "insertUnformatted": false
+      }
+    },
+    {
+      "id": 7,
+      "module": "datastore:GetRecord",
+      "version": 1,
+      "parameters": { "datastore": 154577 },
+      "mapper": { "key": "github_dispatch_token" }
+    },
+    {
+      "id": 8,
+      "module": "http:ActionSendData",
+      "version": 3,
+      "parameters": { "handleErrors": true, "useNewZLibDeCompress": true },
+      "mapper": {
+        "url": "https://api.github.com/repos/Ainz47/Projects/dispatches",
+        "data": "{\"event_type\":\"catalog-refresh\"}",
+        "method": "post",
+        "headers": [
+          { "name": "Authorization", "value": "Bearer {{7.value}}" },
+          { "name": "Accept", "value": "application/vnd.github+json" }
+        ],
+        "bodyType": "raw",
+        "contentType": "application/json",
+        "parseResponse": false,
+        "followAllRedirects": false
+      }
+    }
+  ],
+  "metadata": { "instant": true, "version": 1 },
+  "scheduling": { "type": "immediately" },
+  "interface": { "input": [], "output": [] }
+}
