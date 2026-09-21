@@ -113,7 +113,16 @@
         "contentType": "application/json",
         "parseResponse": false,
         "followAllRedirects": false
-      }
+      },
+      "onerror": [
+        {
+          "id": 9,
+          "module": "builtin:Break",
+          "version": 1,
+          "parameters": {},
+          "mapper": { "retry": true, "count": 3, "interval": 15 }
+        }
+      ]
     }
   ],
   "metadata": { "instant": true, "version": 1 },

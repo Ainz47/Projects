@@ -40,6 +40,21 @@ class MakeBlueprintTests(unittest.TestCase):
         self.assertIn('"Bearer {{7.value}}"', text)
         self.assertIn('"datastore:GetRecord"', text)
 
+    def test_the_github_dispatch_call_retries_on_transient_failure(self):
+        # The GitHub dispatch call hit an intermittent BundleValidationError in
+        # live testing (2026-09-21) that resolved on an identical replay with no
+        # config change, confirming it was a transient upstream blip rather than
+        # a structural bug. A Retry directive on module 8 means a future blip
+        # self-heals instead of auto-deactivating the whole scenario.
+        blueprint = json.loads(FILE.read_text(encoding="utf-8"))
+        dispatch = next(m for m in blueprint["flow"] if m["id"] == 8)
+        self.assertEqual(dispatch["module"], "http:ActionSendData")
+        onerror = dispatch.get("onerror", [])
+        self.assertTrue(
+            any(h["module"] == "builtin:Break" and h["mapper"].get("retry") for h in onerror),
+            "module 8 should retry automatically on failure (builtin:Break)",
+        )
+
     def test_no_secrets_anywhere_in_the_export(self):
         text = FILE.read_text(encoding="utf-8")
         for label, pattern in SECRET_PATTERNS.items():
