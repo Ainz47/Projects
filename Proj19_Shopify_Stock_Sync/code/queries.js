@@ -13,5 +13,28 @@ const STOCK_QUERY = `query Stock($search: String!) {
   }
 }`;
 
+const WEBHOOKS_QUERY = `query ExistingWebhooks($topics: [WebhookSubscriptionTopic!]) {
+  webhookSubscriptions(first: 10, topics: $topics) {
+    nodes {
+      id
+      endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } }
+    }
+  }
+}`;
+
+const WEBHOOK_CREATE_MUTATION = `mutation CreateOrdersWebhook($callbackUrl: String!) {
+  webhookSubscriptionCreate(topic: ORDERS_CREATE, webhookSubscription: { uri: $callbackUrl, format: JSON }) {
+    webhookSubscription { id }
+    userErrors { field message }
+  }
+}`;
+
+const TAG_ORDER_MUTATION = `mutation TagOrder($id: ID!, $tags: [String!]!) {
+  tagsAdd(id: $id, tags: $tags) {
+    node { id }
+    userErrors { field message }
+  }
+}`;
+
 // --- exports (stripped when embedded in n8n) ---
-module.exports = { ORDERS_QUERY, STOCK_QUERY };
+module.exports = { ORDERS_QUERY, STOCK_QUERY, WEBHOOKS_QUERY, WEBHOOK_CREATE_MUTATION, TAG_ORDER_MUTATION };

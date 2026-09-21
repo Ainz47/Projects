@@ -1,6 +1,6 @@
 const test = require('node:test');
 const assert = require('node:assert/strict');
-const { collectSkus } = require('../code/collect_skus.js');
+const { collectSkus, skuOrderNames } = require('../code/collect_skus.js');
 const { ORDERS_QUERY, STOCK_QUERY } = require('../code/queries.js');
 
 const order = (...skus) => ({ id: 'o', lineItems: { nodes: skus.map((sku) => ({ sku, quantity: 1 })) } });
@@ -34,4 +34,19 @@ test('the stock query asks for sku, quantity and whether stock is tracked', () =
     assert.ok(STOCK_QUERY.includes(field), `stock query is missing ${field}`);
   }
   assert.match(STOCK_QUERY, /\$search: String!/);
+});
+
+const orderNamed = (name, ...skus) => ({ name, lineItems: { nodes: skus.map((sku) => ({ sku, quantity: 1 })) } });
+
+test('skuOrderNames maps each SKU to the order that carried it', () => {
+  assert.deepEqual(skuOrderNames([orderNamed('#1001', 'A-1', 'B-2')]), { 'A-1': '#1001', 'B-2': '#1001' });
+});
+
+test('two orders touching the same SKU in one tick join their names', () => {
+  assert.deepEqual(skuOrderNames([orderNamed('#1001', 'A-1'), orderNamed('#1002', 'A-1')]), { 'A-1': '#1001; #1002' });
+});
+
+test('tolerates missing names, missing lines, and no orders at all', () => {
+  assert.deepEqual(skuOrderNames([{ lineItems: { nodes: [{ sku: 'A-1' }] } }, null, undefined]), {});
+  assert.deepEqual(skuOrderNames(undefined), {});
 });

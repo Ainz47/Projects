@@ -4,5 +4,10 @@ function assertNoGraphqlErrors(body, label) {
   if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);
 }
 
+function assertNoUserErrors(userErrors, label) {
+  const errors = Array.isArray(userErrors) ? userErrors : [];
+  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);
+}
+
 // --- exports (stripped when embedded in n8n) ---
-module.exports = { assertNoGraphqlErrors };
+module.exports = { assertNoGraphqlErrors, assertNoUserErrors };
