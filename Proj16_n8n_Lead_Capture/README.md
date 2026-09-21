@@ -19,7 +19,7 @@ A successful run for a hot lead, every step on the path green:
 - The model only returns a score, a one-line reason and a draft reply. The tier is computed in code (`hot` 8 to 10, `warm` 5 to 7, `cold` below 5), so the model cannot label a 3/10 lead hot.
 - If Gemini fails or returns something unparseable, the lead is still logged with tier `needs_review` instead of being dropped.
 - The Sheet write uses the node's "Use Append" option. Without it, two leads arriving at the same moment overwrote each other, and I lost a row in two of two test rounds before turning it on.
-- The weekly workflow reads the last 7 days from the Sheet, counts by tier in code, and asks the model to write three lines about it.
+- The weekly workflow reads the last 7 days from both the Leads and StockLog tabs, counts leads by tier and stock changes in code, and asks the model to write four lines about it.
 
 ## What is verified
 Checked automatically on every push (GitHub Actions, Windows runner): the Code-node logic has `node --test` unit tests (validation, parsing the model's reply, row shaping, weekly counts), and the three exported workflows are checked for structure, wiring, no embedded secrets, and being in sync with the generator that builds them.
@@ -36,9 +36,9 @@ Not done: it is not deployed. It runs on a local n8n, and CI does not run n8n, s
 
 ## Set up
 1. Run n8n: `npx n8n`, open http://localhost:5678 and create the owner account.
-2. Make a Google Sheet with a tab named `Leads` and this header row, one cell per column: `timestamp`, `name`, `email`, `company`, `message`, `budget`, `timeline`, `status`, `tier`, `score`, `reason`, `suggested_reply`.
+2. Make a Google Sheet with a tab named `Leads` and this header row, one cell per column: `timestamp`, `name`, `email`, `company`, `message`, `budget`, `timeline`, `status`, `tier`, `score`, `reason`, `suggested_reply`. Also add a StockLog tab (written by Proj19) with header row: timestamp, sku, old_stock, new_stock, source, order_name.
 3. In n8n, create credentials: Google Gemini(PaLM) API, Google Sheets OAuth2 and WhatsApp API. Your keys stay in n8n and the exports contain credential names only. For Sheets, use a Web application OAuth client with `http://localhost:5678/rest/oauth2-credential/callback` as an authorized redirect URI, enable the Google Sheets and Drive APIs, and check the credential says "Account connected" (a blank popup after Sign in means it did not finish).
-4. Import the three `*.workflow.json` files (workflow menu, Import from File). Open each Gemini, Google Sheets and WhatsApp node and pick your credential. Paste the Sheet URL into `Append row` and `Read leads`, and your WhatsApp phone number ID and recipient number into each WhatsApp node.
+4. Import the three `*.workflow.json` files (workflow menu, Import from File). Open each Gemini, Google Sheets and WhatsApp node and pick your credential. Paste the Sheet URL into `Append row`, `Read leads` and `Read stock log` (the same spreadsheet, the StockLog tab), and your WhatsApp phone number ID and recipient number into each WhatsApp node.
 5. In `Lead capture and qualify`, Settings, set the error workflow to `Workflow error alert`, and activate that workflow too. n8n does not run an error workflow that is inactive.
 6. Activate `Lead capture and qualify` and `Weekly lead summary`. The form is at http://localhost:5678/form/lead-capture.
 7. To test: `py -m pip install -r requirements.txt` then `py samples/submit.py`. The form only accepts `multipart/form-data`, which the script sends.

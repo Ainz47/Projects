@@ -37,10 +37,11 @@ Budget: {{ $json.budget }}
 Timeline: {{ $json.timeline }}
 Message: {{ $json.message }}"""
 
-WEEKLY_PROMPT = """=Write a 3-line weekly lead summary for a freelance automation developer. Plain text, no markdown, no greeting.
+WEEKLY_PROMPT = """=Write a weekly summary for a freelance automation developer. Plain text, no markdown, no greeting, exactly four lines.
 Line 1: the total number of leads and the count per tier.
 Line 2: the hot leads by company with the reason, or "No hot leads."
 Line 3: one suggestion for next week.
+Line 4: the demo store: the number of stock updates this week, and any newly sold-out SKUs, or "No stock activity."
 
 Data (JSON):
 {{ JSON.stringify($json) }}"""
@@ -108,11 +109,11 @@ def normalize_node(position):
     })
 
 
-def sheets_node(name, position, operation, **extra):
+def sheets_node(name, position, operation, sheet_name="Leads", **extra):
     parameters = {
         "operation": operation,
         "documentId": {"__rl": True, "mode": "url", "value": ""},
-        "sheetName": {"__rl": True, "mode": "name", "value": "Leads"},
+        "sheetName": {"__rl": True, "mode": "name", "value": sheet_name},
         "options": {},
     }
     if operation == "append":
@@ -199,17 +200,21 @@ def weekly_summary():
     nodes = [
         node("Every Monday 9am", "n8n-nodes-base.scheduleTrigger", V["schedule"], [0, 0],
              {"rule": {"interval": [{"field": "cronExpression", "expression": "0 9 * * 1"}]}}),
-        sheets_node("Read leads", [240, 0], "read", alwaysOutputData=True),
-        code_node("Summarize week", [480, 0], js("weekly.js", tail=(
-            "const rows = $input.all().map((item) => item.json);\n"
-            "return [{ json: summarize(rows, Date.now()) }];"))),
-        gemini_node("Gemini summary", [720, 0], WEEKLY_PROMPT),
-        normalize_node([960, 0]),
-        whatsapp_node([1200, 0], "={{ $json.llm_text }}", name="WhatsApp summary"),
+        sheets_node("Read leads", [240, 0], "read", "Leads", alwaysOutputData=True),
+        sheets_node("Read stock log", [480, 0], "read", "StockLog", alwaysOutputData=True),
+        code_node("Summarize week", [720, 0], js("weekly.js", tail=(
+            "const leadRows = $('Read leads').all().map((item) => item.json);\n"
+            "const stockRows = $('Read stock log').all().map((item) => item.json);\n"
+            "const leadSummary = summarize(leadRows, Date.now());\n"
+            "const stockSummary = summarizeStock(stockRows, Date.now());\n"
+            "return [{ json: { ...leadSummary, store: stockSummary } }];"))),
+        gemini_node("Gemini summary", [960, 0], WEEKLY_PROMPT),
+        normalize_node([1200, 0]),
+        whatsapp_node([1440, 0], "={{ $json.llm_text }}", name="WhatsApp summary"),
     ]
-    edges = [("Every Monday 9am", "Read leads", 0), ("Read leads", "Summarize week", 0),
-             ("Summarize week", "Gemini summary", 0), ("Gemini summary", "Normalize LLM output", 0),
-             ("Normalize LLM output", "WhatsApp summary", 0)]
+    edges = [("Every Monday 9am", "Read leads", 0), ("Read leads", "Read stock log", 0),
+             ("Read stock log", "Summarize week", 0), ("Summarize week", "Gemini summary", 0),
+             ("Gemini summary", "Normalize LLM output", 0), ("Normalize LLM output", "WhatsApp summary", 0)]
     return workflow("Weekly lead summary", nodes, edges)
 
 

@@ -14,5 +14,17 @@ function summarize(rows, nowMs) {
   return { total, counts, hotLeads };
 }
 
+function summarizeStock(rows, nowMs) {
+  let changes = 0;
+  const soldOut = new Set();
+  for (const row of rows ?? []) {
+    const at = Date.parse(row.timestamp);
+    if (!Number.isFinite(at) || at < nowMs - WEEK_MS) continue;
+    changes += 1;
+    if (Number(row.new_stock) === 0) soldOut.add(row.sku);
+  }
+  return { changes, soldOut: [...soldOut].sort() };
+}
+
 // --- exports (stripped when embedded in n8n) ---
-module.exports = { summarize };
+module.exports = { summarize, summarizeStock };
