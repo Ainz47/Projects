@@ -1,10 +1,11 @@
 # Proj16: n8n Lead Capture
 
-A self-hosted n8n pipeline. A contact form submission is validated, scored by an LLM, and logged to a Google Sheet, and a strong lead sends me a WhatsApp alert. A second workflow sends a weekly summary, and a third reports any workflow that fails.
+A self-hosted n8n pipeline. A contact form submission is validated, scored by an LLM, and logged to a Google Sheet. A strong lead sends me a WhatsApp alert; a warm one gets a Gmail draft, pre-filled from the model's suggested reply, left for me to review and send by hand, never auto-sent. A second workflow sends a weekly summary, and a third reports any workflow that fails.
 
 ```
 Form -> Validate -> valid? -> Gemini score -> parse -> Sheet row
-                      |                          `-> hot? -> WhatsApp alert
+                      |                          |-> hot? -> WhatsApp alert
+                      |                          `-> warm? -> Gmail draft (never sent)
                       `-> invalid -> rejected row -> Sheet row
 ```
 
@@ -17,6 +18,7 @@ A successful run for a hot lead, every step on the path green:
 ## How it behaves
 - Bad submissions (no name, broken email, one-word message) never reach the LLM. They are logged as `rejected` with the reasons.
 - The model only returns a score, a one-line reason and a draft reply. The tier is computed in code (`hot` 8 to 10, `warm` 5 to 7, `cold` below 5), so the model cannot label a 3/10 lead hot.
+- A warm lead (tier `warm`) gets a Gmail draft addressed to them, built from the model's own `suggested_reply` plus a fixed greeting and sign-off. It is only ever created as a draft; nothing is sent automatically.
 - If Gemini fails or returns something unparseable, the lead is still logged with tier `needs_review` instead of being dropped.
 - The Sheet write uses the node's "Use Append" option. Without it, two leads arriving at the same moment overwrote each other, and I lost a row in two of two test rounds before turning it on.
 - The weekly workflow reads the last 7 days from both the Leads and StockLog tabs, counts leads by tier and stock changes in code, and asks the model to write four lines about it.
@@ -31,14 +33,15 @@ Checked by hand on a local n8n 2.39.8 run, importing these exact files:
 - A failing Sheet write triggered the error workflow.
 - The weekly workflow produced its summary from the Sheet's rows.
 - A hot lead sent a WhatsApp alert that reached my phone. Alerts sent before I had messaged the test number were accepted by the API but never arrived, which is the 24-hour rule under WhatsApp notes below.
+- A warm lead, posted through the real form with my own address in place of the fixture's, produced a Gmail draft (never sent) addressed to me, subject `Re: your project (Becker Design)`, body starting `Hi Tom,` and ending `Jhurald`. The four committed fixtures (hot, warm, cold, junk) then confirmed the same routing end to end: the `@example.com` warm lead also created a correct draft, the cold lead reached neither the hot nor warm branch, and the junk lead was rejected as before.
 
 Not done: it is not deployed. It runs on a local n8n, and CI does not run n8n, so nothing automated proves the workflows execute.
 
 ## Set up
 1. Run n8n: `npx n8n`, open http://localhost:5678 and create the owner account.
 2. Make a Google Sheet with a tab named `Leads` and this header row, one cell per column: `timestamp`, `name`, `email`, `company`, `message`, `budget`, `timeline`, `status`, `tier`, `score`, `reason`, `suggested_reply`. Also add a StockLog tab (written by Proj19) with header row: timestamp, sku, old_stock, new_stock, source, order_name.
-3. In n8n, create credentials: Google Gemini(PaLM) API, Google Sheets OAuth2 and WhatsApp API. Your keys stay in n8n and the exports contain credential names only. For Sheets, use a Web application OAuth client with `http://localhost:5678/rest/oauth2-credential/callback` as an authorized redirect URI, enable the Google Sheets and Drive APIs, and check the credential says "Account connected" (a blank popup after Sign in means it did not finish).
-4. Import the three `*.workflow.json` files (workflow menu, Import from File). Open each Gemini, Google Sheets and WhatsApp node and pick your credential. Paste the Sheet URL into `Append row`, `Read leads` and `Read stock log` (the same spreadsheet, the StockLog tab), and your WhatsApp phone number ID and recipient number into each WhatsApp node.
+3. In n8n, create credentials: Google Gemini(PaLM) API, Google Sheets OAuth2 and WhatsApp API. Your keys stay in n8n and the exports contain credential names only. For Sheets, use a Web application OAuth client with `http://localhost:5678/rest/oauth2-credential/callback` as an authorized redirect URI, enable the Google Sheets and Drive APIs, and check the credential says "Account connected" (a blank popup after Sign in means it did not finish). For Gmail, reuse the same `Gmail account` credential if you already set one up for Proj19 on this instance; otherwise create a Gmail OAuth2 credential the same way.
+4. Import the three `*.workflow.json` files (workflow menu, Import from File). Open each Gemini, Google Sheets and WhatsApp node and pick your credential, and pick your Gmail credential in `Create Gmail draft`. Paste the Sheet URL into `Append row`, `Read leads` and `Read stock log` (the same spreadsheet, the StockLog tab), and your WhatsApp phone number ID and recipient number into each WhatsApp node.
 5. In `Lead capture and qualify`, Settings, set the error workflow to `Workflow error alert`, and activate that workflow too. n8n does not run an error workflow that is inactive.
 6. Activate `Lead capture and qualify` and `Weekly lead summary`. The form is at http://localhost:5678/form/lead-capture.
 7. To test: `py -m pip install -r requirements.txt` then `py samples/submit.py`. The form only accepts `multipart/form-data`, which the script sends.
@@ -61,3 +64,4 @@ The workflow JSON is generated so the tested code is the shipped code: edit `cod
 - The score is the model's judgment, so a lead near a threshold can land in either tier on a rerun. The sample warm lead scored 6 three times in a row, but an earlier, vaguer version flipped between warm and cold.
 - The form does not validate on the server, so the Validate step is what catches bad input from scripts or other clients.
 - A quiet week still produces a summary saying there were no leads.
+- The draft's subject is generic (`Re: your project` plus the company, if given); it does not use the model to write a subject line, so two warm leads from the same company get identically-worded subjects.
