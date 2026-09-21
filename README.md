@@ -2,9 +2,9 @@
 
 [![tests](https://github.com/Ainz47/Projects/actions/workflows/tests.yml/badge.svg)](https://github.com/Ainz47/Projects/actions/workflows/tests.yml)
 
-A collection of 18 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, a storefront UI, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
+A collection of 19 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, a storefront UI, workflow automation, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
 
-**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. Proj17's checks are unit-tested against fake DNS in the same run, and its page was tried by hand in a browser against live DNS. Proj18's logic, cart and Shopify exporter are unit-tested in the same run (the exporter against fake API responses only, never a real store), alongside a type check, a size budget and a check that the committed page matches the build; the built page was also checked by hand in a browser (search, filters, keyboard navigation, reduced motion, blocked storage, an unknown-product route) — see `Proj18_Coffee_Storefront/AUDIT.md`. The other projects are documented with architecture notes and diagrams, not automated tests.
+**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. Proj17's checks are unit-tested against fake DNS in the same run, and its page was tried by hand in a browser against live DNS. Proj18's logic, cart and Shopify exporter are unit-tested in the same run (the exporter against fake API responses only, never a real store), alongside a type check, a size budget and a check that the committed page matches the build; the built page was also checked by hand in a browser (search, filters, keyboard navigation, reduced motion, blocked storage, an unknown-product route), see `Proj18_Coffee_Storefront/AUDIT.md`. Proj19's Code-node logic and export generator are unit-tested (62 checks) in the same run, and the workflow itself was run live against a real Shopify development store, catching and fixing two real bugs along the way, see `Proj19_Shopify_Stock_Sync/AUDIT.md`. The other projects are documented with architecture notes and diagrams, not automated tests.
 
 ---
 
@@ -16,14 +16,14 @@ Pick the row that matches what you are hiring for.
 |---|---|
 | Web scraping, data extraction, anti-bot handling | [Proj1](#1-schooljobs), [Proj2](#2-shopeehijacker), [Proj9](#9-geodata-ai-ingestion-engine) |
 | Backend APIs and webhooks | [Proj6](#6-cloud-report-engine), [Proj7](#7-fastapi-etl-alerts), [Proj13](#13-astorga-flood-watch) |
-| Workflow automation in n8n | [Proj16](#16-n8n-lead-capture) |
+| Workflow automation in n8n | [Proj16](#16-n8n-lead-capture), [Proj19](#19-shopify-order-to-stock-sync) |
 | Email deliverability (SPF, DKIM, DMARC) | [Proj17](#17-email-deliverability-checker) |
 | Data engineering (dbt, orchestration, IaC) | [Proj8](#8-arxiv-pipeline) |
 | WordPress and CMS automation | [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine) |
 | AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling), [Proj16](#16-n8n-lead-capture) |
 | Claude Code skills, hooks and guardrails | [Proj15](#15-claude-code-tooling) |
 | Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [Proj18](#18-dynamic-coffee-storefront), [storefront case study](case-studies/storefront-spa-port.md) |
-| Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md), [Proj18](#18-dynamic-coffee-storefront) (data shapes and export code, not a live store) |
+| Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md), [Proj18](#18-dynamic-coffee-storefront) (data shapes and export code, not a live store), [Proj19](#19-shopify-order-to-stock-sync) (Admin API order polling, verified live against a real dev store) |
 | Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md), [Proj16](#16-n8n-lead-capture), [Proj17](#17-email-deliverability-checker) |
 | Embedded and IoT | [Proj4](#4-smartparkingiot), [Proj13](#13-astorga-flood-watch) |
 
@@ -51,6 +51,7 @@ Pick the row that matches what you are hiring for.
 | 16 | [n8n Lead Capture](#16-n8n-lead-capture) | Workflow Automation | n8n, Gemini, Google Sheets, WhatsApp API, JavaScript |
 | 17 | [Email Deliverability Checker](#17-email-deliverability-checker) | Email / DNS Tooling | JavaScript, DNS-over-HTTPS, node:test |
 | 18 | [Dynamic Coffee Storefront](#18-dynamic-coffee-storefront) | Storefront UI | TypeScript, React, Vite, Shopify Admin GraphQL, vitest |
+| 19 | [Shopify Order to Stock Sync](#19-shopify-order-to-stock-sync) | Workflow Automation | n8n, Shopify Admin GraphQL, Airtable API, GitHub Actions |
 
 ---
 
@@ -67,7 +68,7 @@ WAF-bypassing scraper that pulls job listings from the SchoolSpring/PowerSchool 
 
 ## 2. ShopeeHijacker
 
-Stealth e-commerce scraper that attaches to an existing Chrome window via Chrome DevTools Protocol and passively intercepts live Shopee API responses — no bot-triggering requests sent.
+Stealth e-commerce scraper that attaches to an existing Chrome window via Chrome DevTools Protocol and passively intercepts live Shopee API responses, no bot-triggering requests sent.
 
 **Stack:** Python · Playwright CDP · Pandas  
 **Highlights:** Zero suspicious request footprint; mouse.wheel() pagination to mimic human behavior; ID-based deduplication across pages.
@@ -78,7 +79,7 @@ Stealth e-commerce scraper that attaches to an existing Chrome window via Chrome
 
 ## 3. PDFExtractor
 
-Automated pipeline that discovers procurement PDFs on school district websites and extracts structured fields (budget approvals, bid deadlines) using pdfplumber and regex — all in-memory, no disk writes.
+Automated pipeline that discovers procurement PDFs on school district websites and extracts structured fields (budget approvals, bid deadlines) using pdfplumber and regex, all in-memory, no disk writes.
 
 **Stack:** Python · Playwright · pdfplumber · SQLite  
 **Highlights:** Three-layer architecture (discovery → ingestion → extraction); fully in-memory byte-stream processing, so it is cloud-ready for AWS Lambda or a CI runner.
@@ -252,6 +253,17 @@ A React storefront for a made-up coffee shop: search and filters that live in th
 
 ---
 
+## 19. Shopify Order to Stock Sync
+
+An n8n workflow that polls a Shopify development store for new orders every 5 minutes, sets each ordered SKU's Airtable stock to Shopify's current number (absolute, not subtracted, so re-reads or overlapping ticks can't double-count), and dispatches Proj18's storefront rebuild through GitHub Actions when anything changed. Verified with a live run against a real dev store, including two real bugs found and fixed mid-run: an Airtable batch update that needed `PATCH` not `POST`, and a credential-matching bug that misrouted a token between two same-type n8n credentials.
+
+**Stack:** n8n · Shopify Admin GraphQL · Airtable API · GitHub Actions · JavaScript · Python  
+**Highlights:** cursor-based polling that only advances after every step succeeds, so a failure anywhere redoes the same work next tick instead of silently skipping it; idempotency and failure-injection both checked live, not just in unit tests; this is the n8n core only (Plan 1); Make, a thank-you email and a `StockLog` sheet are Plan 2, not built.
+
+[→ View project](Proj19_Shopify_Stock_Sync/)
+
+---
+
 ## Case studies
 
 Client work where the code stays private, written up by situation, constraint, build and outcome.
@@ -268,7 +280,7 @@ Client work where the code stays private, written up by situation, constraint, b
 **Data / ETL:** dbt · MotherDuck (DuckDB) · Supabase (PostgreSQL) · CouchDB / PouchDB · SQLite · Parquet  
 **AI / LLMs:** Anthropic Claude · Google Gemini (text + vision + image gen)  
 **Orchestration & Infra:** Kestra · n8n (self-hosted) · Azure Blob Storage · Terraform · Docker  
-**Web / APIs:** React · Vite · FastAPI · WordPress REST API · Shopify Admin GraphQL · Brevo API · Playwright · BeautifulSoup4 · DNS-over-HTTPS  
+**Web / APIs:** React · Vite · FastAPI · WordPress REST API · Shopify Admin GraphQL · Airtable API · Brevo API · Playwright · BeautifulSoup4 · DNS-over-HTTPS  
 **Agent tooling:** Claude Code hooks, skills and guardrails · MCP  
 **Hardware:** ESP32 / ESP8266 · LoRa · ultrasonic sensing  
 **Visualization:** Metabase · Jinja2 / WeasyPrint (PDF)

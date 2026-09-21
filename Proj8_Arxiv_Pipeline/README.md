@@ -1,104 +1,37 @@
-# 🚀 End-to-End Mathematics Research Data Pipeline (DE Zoomcamp Capstone)
+# Arxiv Pipeline
 
-## 📖 1. Problem Description
-**The Problem:** The arXiv repository contains millions of academic papers, but tracking the explosive growth of specific mathematical sub-disciplines over the last 30 years is difficult. 
+A batch data engineering pipeline (built as a Data Engineering Zoomcamp capstone) that pulls Mathematics and Physics papers from the arXiv API, lands them in Azure Blob Storage as Parquet, transforms them with dbt on MotherDuck (cloud DuckDB), and serves the result to a Metabase dashboard. Infrastructure is provisioned with Terraform.
 
-**The Solution:** This project builds a batch-processed, end-to-end Data Engineering pipeline that extracts historical Mathematics and Physics research papers (1992–Present) from the arXiv API, loads them into an Azure Data Lake, transforms them into a dimensional model, and serves them to an interactive dashboard for trend analysis.
+## What's actually here, verified by reading the code
 
-## ☁️ 2. Cloud & Infrastructure as Code (IaC)
-* **Cloud Providers:** Azure (Blob Storage) & MotherDuck (Serverless Cloud Data Warehouse).
-* **IaC:** Terraform is used to provision the Azure Resource Group and the `raw-parquet-chunks` Data Lake container.
+- **Extraction (`extraction/extract.py`):** paginates the arXiv API (1,000 records per request, `math.*` category, a 3-second sleep between requests to respect arXiv's rate limit), buffers records in memory, and once 10,000 records accumulate, writes them to a local Parquet file and uploads it to Azure Blob Storage (`raw-parquet-chunks/raw/`). There is no checkpoint or resume logic: `start_index` lives only in a local variable, so if the script crashes or is killed partway through, the next run starts over from record 0, re-downloading and re-uploading everything already fetched. Any "resumable" claim in earlier versions of this README referred to a design intent for a future distributed backfill, not something this script does today.
+- **Transformation (`transformation/arxiv_transform/models/`):** two dbt models. `stg_arxiv_papers.sql` reads the raw Parquet files directly from Azure (`azure://raw-parquet-chunks/raw/*.parquet`), strips the `http://arxiv.org/abs/` prefix off the id, and casts the published date to a timestamp. `fact_math_papers.sql` builds on that with `order_by=['published_timestamp', 'primary_category']` (DuckDB's physical sort/clustering) and an MD5 surrogate key. That key is hashed from `paper_id`, `title`, and `authors` concatenated together, not from `paper_id` alone as earlier documentation for this project said, and the column is named `paper_key`, not `paper_sk`.
+- **Infrastructure (`infrastructure/main.tf`):** provisions an Azure resource group, a storage account, and one private blob container (`raw-parquet-chunks`) through Terraform. A `terraform.tfstate` file exists locally in this folder (gitignored, not committed) whose presence means `terraform apply` was actually run against a real Azure subscription at some point; that infrastructure is almost certainly not still standing, since cloud storage costs money to keep provisioned and there's no evidence here of ongoing use.
+- **Orchestration (`orchestration/docker-compose.yml`):** starts a single Kestra container. There is no Kestra flow definition file (`.yml`) committed anywhere in this repository, so the "fully declarative Kestra DAG" that earlier documentation described can't be verified from what's here. Also: the compose file maps Kestra's internal port 8080 to host port 9000 (`"9000:8080"`), so the correct local URL is `localhost:9000`, not `localhost:8080` as earlier setup instructions said.
+- **Visualization (`visualization/`):** a custom Metabase Docker image (Ubuntu base, to get a `glibc` environment the DuckDB JDBC driver needs) with a DuckDB driver JAR. The `sample-database.db.mv.db` file under `visualization/plugins/` is Metabase's own bundled demo database, not output from this pipeline; it's not evidence of a real arXiv run and isn't cited as such here.
 
-## 🔄 3. Data Ingestion (Batch Orchestration)
-* **Orchestrator:** Kestra (Containerized via Docker).
-* **Workflow:** A fully declarative Kestra DAG triggers a custom Python extraction script. To prevent Out-Of-Memory (OOM) crashes, the script paginates the arXiv API, chunks records into batches of 10,000, and streams them as compressed `.parquet` files directly into the Azure Data Lake.
+## What is NOT verified
 
-## 🗄️ 4. Data Warehouse (Clustering & Partitioning)
-* **Warehouse:** MotherDuck (DuckDB).
-* **Optimization Strategy:** The `fact_math_papers` table is optimized using DuckDB's native clustering equivalent (`order_by`). The table is physically sorted on disk by `published_timestamp` and `primary_category`. 
-* **Explanation:** This optimization specifically serves the upstream Metabase dashboard. Because the primary dashboard tiles aggregate paper volume over time and filter by category, sorting by these specific columns minimizes IO operations and drastically speeds up query execution.
+- No automated tests here (dbt has no test files in `tests/`, `analyses/`, `macros/` beyond placeholder `.gitkeep`s), and this project isn't in `.github/workflows/tests.yml` (only Proj14-19 are).
+- Whether this pipeline was ever run end to end (extraction through the dashboard) isn't something this repo has an artifact for. The `terraform.tfstate` confirms the Azure resources existed at some point; nothing here confirms data actually flowed all the way through dbt to Metabase.
+- The earlier claim of processing "10,000 records to validate the architecture" matches the code's chunk size exactly, which is consistent with a real run having happened, but there's no committed log, row count, or exported chunk file in this repo to confirm it independently.
+- Whether the MotherDuck account and Azure subscription behind this are still active is unknown; this README does not attempt to connect to either.
 
-## 🛠️ 5. Transformations (dbt)
-* **Tool:** `dbt-core` with the `dbt-duckdb` adapter.
-* **Lineage:** * `stg_arxiv_papers`: Cleans raw parquet data, casts data types (e.g., string dates to `TIMESTAMP`), and strips URL prefixes.
-  * `fact_math_papers`: Applies MD5 hashing to the `paper_id` to generate a deterministic Surrogate Key (`paper_sk`). This ensures 100% pipeline idempotency and deduplication if the DAG is re-run.
+## Stack
 
-## 📊 6. Dashboard
-* **Tool:** Metabase (Deployed via custom Ubuntu Dockerfile to satisfy `glibc` dependencies for the C++ DuckDB JDBC driver).
-* **Tiles:**
-  1. **Temporal:** Line chart showing the exponential growth of published math papers over the decades.
-  2. **Categorical:** Bar chart detailing the most popular mathematical sub-categories (e.g., High Energy Physics, Combinatorics).
-  3. **Scorecard:** Total volume of papers successfully processed.
+Python (extraction) · Terraform (Azure resource group, storage account, blob container) · Kestra (orchestration, container only, no committed flow) · dbt-core with dbt-duckdb · MotherDuck (cloud DuckDB) · Metabase (custom Docker image) · Docker Compose
 
-Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md) | [docs/architecture-diagram.svg](./docs/architecture-diagram.svg) | [docs/architecture-diagram.png](./docs/architecture-diagram.png)
-
-*<img width="1879" height="926" alt="image" src="https://github.com/user-attachments/assets/0ba8ca8e-e837-4cd8-bd92-2b9c899f9b8c" />
-*
-
----
-
-## 💻 7. Reproducibility (How to Run)
-
-### Prerequisites
-* Docker & Docker Compose
-* Terraform
-* An Azure account & a free MotherDuck account.
-
-### Step 1: Infrastructure
-```bash
-cd infrastructure
-terraform init
-terraform apply
-```
-### Step 2: Set up Secrets
-Create a .env file in the root directory and add your credentials:
+## Running it (as designed; not re-run for this README)
 
 ```bash
-AZURE_CONNECTION_STRING="your_azure_string"
-MOTHERDUCK_TOKEN="your_md_token"
+cd infrastructure && terraform init && terraform apply   # provisions Azure resource group, storage account, container
+cd ../orchestration && docker compose up -d               # Kestra at localhost:9000; a flow still needs to be created/imported
+cd ../transformation && docker build -t arxiv-dbt . && docker run --env-file ../.env arxiv-dbt
+cd ../visualization && docker compose up -d --build        # Metabase dashboard at localhost:3000
 ```
 
-### Step 3: Orchestration
+A `.env` in the repo root needs `AZURE_CONNECTION_STRING` and `MOTHERDUCK_TOKEN`; see `dependencies.md` for the full library/version list and system requirements.
 
-```bash
-cd orchestration
-docker compose up -d
-```
-Navigate to localhost:8080, enable the Kestra flow, and trigger the execution.
+## Known gaps and future work (carried over from the original design notes)
 
-### Step 4: Transformation
-```bash
-cd transformation
-docker build -t arxiv-dbt .
-docker run --env-file ../.env arxiv-dbt
-```
-
-### Step 5: Visualization
-```bash
-cd visualization
-docker compose up -d --build
-```
-Navigate to localhost:3000 to view the dashboard.
-
-"For a detailed breakdown of the technical stack and system requirements, see the [Project Dependencies](./dependencies.md)."
-
-## 📈 8. Scalability & Future Work
-- While the current MVP successfully processes 10,000 records to validate the architecture, the system is designed to scale to the full 2M+ arXiv archive.
-
-### 🚀 Scaling the Pipeline
-- Full Backfill Strategy: The extraction script is built with pagination. To ingest the entire historical dataset, the Kestra trigger can be updated to run a distributed loop. Given the arXiv API's 3-second rate limit, a full backfill of 500k math papers would take ~42 hours; the pipeline is designed to be resumable to handle potential network interruptions during this window.
-
-- Horizontal Scaling: By moving the Python extraction runtime from a local Docker container to Azure Kubernetes Service (AKS) or Azure Functions, the ingestion layer can scale horizontally to handle multiple categories (Physics, CS, Bio) in parallel.
-
-- Incremental Loads: The next phase involves implementing "Incremental" logic in dbt. Instead of rebuilding the fact_math_papers table daily, dbt would only process new papers published in the last 24 hours, drastically reducing compute costs in MotherDuck.
-
-### 🛠️ Future Improvements
-- Automated Data Quality (dbt tests): Implementing generic and singular tests (e.g., not_null, unique) on the paper_sk to ensure 100% data integrity as the volume grows.
-
-- CI/CD Integration: Adding GitHub Actions to automatically run dbt test and terraform plan whenever code is pushed to the main branch.
-
-- Enhanced Monitoring: Integrating Kestra with an alerting system (like Slack or Discord) to notify the engineer immediately if an extraction batch fails.
-
-* Semantic Search: Implementing a Vector Database (like LanceDB or Pinecone) to allow for AI-powered semantic search over paper abstracts, moving beyond simple categorical filtering.
-
-* 
+Full backfill beyond the 10,000-record MVP, horizontal scaling of extraction onto AKS/Azure Functions, incremental dbt loads instead of full rebuilds, dbt data-quality tests on `paper_key`, CI/CD for `dbt test` and `terraform plan`, alerting on failed extraction batches, and semantic search over abstracts via a vector database. None of these are built; they're listed here as the original scope notes, not as claims about what exists.

@@ -1,65 +1,54 @@
-# Restaurant OS: Multi-Source ETL & Alerting Microservice ⚙️
+# FastAPI ETL Alerts
 
-**Full-Stack Data Engineering Pipeline (FastAPI + PostgreSQL + Webhooks)**
+A FastAPI microservice that takes daily sales and labor webhooks from two restaurant systems (modeled on Toast POS and 7shifts), computes Cost Per Labor Hour and Labor % of Sales, stores the result in Supabase, and posts a Discord/Slack webhook alert when labor cost crosses 25% of sales.
 
-A high-performance backend microservice designed to ingest asynchronous data from multiple restaurant SaaS platforms (Toast POS & 7shifts), calculate real-time profitability metrics, and trigger threshold-based alerts for operations teams.
+## What it does
 
-### 🏗️ Architecture Overview
+Two POST endpoints, `/webhook/sales` and `/webhook/labor`, each write their payload to a `daily_metrics` table in Supabase (keyed on `store_id` + `date`) and hand off to a FastAPI `BackgroundTasks` job so the webhook caller gets an immediate response instead of waiting on the calculation. That background job re-reads the row; once both a sales figure and a labor figure exist for the same store and date, it runs `transformations.py`'s math (CPLH = labor cost / labor hours, labor % = labor cost / gross sales * 100, both guarded against a zero denominator), writes the computed metrics back, and fires a Discord-formatted webhook alert if labor % is over 25.
 
-Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md) | [docs/architecture-diagram.svg](./docs/architecture-diagram.svg) | [docs/architecture-diagram.png](./docs/architecture-diagram.png)
+## What's verified
 
-Restaurant operators often struggle because their Sales data and Labor data live in separate silos. This microservice solves that by acting as a central Aggregator and Logic Engine:
+Read through all five source files (`main.py`, `database.py`, `transformations.py`, `notifier.py`, `mock_data_sender.py`) to confirm the architecture actually works as described: `BackgroundTasks` is used correctly (the webhook response returns before the metrics job runs), the math in `transformations.py` is correct for the two formulas above, and the alert payload/threshold logic in `notifier.py` matches what's described here.
 
-1. **Asynchronous Ingestion (The Webhooks):** FastAPI endpoints receive daily JSON payloads from POS and Labor scheduling systems.
-2. **State Management (The Database):** Stores the fragmented data in a structured PostgreSQL database (Supabase) using idempotent UPSERT operations.
-3. **Decoupled Business Logic (The Math):** The raw data is passed to a dedicated `transformations.py` module to calculate the Cost Per Labor Hour (CPLH) and Labor as a % of Sales.
-4. **Actionable Alerting (The Notifier):** If the labor percentage exceeds a profitable threshold (>25%), the system instantly pushes an alert to the Operations Team via a Discord/Slack webhook.
+There is a `mock_data_sender.py` script that fires one hardcoded sales payload and one hardcoded labor payload (a single fictional `Store_104`) at a locally running server. That's the only way this has ever been exercised: nothing here has been run against real Toast POS or 7shifts data, or against a real Supabase instance as part of writing this README.
 
-### 🛠️ Tech Stack
+**The "idempotent upsert" claim in earlier documentation for this project overstates what `database.py` actually does.** It doesn't use Supabase's native upsert; the code's own comment says so ("for this MVP, we will just use a simple insert/update approach"). Instead it does a manual read-then-write: check whether a row exists for that store and date, then either `UPDATE` or `INSERT`. That produces the same end result as a real upsert when calls happen one at a time, but it's not atomic: two webhooks for the same store and date arriving close together could both read "no existing row" and both try to insert, which either fails or duplicates depending on whether the table has a unique constraint on `(store_id, date)` (not something checked here, since there's no schema file in this repo to read).
 
-| Component | Technology | Purpose |
-| :--- | :--- | :--- |
-| **Framework** | FastAPI (Python) | High-speed, async API routing and Background Tasks |
-| **Data Validation** | Pydantic | Strict type-checking to prevent dirty data ingestion |
-| **Database** | Supabase (PostgreSQL) | Cloud-native relational data storage |
-| **Alerting** | HTTP Webhooks | Real-time push notifications (Discord/Slack integration) |
+## What is NOT verified
 
-### 🚀 Key Engineering Features
+- No automated tests and no CI for this project (only Proj14-19 are wired into `.github/workflows/tests.yml`).
+- Never run against real POS or scheduling data, only the one hardcoded mock payload described above.
+- Whether the Supabase project behind this ever existed live, or still does, isn't something this README confirms.
+- The race condition described above has not been reproduced; it's a read of the code, not an observed failure.
 
-* **Separation of Concerns:** Core business math is strictly isolated in `transformations.py`, keeping the API routing (`main.py`) clean, lightweight, and scalable.
-* **Event-Driven Processing:** Uses FastAPI `BackgroundTasks` to perform ETL calculations *after* responding to the API, ensuring the webhooks never block external services.
-* **Idempotent Storage:** Uses intelligent Upsert logic. If 7shifts sends updated labor data later in the day, the database updates the existing row and recalculates metrics rather than creating duplicate entries.
-* **Schema-Driven API:** Automatically generates interactive Swagger UI documentation (`/docs`) based on Pydantic models.
+## Stack
 
-### 📂 Project Structure
+Python · FastAPI · Pydantic · Supabase (PostgreSQL) · Discord/Slack webhooks
+
+## Project structure
+
 ```text
-Proj7_FastAPI_ETL_Alerts/
-├── .env                  # Environment variables (Supabase Keys, Alert Webhooks)
-├── main.py               # FastAPI application, routing, and Background Tasks
-├── database.py           # PostgreSQL connection pool and Upsert logic
-├── transformations.py    # Isolated business math (CPLH & Labor %)
-├── notifier.py           # Alerting logic for Discord/Slack
-└── mock_data_sender.py   # Test simulator to fire JSON payloads at the local server
+main.py               FastAPI app: the two webhook routes and the background orchestrator
+database.py           Supabase client, read-then-write upsert-style storage
+transformations.py    CPLH and labor % math, isolated from the API and storage code
+notifier.py           Formats and sends the Discord/Slack alert
+mock_data_sender.py   Fires one hardcoded sales + labor payload at a local server for a manual smoke test
+docs/architecture-diagram.{md,svg,png}
 ```
 
-## 📥 Local Setup & Testing
-1. Install Dependencies
+`.env.sample` documents the two required variables (`SUPABASE_URL`, `SUPABASE_KEY`) plus `ALERT_WEBHOOK_URL`; there's no code here to read them from anywhere else.
+
+## Running it locally
 
 ```bash
 pip install fastapi uvicorn supabase python-dotenv requests pydantic
-```
-
-2. Boot the Server
-
-```bash
 uvicorn main:app --reload
 ```
 
-3. Run the Simulator
-In a separate terminal, run the mock data script to fire simulated Toast and 7shifts data at the API:
+In a second terminal, with a real `.env` populated:
 
 ```bash
 python mock_data_sender.py
 ```
 
-**Observe the Uvicorn terminal for the background calculations and check your configured webhook channel for the alert!**
+This fires the one hardcoded sales payload, waits 3 seconds, then fires the one hardcoded labor payload, and prints the server's HTTP response for each. Since the mock labor % works out above 25% for the hardcoded numbers, a successful run should also produce a webhook alert if `ALERT_WEBHOOK_URL` is set.

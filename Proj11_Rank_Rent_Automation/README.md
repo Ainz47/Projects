@@ -4,6 +4,22 @@ One-click WordPress site builder for rank and rent local service businesses. Fil
 
 Built as an operator tool rather than a developer script: the person running it needs no Python, no WordPress admin experience, and no knowledge of the codebase.
 
+## What's verified
+
+Every feature claim below was checked against the actual source, not just the old description:
+
+- **A real end-to-end deploy is on record**, not just described. `logs/run_summary_20260511_234402.json` and five per-page JSON files show a real run against a live (free-trial TasteWP) WordPress install, five service pages, all `"status": "success"` with real WP page IDs and URLs. `screenshots/Editor/` and `screenshots/Preview/` (committed to this repo, not gitignored) are actual WP admin screenshots of the published result, including real Gemini-written copy with local landmark references baked into the text.
+- **Idempotent deploys are real**: `wp_client.py`'s `upsert_page`/`upsert_post` look up the target by slug first, update if found, create if not, exactly as claimed.
+- **Content caching and granular retry are real**: `deployer.py`'s main `deploy()` checks `content_cache` before calling Gemini for every page type, and `deploy_retry()` re-runs only the specific failed items, then rebuilds the services hub and blog listing afterward, matching the README's description.
+- **The nonce/allowlist claim on the bundled plugin is real**: `plugins/rr-contact-handler.php`'s option writer calls `check_ajax_referer('wp_rest', '_wpnonce')` and restricts writes to an explicit allowlist (`rr_footer_config`, `rr_contact_email`), with a code comment explaining why (unrestricted option writes escalate to admin via `users_can_register` + `default_role`).
+- **The password-stripping claim is real**: `history.py` pops `wp_password` from every record on read, with a comment noting this scrubs entries written by older versions.
+- **Cancellable and loopback-only claims are real**: `server.py` binds to `127.0.0.1`, gates `FLASK_DEBUG` behind an env var defaulting off, and checks a global `threading.Event` on every log line so a deploy in progress can be interrupted from the UI.
+
+## What's NOT verified
+
+- The run evidence above comes from a disposable TasteWP trial site (`*.s6-tastewp.com`), not a real production WordPress host. The tool has not been shown running against a paid/permanent WP install in this repo's history.
+- The per-run JSON logs (`logs/`) are gitignored and local-only; they were used to verify the claims above but are not visible to someone browsing the public repo. The committed screenshots are the public-facing evidence.
+
 ## Overview
 
 The system runs as a local Flask server with a browser UI. You supply a WordPress site, business details, and a list of services. It handles the rest:
