@@ -22,7 +22,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const OVERLAP_MS = 10 * 60 * 1000;\nconst MAX_ORDERS = 250;\n\n// Re-reading the last 10 minutes on every tick is safe: the sync writes Shopify's current stock, so a repeat changes nothing.\nfunction planOrdersQuery(cursorIso, nowMs) {\n  const parsed = Date.parse(cursorIso);\n  const base = Number.isFinite(parsed) ? Math.min(parsed, nowMs) : nowMs;\n  const since = new Date(base - OVERLAP_MS).toISOString();\n  return { since, search: `updated_at:>=${since}`, first: MAX_ORDERS };\n}\n\nconst ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst cursor = $getWorkflowStaticData('global').cursor ?? null;\nconst plan = planOrdersQuery(cursor, Date.now());\nreturn [{ json: { query: ORDERS_QUERY, variables: { first: plan.first, search: plan.search } } }];\n"
+        "jsCode": "const OVERLAP_MS = 10 * 60 * 1000;\nconst MAX_ORDERS = 250;\n\n// Re-reading the last 10 minutes on every tick is safe: the sync writes Shopify's current stock, so a repeat changes nothing.\nfunction planOrdersQuery(cursorIso, nowMs) {\n  const parsed = Date.parse(cursorIso);\n  const base = Number.isFinite(parsed) ? Math.min(parsed, nowMs) : nowMs;\n  const since = new Date(base - OVERLAP_MS).toISOString();\n  return { since, search: `updated_at:>=${since}`, first: MAX_ORDERS };\n}\n\nconst ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst WEBHOOKS_QUERY = `query ExistingWebhooks($topics: [WebhookSubscriptionTopic!]) {\n  webhookSubscriptions(first: 10, topics: $topics) {\n    nodes {\n      id\n      endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } }\n    }\n  }\n}`;\n\nconst WEBHOOK_CREATE_MUTATION = `mutation CreateOrdersWebhook($callbackUrl: String!) {\n  webhookSubscriptionCreate(topic: ORDERS_CREATE, webhookSubscription: { uri: $callbackUrl, format: JSON }) {\n    webhookSubscription { id }\n    userErrors { field message }\n  }\n}`;\n\nconst TAG_ORDER_MUTATION = `mutation TagOrder($id: ID!, $tags: [String!]!) {\n  tagsAdd(id: $id, tags: $tags) {\n    node { id }\n    userErrors { field message }\n  }\n}`;\n\nconst cursor = $getWorkflowStaticData('global').cursor ?? null;\nconst plan = planOrdersQuery(cursor, Date.now());\nreturn [{ json: { query: ORDERS_QUERY, variables: { first: plan.first, search: plan.search } } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -86,7 +86,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\nfunction collectSkus(orders) {\n  const seen = new Set();\n  for (const order of orders ?? []) {\n    for (const line of order?.lineItems?.nodes ?? []) {\n      const sku = typeof line?.sku === 'string' ? line.sku.trim() : '';\n      if (sku) seen.add(sku);\n    }\n  }\n  return [...seen].sort();\n}\n\nconst quoteSearch = (s) => `\"${String(s).replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"')}\"`;\nconst quoteFormula = (s) => `'${String(s).replace(/\\\\/g, '\\\\\\\\').replace(/'/g, \"\\\\'\")}'`;\n\nfunction skusSearch(skus) {\n  return skus.map((s) => `sku:${quoteSearch(s)}`).join(' OR ');\n}\n\nfunction airtableFormula(skus) {\n  return `OR(${skus.map((s) => `{SKU}=${quoteFormula(s)}`).join(',')})`;\n}\n\nconst ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst body = $input.first().json;\nassertNoGraphqlErrors(body, 'Shopify orders');\nconst skus = collectSkus(body.data.orders.nodes);\nreturn [{ json: { hasSkus: skus.length > 0, skus, query: STOCK_QUERY, variables: { search: skusSearch(skus) }, formula: airtableFormula(skus) } }];\n"
+        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\nfunction assertNoUserErrors(userErrors, label) {\n  const errors = Array.isArray(userErrors) ? userErrors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n}\n\nfunction collectSkus(orders) {\n  const seen = new Set();\n  for (const order of orders ?? []) {\n    for (const line of order?.lineItems?.nodes ?? []) {\n      const sku = typeof line?.sku === 'string' ? line.sku.trim() : '';\n      if (sku) seen.add(sku);\n    }\n  }\n  return [...seen].sort();\n}\n\nfunction skuOrderNames(orders) {\n  const bySku = new Map();\n  for (const order of orders ?? []) {\n    const name = typeof order?.name === 'string' ? order.name : '';\n    if (!name) continue;\n    for (const line of order?.lineItems?.nodes ?? []) {\n      const sku = typeof line?.sku === 'string' ? line.sku.trim() : '';\n      if (!sku) continue;\n      if (!bySku.has(sku)) bySku.set(sku, new Set());\n      bySku.get(sku).add(name);\n    }\n  }\n  const result = {};\n  for (const [sku, names] of bySku) result[sku] = [...names].sort().join('; ');\n  return result;\n}\n\nconst quoteSearch = (s) => `\"${String(s).replace(/\\\\/g, '\\\\\\\\').replace(/\"/g, '\\\\\"')}\"`;\nconst quoteFormula = (s) => `'${String(s).replace(/\\\\/g, '\\\\\\\\').replace(/'/g, \"\\\\'\")}'`;\n\nfunction skusSearch(skus) {\n  return skus.map((s) => `sku:${quoteSearch(s)}`).join(' OR ');\n}\n\nfunction airtableFormula(skus) {\n  return `OR(${skus.map((s) => `{SKU}=${quoteFormula(s)}`).join(',')})`;\n}\n\nconst ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst WEBHOOKS_QUERY = `query ExistingWebhooks($topics: [WebhookSubscriptionTopic!]) {\n  webhookSubscriptions(first: 10, topics: $topics) {\n    nodes {\n      id\n      endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } }\n    }\n  }\n}`;\n\nconst WEBHOOK_CREATE_MUTATION = `mutation CreateOrdersWebhook($callbackUrl: String!) {\n  webhookSubscriptionCreate(topic: ORDERS_CREATE, webhookSubscription: { uri: $callbackUrl, format: JSON }) {\n    webhookSubscription { id }\n    userErrors { field message }\n  }\n}`;\n\nconst TAG_ORDER_MUTATION = `mutation TagOrder($id: ID!, $tags: [String!]!) {\n  tagsAdd(id: $id, tags: $tags) {\n    node { id }\n    userErrors { field message }\n  }\n}`;\n\nconst body = $input.first().json;\nassertNoGraphqlErrors(body, 'Shopify orders');\nconst skus = collectSkus(body.data.orders.nodes);\nreturn [{ json: { hasSkus: skus.length > 0, skus, query: STOCK_QUERY, variables: { search: skusSearch(skus) }, formula: airtableFormula(skus) } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -186,7 +186,7 @@
     },
     {
       "parameters": {
-        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\n// Shopify's search can match neighbours (a hyphen splits words), so the answer is picked by exact SKU here.\n// undefined: not found. null: no single tracked stock (untracked, ambiguous, or not a whole number).\nfunction stockFromVariants(nodes, sku) {\n  const hits = (nodes ?? []).filter((v) => v?.sku === sku);\n  if (hits.length === 0) return undefined;\n  if (hits.length > 1) return null;\n  const variant = hits[0];\n  if (variant.inventoryItem?.tracked !== true) return null;\n  return Number.isInteger(variant.inventoryQuantity) ? variant.inventoryQuantity : null;\n}\n\nconst isWholeStock = (n) => Number.isInteger(n) && n >= 0;\n\nfunction planUpdates(skus, shopifyStock, airtableRows) {\n  const bySku = new Map();\n  const duplicated = new Set();\n  for (const row of airtableRows ?? []) {\n    if (bySku.has(row.sku)) duplicated.add(row.sku);\n    else bySku.set(row.sku, row);\n  }\n  const result = { updates: [], skipped: [], rejected: [], unchanged: 0 };\n  for (const sku of skus ?? []) {\n    if (duplicated.has(sku)) {\n      result.rejected.push({ sku, reason: 'duplicate SKU in Airtable' });\n      continue;\n    }\n    const row = bySku.get(sku);\n    if (!row) {\n      result.skipped.push({ sku, reason: 'no Airtable row' });\n      continue;\n    }\n    const stock = shopifyStock?.[sku];\n    if (stock === undefined) {\n      result.rejected.push({ sku, reason: 'SKU not found in Shopify' });\n    } else if (stock === null) {\n      result.rejected.push({ sku, reason: 'Shopify has no single tracked stock for this SKU' });\n    } else if (!isWholeStock(stock)) {\n      result.rejected.push({ sku, reason: 'Shopify stock is not a whole number of 0 or more' });\n    } else if (row.stock === stock) {\n      result.unchanged += 1;\n    } else {\n      result.updates.push({ recordId: row.id, sku, oldStock: row.stock ?? null, newStock: stock });\n    }\n  }\n  return result;\n}\n\nfunction chunkUpdates(updates, size) {\n  const chunks = [];\n  for (let i = 0; i < (updates ?? []).length; i += size) chunks.push(updates.slice(i, i + size));\n  return chunks;\n}\n\nconst plan = $('Plan stock lookup').first().json;\nconst stockBody = $('Shopify stock').first().json;\nassertNoGraphqlErrors(stockBody, 'Shopify stock');\nconst air = $input.first().json;\nif (air.offset) throw new Error('Airtable returned more than one page of affected variants; this workflow does not paginate');\nconst rows = (air.records ?? []).map((r) => ({ id: r.id, sku: r.fields.SKU, stock: r.fields.Stock ?? null }));\nconst variants = stockBody.data.productVariants.nodes;\nconst stock = {};\nfor (const sku of plan.skus) stock[sku] = stockFromVariants(variants, sku);\nconst result = planUpdates(plan.skus, stock, rows);\nreturn [{ json: { ...result, hasUpdates: result.updates.length > 0 } }];\n"
+        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\nfunction assertNoUserErrors(userErrors, label) {\n  const errors = Array.isArray(userErrors) ? userErrors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n}\n\n// Shopify's search can match neighbours (a hyphen splits words), so the answer is picked by exact SKU here.\n// undefined: not found. null: no single tracked stock (untracked, ambiguous, or not a whole number).\nfunction stockFromVariants(nodes, sku) {\n  const hits = (nodes ?? []).filter((v) => v?.sku === sku);\n  if (hits.length === 0) return undefined;\n  if (hits.length > 1) return null;\n  const variant = hits[0];\n  if (variant.inventoryItem?.tracked !== true) return null;\n  return Number.isInteger(variant.inventoryQuantity) ? variant.inventoryQuantity : null;\n}\n\nconst isWholeStock = (n) => Number.isInteger(n) && n >= 0;\n\nfunction planUpdates(skus, shopifyStock, airtableRows) {\n  const bySku = new Map();\n  const duplicated = new Set();\n  for (const row of airtableRows ?? []) {\n    if (bySku.has(row.sku)) duplicated.add(row.sku);\n    else bySku.set(row.sku, row);\n  }\n  const result = { updates: [], skipped: [], rejected: [], unchanged: 0 };\n  for (const sku of skus ?? []) {\n    if (duplicated.has(sku)) {\n      result.rejected.push({ sku, reason: 'duplicate SKU in Airtable' });\n      continue;\n    }\n    const row = bySku.get(sku);\n    if (!row) {\n      result.skipped.push({ sku, reason: 'no Airtable row' });\n      continue;\n    }\n    const stock = shopifyStock?.[sku];\n    if (stock === undefined) {\n      result.rejected.push({ sku, reason: 'SKU not found in Shopify' });\n    } else if (stock === null) {\n      result.rejected.push({ sku, reason: 'Shopify has no single tracked stock for this SKU' });\n    } else if (!isWholeStock(stock)) {\n      result.rejected.push({ sku, reason: 'Shopify stock is not a whole number of 0 or more' });\n    } else if (row.stock === stock) {\n      result.unchanged += 1;\n    } else {\n      result.updates.push({ recordId: row.id, sku, oldStock: row.stock ?? null, newStock: stock });\n    }\n  }\n  return result;\n}\n\nfunction chunkUpdates(updates, size) {\n  const chunks = [];\n  for (let i = 0; i < (updates ?? []).length; i += size) chunks.push(updates.slice(i, i + size));\n  return chunks;\n}\n\nconst plan = $('Plan stock lookup').first().json;\nconst stockBody = $('Shopify stock').first().json;\nassertNoGraphqlErrors(stockBody, 'Shopify stock');\nconst air = $input.first().json;\nif (air.offset) throw new Error('Airtable returned more than one page of affected variants; this workflow does not paginate');\nconst rows = (air.records ?? []).map((r) => ({ id: r.id, sku: r.fields.SKU, stock: r.fields.Stock ?? null }));\nconst variants = stockBody.data.productVariants.nodes;\nconst stock = {};\nfor (const sku of plan.skus) stock[sku] = stockFromVariants(variants, sku);\nconst result = planUpdates(plan.skus, stock, rows);\nreturn [{ json: { ...result, hasUpdates: result.updates.length > 0 } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
@@ -307,6 +307,55 @@
     },
     {
       "parameters": {
+        "jsCode": "function collectSkus(orders) {\n  const seen = new Set();\n  for (const order of orders ?? []) {\n    for (const line of order?.lineItems?.nodes ?? []) {\n      const sku = typeof line?.sku === 'string' ? line.sku.trim() : '';\n      if (sku) seen.add(sku);\n    }\n  }\n  return [...seen].sort();\n}\n\nfunction skuOrderNames(orders) {\n  const bySku = new Map();\n  for (const order of orders ?? []) {\n    const name = typeof order?.name === 'string' ? order.name : '';\n    if (!name) continue;\n    for (const line of order?.lineItems?.nodes ?? []) {\n      const sku = typeof line?.sku === 'string' ? line.sku.trim() : '';\n      if (!sku) continue;\n      if (!bySku.has(sku)) bySku.set(sku, new Set());\n      bySku.get(sku).add(name);\n    }\n  }\n  const result = {};\n  for (const [sku, names] of bySku) result[sku] = [...names].sort().join('; ');\n  return result;\n}\n\nfunction stockLogRows(updates, orderNamesBySku, source, nowIso) {\n  return (updates ?? []).map((u) => ({\n    timestamp: nowIso,\n    sku: u.sku,\n    old_stock: u.oldStock,\n    new_stock: u.newStock,\n    source,\n    order_name: orderNamesBySku?.[u.sku] ?? '',\n  }));\n}\n\nconst { updates } = $('Plan updates').first().json;\nconst orders = $('Shopify orders').first().json.data.orders.nodes;\nconst rows = stockLogRows(updates, skuOrderNames(orders), 'n8n', new Date().toISOString());\nreturn rows.map((row) => ({ json: row }));\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2640,
+        -480
+      ],
+      "name": "Expand stock log rows"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "StockLog"
+        },
+        "options": {
+          "useAppend": true
+        },
+        "columns": {
+          "mappingMode": "autoMapInputData",
+          "value": {},
+          "matchingColumns": [],
+          "schema": []
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2880,
+        -480
+      ],
+      "name": "Append stock log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_IN_UI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
         "jsCode": "function nextCursor(prevCursorIso, orders, nowMs) {\n  const times = [Date.parse(prevCursorIso), ...(orders ?? []).map((o) => Date.parse(o?.updatedAt))].filter(Number.isFinite);\n  const newest = times.length > 0 ? Math.max(...times) : nowMs;\n  return new Date(Math.min(newest, nowMs)).toISOString();\n}\n\nconst orders = $('Shopify orders').first().json.data.orders.nodes;\nconst store = $getWorkflowStaticData('global');\nstore.cursor = nextCursor(store.cursor ?? null, orders, Date.now());\nreturn [{ json: { cursor: store.cursor, orders: orders.length } }];\n"
       },
       "type": "n8n-nodes-base.code",
@@ -317,6 +366,270 @@
       ],
       "name": "Advance cursor",
       "executeOnce": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst WEBHOOKS_QUERY = `query ExistingWebhooks($topics: [WebhookSubscriptionTopic!]) {\n  webhookSubscriptions(first: 10, topics: $topics) {\n    nodes {\n      id\n      endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } }\n    }\n  }\n}`;\n\nconst WEBHOOK_CREATE_MUTATION = `mutation CreateOrdersWebhook($callbackUrl: String!) {\n  webhookSubscriptionCreate(topic: ORDERS_CREATE, webhookSubscription: { uri: $callbackUrl, format: JSON }) {\n    webhookSubscription { id }\n    userErrors { field message }\n  }\n}`;\n\nconst TAG_ORDER_MUTATION = `mutation TagOrder($id: ID!, $tags: [String!]!) {\n  tagsAdd(id: $id, tags: $tags) {\n    node { id }\n    userErrors { field message }\n  }\n}`;\n\nreturn [{ json: { query: WEBHOOKS_QUERY, variables: { topics: ['ORDERS_CREATE'] } } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        720,
+        240
+      ],
+      "name": "Plan webhook check"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jhurald05.myshopify.com/admin/api/2026-07/graphql.json",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Shopify-Access-Token",
+              "value": "={{ $('Shopify token').first().json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $json.query, variables: $json.variables }) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        240
+      ],
+      "name": "List webhooks"
+    },
+    {
+      "parameters": {
+        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\nfunction assertNoUserErrors(userErrors, label) {\n  const errors = Array.isArray(userErrors) ? userErrors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n}\n\n// Shopify has no upsert for webhook subscriptions: list first, create only if none targets this URL.\nfunction needsWebhookRegistration(subscriptions, callbackUrl) {\n  return !(subscriptions ?? []).some((s) => s?.callbackUrl === callbackUrl);\n}\n\nassertNoGraphqlErrors($input.first().json, 'Shopify webhooks');\nconst nodes = $input.first().json.data.webhookSubscriptions.nodes;\nconst subscriptions = nodes.map((n) => ({ callbackUrl: n.endpoint && n.endpoint.callbackUrl }));\nconst callbackUrl = $vars.MAKE_WEBHOOK_URL;\nreturn [{ json: { needsWebhook: needsWebhookRegistration(subscriptions, callbackUrl), callbackUrl } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1200,
+        240
+      ],
+      "name": "Plan webhook ensure"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Needs webhook?-cond",
+              "leftValue": "={{ $json.needsWebhook }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        240
+      ],
+      "name": "Needs webhook?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst WEBHOOKS_QUERY = `query ExistingWebhooks($topics: [WebhookSubscriptionTopic!]) {\n  webhookSubscriptions(first: 10, topics: $topics) {\n    nodes {\n      id\n      endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } }\n    }\n  }\n}`;\n\nconst WEBHOOK_CREATE_MUTATION = `mutation CreateOrdersWebhook($callbackUrl: String!) {\n  webhookSubscriptionCreate(topic: ORDERS_CREATE, webhookSubscription: { uri: $callbackUrl, format: JSON }) {\n    webhookSubscription { id }\n    userErrors { field message }\n  }\n}`;\n\nconst TAG_ORDER_MUTATION = `mutation TagOrder($id: ID!, $tags: [String!]!) {\n  tagsAdd(id: $id, tags: $tags) {\n    node { id }\n    userErrors { field message }\n  }\n}`;\n\nreturn [{ json: { query: WEBHOOK_CREATE_MUTATION, variables: { callbackUrl: $('Plan webhook ensure').first().json.callbackUrl } } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        240
+      ],
+      "name": "Plan webhook create"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jhurald05.myshopify.com/admin/api/2026-07/graphql.json",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Shopify-Access-Token",
+              "value": "={{ $('Shopify token').first().json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $json.query, variables: $json.variables }) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1920,
+        240
+      ],
+      "name": "Create webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\nfunction assertNoUserErrors(userErrors, label) {\n  const errors = Array.isArray(userErrors) ? userErrors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n}\n\nassertNoGraphqlErrors($json, 'Shopify webhook create');\nassertNoUserErrors($json.data.webhookSubscriptionCreate.userErrors, 'Shopify webhook create');\nreturn [{ json: {} }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        2160,
+        240
+      ],
+      "name": "Confirm webhook"
+    },
+    {
+      "parameters": {
+        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\nfunction assertNoUserErrors(userErrors, label) {\n  const errors = Array.isArray(userErrors) ? userErrors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n}\n\nconst THANK_YOU_TAG = 'proj19-thanked';\n\nfunction planThankYous(orders, allowList) {\n  const allowed = new Set((allowList ?? []).map((e) => String(e).toLowerCase()));\n  const send = [];\n  const skip = [];\n  for (const order of orders ?? []) {\n    const email = typeof order?.email === 'string' ? order.email.trim() : '';\n    const tags = Array.isArray(order?.tags) ? order.tags : [];\n    if (!email) {\n      skip.push({ orderId: order?.id, reason: 'no email address' });\n    } else if (tags.includes(THANK_YOU_TAG)) {\n      skip.push({ orderId: order?.id, reason: 'already thanked' });\n    } else if (!allowed.has(email.toLowerCase())) {\n      skip.push({ orderId: order?.id, reason: 'email is not on the allow-list' });\n    } else {\n      send.push({ orderId: order.id, name: order.name, email });\n    }\n  }\n  return { send, skip };\n}\n\n// A fixed template, never model-written: nothing here can be steered by order data other than the order name.\nfunction thankYouEmail(orderName) {\n  return {\n    subject: `Thanks for your order ${orderName}`,\n    text: `Hi,\\n\\nThanks for your order ${orderName}. This is a demo store for a portfolio project, so nothing ships, but the order is confirmed.\\n\\nJhurald`,\n  };\n}\n\nconst body = $('Shopify orders').first().json;\nassertNoGraphqlErrors(body, 'Shopify orders');\nconst allowList = String($vars.THANK_YOU_ALLOW_LIST ?? '').split(',').map((s) => s.trim()).filter(Boolean);\nconst plan = planThankYous(body.data.orders.nodes, allowList);\nreturn [{ json: { hasToSend: plan.send.length > 0, toSend: plan.send } }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        960,
+        480
+      ],
+      "name": "Plan thank-yous"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Any to thank?-cond",
+              "leftValue": "={{ $json.hasToSend }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1200,
+        480
+      ],
+      "name": "Any to thank?"
+    },
+    {
+      "parameters": {
+        "jsCode": "const ORDERS_QUERY = `query Orders($first: Int!, $search: String!) {\n  orders(first: $first, query: $search, sortKey: UPDATED_AT, reverse: false) {\n    nodes {\n      id name email updatedAt tags\n      lineItems(first: 50) { nodes { sku quantity } }\n    }\n  }\n}`;\n\nconst STOCK_QUERY = `query Stock($search: String!) {\n  productVariants(first: 250, query: $search) {\n    nodes { sku inventoryQuantity inventoryItem { tracked } }\n  }\n}`;\n\nconst WEBHOOKS_QUERY = `query ExistingWebhooks($topics: [WebhookSubscriptionTopic!]) {\n  webhookSubscriptions(first: 10, topics: $topics) {\n    nodes {\n      id\n      endpoint { __typename ... on WebhookHttpEndpoint { callbackUrl } }\n    }\n  }\n}`;\n\nconst WEBHOOK_CREATE_MUTATION = `mutation CreateOrdersWebhook($callbackUrl: String!) {\n  webhookSubscriptionCreate(topic: ORDERS_CREATE, webhookSubscription: { uri: $callbackUrl, format: JSON }) {\n    webhookSubscription { id }\n    userErrors { field message }\n  }\n}`;\n\nconst TAG_ORDER_MUTATION = `mutation TagOrder($id: ID!, $tags: [String!]!) {\n  tagsAdd(id: $id, tags: $tags) {\n    node { id }\n    userErrors { field message }\n  }\n}`;\n\nconst THANK_YOU_TAG = 'proj19-thanked';\n\nfunction planThankYous(orders, allowList) {\n  const allowed = new Set((allowList ?? []).map((e) => String(e).toLowerCase()));\n  const send = [];\n  const skip = [];\n  for (const order of orders ?? []) {\n    const email = typeof order?.email === 'string' ? order.email.trim() : '';\n    const tags = Array.isArray(order?.tags) ? order.tags : [];\n    if (!email) {\n      skip.push({ orderId: order?.id, reason: 'no email address' });\n    } else if (tags.includes(THANK_YOU_TAG)) {\n      skip.push({ orderId: order?.id, reason: 'already thanked' });\n    } else if (!allowed.has(email.toLowerCase())) {\n      skip.push({ orderId: order?.id, reason: 'email is not on the allow-list' });\n    } else {\n      send.push({ orderId: order.id, name: order.name, email });\n    }\n  }\n  return { send, skip };\n}\n\n// A fixed template, never model-written: nothing here can be steered by order data other than the order name.\nfunction thankYouEmail(orderName) {\n  return {\n    subject: `Thanks for your order ${orderName}`,\n    text: `Hi,\\n\\nThanks for your order ${orderName}. This is a demo store for a portfolio project, so nothing ships, but the order is confirmed.\\n\\nJhurald`,\n  };\n}\n\nconst { toSend } = $('Plan thank-yous').first().json;\nreturn toSend.map((o) => {\n  const email = thankYouEmail(o.name);\n  return { json: { query: TAG_ORDER_MUTATION, variables: { id: o.orderId, tags: [THANK_YOU_TAG] }, email: o.email, subject: email.subject, text: email.text } };\n});\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1440,
+        480
+      ],
+      "name": "Expand thank-yous"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://jhurald05.myshopify.com/admin/api/2026-07/graphql.json",
+        "options": {},
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "X-Shopify-Access-Token",
+              "value": "={{ $('Shopify token').first().json.access_token }}"
+            },
+            {
+              "name": "Content-Type",
+              "value": "application/json"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ query: $json.query, variables: $json.variables }) }}"
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        480
+      ],
+      "name": "Tag order"
+    },
+    {
+      "parameters": {
+        "jsCode": "function assertNoGraphqlErrors(body, label) {\n  const errors = body && Array.isArray(body.errors) ? body.errors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n  if (!body || typeof body.data !== 'object' || body.data === null) throw new Error(`${label}: the response had no data`);\n}\n\nfunction assertNoUserErrors(userErrors, label) {\n  const errors = Array.isArray(userErrors) ? userErrors : [];\n  if (errors.length > 0) throw new Error(`${label}: ${errors.map((e) => e.message).join('; ')}`);\n}\n\nfor (const item of $input.all()) {\n  assertNoGraphqlErrors(item.json, 'Shopify tag order');\n  assertNoUserErrors(item.json.data.tagsAdd.userErrors, 'Shopify tag order');\n}\nreturn $input.all();\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1920,
+        480
+      ],
+      "name": "Confirm tag"
+    },
+    {
+      "parameters": {
+        "resource": "message",
+        "operation": "send",
+        "sendTo": "={{ $('Expand thank-yous').item.json.email }}",
+        "subject": "={{ $('Expand thank-yous').item.json.subject }}",
+        "emailType": "text",
+        "message": "={{ $('Expand thank-yous').item.json.text }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.1,
+      "position": [
+        2160,
+        480
+      ],
+      "name": "Send email",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_IN_UI",
+          "name": "Gmail account"
+        }
+      }
     }
   ],
   "connections": {
@@ -349,6 +662,11 @@
             "node": "Shopify orders",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Plan webhook check",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -358,6 +676,11 @@
         [
           {
             "node": "Plan stock lookup",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Plan thank-yous",
             "type": "main",
             "index": 0
           }
@@ -433,6 +756,11 @@
             "node": "Chunk updates",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Expand stock log rows",
+            "type": "main",
+            "index": 0
           }
         ],
         [
@@ -467,6 +795,185 @@
       ]
     },
     "Dispatch refresh": {
+      "main": [
+        [
+          {
+            "node": "Advance cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expand stock log rows": {
+      "main": [
+        [
+          {
+            "node": "Append stock log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append stock log": {
+      "main": [
+        [
+          {
+            "node": "Advance cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan webhook check": {
+      "main": [
+        [
+          {
+            "node": "List webhooks",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "List webhooks": {
+      "main": [
+        [
+          {
+            "node": "Plan webhook ensure",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan webhook ensure": {
+      "main": [
+        [
+          {
+            "node": "Needs webhook?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Needs webhook?": {
+      "main": [
+        [
+          {
+            "node": "Plan webhook create",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Advance cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan webhook create": {
+      "main": [
+        [
+          {
+            "node": "Create webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create webhook": {
+      "main": [
+        [
+          {
+            "node": "Confirm webhook",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm webhook": {
+      "main": [
+        [
+          {
+            "node": "Advance cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan thank-yous": {
+      "main": [
+        [
+          {
+            "node": "Any to thank?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Any to thank?": {
+      "main": [
+        [
+          {
+            "node": "Expand thank-yous",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Advance cursor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Expand thank-yous": {
+      "main": [
+        [
+          {
+            "node": "Tag order",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Tag order": {
+      "main": [
+        [
+          {
+            "node": "Confirm tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Confirm tag": {
+      "main": [
+        [
+          {
+            "node": "Send email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send email": {
       "main": [
         [
           {

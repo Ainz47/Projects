@@ -19,7 +19,9 @@ REPO = "Ainz47/Projects"
 WORKFLOW_FILE = "refresh-catalog.yml"
 
 # typeVersion per node type. Confirm at the first import: n8n rejects a version it does not know.
-V = {"code": 2, "if": 2.2, "schedule": 1.2, "http": 4.2}
+V = {"code": 2, "if": 2.2, "schedule": 1.2, "http": 4.2, "sheets": 4.7, "gmail": 2.1}
+
+STOCK_LOG_SHEET_NAME = "StockLog"
 
 SHOPIFY_URL = f"https://{SHOP}.myshopify.com/admin/api/{API_VERSION}/graphql.json"
 TOKEN_URL = f"https://{SHOP}.myshopify.com/admin/oauth/access_token"
@@ -92,6 +94,27 @@ def http_node(name, position, url, *, method="POST", cred_type=None, cred_name=N
     return node(name, "n8n-nodes-base.httpRequest", V["http"], position, parameters, credentials=credentials, **extra)
 
 
+def sheets_node(name, position, operation, sheet_name, **extra):
+    parameters = {
+        "operation": operation,
+        "documentId": {"__rl": True, "mode": "url", "value": ""},
+        "sheetName": {"__rl": True, "mode": "name", "value": sheet_name},
+        "options": {"useAppend": True} if operation == "append" else {},
+    }
+    if operation == "append":
+        parameters["columns"] = {"mappingMode": "autoMapInputData", "value": {}, "matchingColumns": [], "schema": []}
+    return node(name, "n8n-nodes-base.googleSheets", V["sheets"], position, parameters,
+                credentials={"googleSheetsOAuth2Api": "Google Sheets account"}, **extra)
+
+
+def gmail_node(name, position, to_expr, subject_expr, message_expr):
+    return node(name, "n8n-nodes-base.gmail", V["gmail"], position, {
+        "resource": "message", "operation": "send",
+        "sendTo": to_expr, "subject": subject_expr, "emailType": "text", "message": message_expr,
+        "options": {},
+    }, credentials={"gmailOAuth2": "Gmail account"})
+
+
 SHOPIFY_HEADERS = {
     "X-Shopify-Access-Token": "={{ $('Shopify token').first().json.access_token }}",
     "Content-Type": "application/json",
@@ -144,11 +167,66 @@ def order_stock_sync():
                   cred_type="httpHeaderAuth", cred_name="GitHub Actions token",
                   headers={"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"},
                   json_body='={{ JSON.stringify({ ref: "main" }) }}', executeOnce=True),
+        code_node("Expand stock log rows", [2640, -480], js("collect_skus.js", "stock_log_rows.js", tail=(
+            "const { updates } = $('Plan updates').first().json;\n"
+            "const orders = $('Shopify orders').first().json.data.orders.nodes;\n"
+            "const rows = stockLogRows(updates, skuOrderNames(orders), 'n8n', new Date().toISOString());\n"
+            "return rows.map((row) => ({ json: row }));"))),
+        sheets_node("Append stock log", [2880, -480], "append", STOCK_LOG_SHEET_NAME),
         code_node("Advance cursor", [3120, 0], js("next_cursor.js", tail=(
             "const orders = $('Shopify orders').first().json.data.orders.nodes;\n"
             "const store = $getWorkflowStaticData('global');\n"
             "store.cursor = nextCursor(store.cursor ?? null, orders, Date.now());\n"
             "return [{ json: { cursor: store.cursor, orders: orders.length } }];")), executeOnce=True),
+        # Webhook self-heal branch, parallel to the orders/stock branch, off "Shopify token".
+        # Each of "Plan webhook check" and "Plan webhook create" owns its own query text, the
+        # same way "Plan orders query" and "Plan stock lookup" do, so every HTTP node's body
+        # reads either $json or a single named predecessor, with no exceptions.
+        code_node("Plan webhook check", [720, 240], js("queries.js", tail=(
+            "return [{ json: { query: WEBHOOKS_QUERY, variables: { topics: ['ORDERS_CREATE'] } } }];"))),
+        http_node("List webhooks", [960, 240], SHOPIFY_URL, headers=SHOPIFY_HEADERS,
+                  json_body='={{ JSON.stringify({ query: $json.query, variables: $json.variables }) }}'),
+        code_node("Plan webhook ensure", [1200, 240], js("guards.js", "ensure_webhook.js", tail=(
+            "assertNoGraphqlErrors($input.first().json, 'Shopify webhooks');\n"
+            "const nodes = $input.first().json.data.webhookSubscriptions.nodes;\n"
+            "const subscriptions = nodes.map((n) => ({ callbackUrl: n.endpoint && n.endpoint.callbackUrl }));\n"
+            "const callbackUrl = $vars.MAKE_WEBHOOK_URL;\n"
+            "return [{ json: { needsWebhook: needsWebhookRegistration(subscriptions, callbackUrl), callbackUrl } }];"))),
+        if_node("Needs webhook?", [1440, 240], "={{ $json.needsWebhook }}"),
+        code_node("Plan webhook create", [1680, 240], js("queries.js", tail=(
+            "return [{ json: { query: WEBHOOK_CREATE_MUTATION, variables: { callbackUrl: $('Plan webhook ensure').first().json.callbackUrl } } }];"))),
+        http_node("Create webhook", [1920, 240], SHOPIFY_URL, headers=SHOPIFY_HEADERS,
+                  json_body='={{ JSON.stringify({ query: $json.query, variables: $json.variables }) }}'),
+        code_node("Confirm webhook", [2160, 240], js("guards.js", tail=(
+            "assertNoGraphqlErrors($json, 'Shopify webhook create');\n"
+            "assertNoUserErrors($json.data.webhookSubscriptionCreate.userErrors, 'Shopify webhook create');\n"
+            "return [{ json: {} }];"))),
+        # Thank-you email branch, parallel to the stock branch, off "Shopify orders".
+        code_node("Plan thank-yous", [960, 480], js("guards.js", "thanks.js", tail=(
+            "const body = $('Shopify orders').first().json;\n"
+            "assertNoGraphqlErrors(body, 'Shopify orders');\n"
+            "const allowList = String($vars.THANK_YOU_ALLOW_LIST ?? '').split(',').map((s) => s.trim()).filter(Boolean);\n"
+            "const plan = planThankYous(body.data.orders.nodes, allowList);\n"
+            "return [{ json: { hasToSend: plan.send.length > 0, toSend: plan.send } }];"))),
+        if_node("Any to thank?", [1200, 480], "={{ $json.hasToSend }}"),
+        code_node("Expand thank-yous", [1440, 480], js("queries.js", "thanks.js", tail=(
+            "const { toSend } = $('Plan thank-yous').first().json;\n"
+            "return toSend.map((o) => {\n"
+            "  const email = thankYouEmail(o.name);\n"
+            "  return { json: { query: TAG_ORDER_MUTATION, variables: { id: o.orderId, tags: [THANK_YOU_TAG] }, email: o.email, subject: email.subject, text: email.text } };\n"
+            "});"))),
+        http_node("Tag order", [1680, 480], SHOPIFY_URL, headers=SHOPIFY_HEADERS,
+                  json_body="={{ JSON.stringify({ query: $json.query, variables: $json.variables }) }}"),
+        code_node("Confirm tag", [1920, 480], js("guards.js", tail=(
+            "for (const item of $input.all()) {\n"
+            "  assertNoGraphqlErrors(item.json, 'Shopify tag order');\n"
+            "  assertNoUserErrors(item.json.data.tagsAdd.userErrors, 'Shopify tag order');\n"
+            "}\n"
+            "return $input.all();"))),
+        gmail_node("Send email", [2160, 480],
+                   "={{ $('Expand thank-yous').item.json.email }}",
+                   "={{ $('Expand thank-yous').item.json.subject }}",
+                   "={{ $('Expand thank-yous').item.json.text }}"),
     ]
     edges = [
         ("Every 5 minutes", "Plan orders query", 0), ("Plan orders query", "Shopify token", 0),
@@ -157,9 +235,20 @@ def order_stock_sync():
         ("Any SKUs?", "Shopify stock", 0), ("Any SKUs?", "Advance cursor", 1),
         ("Shopify stock", "Airtable rows", 0), ("Airtable rows", "Plan updates", 0),
         ("Plan updates", "Any updates?", 0),
-        ("Any updates?", "Chunk updates", 0), ("Any updates?", "Advance cursor", 1),
+        ("Any updates?", "Chunk updates", 0), ("Any updates?", "Expand stock log rows", 0),
+        ("Any updates?", "Advance cursor", 1),
         ("Chunk updates", "Airtable update", 0), ("Airtable update", "Dispatch refresh", 0),
         ("Dispatch refresh", "Advance cursor", 0),
+        ("Expand stock log rows", "Append stock log", 0), ("Append stock log", "Advance cursor", 0),
+        ("Shopify token", "Plan webhook check", 0), ("Plan webhook check", "List webhooks", 0),
+        ("List webhooks", "Plan webhook ensure", 0), ("Plan webhook ensure", "Needs webhook?", 0),
+        ("Needs webhook?", "Plan webhook create", 0), ("Needs webhook?", "Advance cursor", 1),
+        ("Plan webhook create", "Create webhook", 0), ("Create webhook", "Confirm webhook", 0),
+        ("Confirm webhook", "Advance cursor", 0),
+        ("Shopify orders", "Plan thank-yous", 0), ("Plan thank-yous", "Any to thank?", 0),
+        ("Any to thank?", "Expand thank-yous", 0), ("Any to thank?", "Advance cursor", 1),
+        ("Expand thank-yous", "Tag order", 0), ("Tag order", "Confirm tag", 0),
+        ("Confirm tag", "Send email", 0), ("Send email", "Advance cursor", 0),
     ]
     return workflow("Order stock sync", nodes, edges)
 

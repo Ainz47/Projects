@@ -47,6 +47,7 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(types, {
             "n8n-nodes-base.scheduleTrigger", "n8n-nodes-base.code",
             "n8n-nodes-base.httpRequest", "n8n-nodes-base.if",
+            "n8n-nodes-base.googleSheets", "n8n-nodes-base.gmail",
         })
 
     def test_airtable_update_uses_patch_not_post(self):
@@ -60,17 +61,46 @@ class ExportTests(unittest.TestCase):
 
     def test_wiring(self):
         w = load()
-        chain = ["Every 5 minutes", "Plan orders query", "Shopify token", "Shopify orders", "Plan stock lookup", "Any SKUs?"]
+        chain = ["Every 5 minutes", "Plan orders query", "Shopify token"]
         for a, b in zip(chain, chain[1:]):
             self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
+        self.assertEqual(targets(w, "Plan stock lookup", 0), ["Any SKUs?"])
         self.assertEqual(targets(w, "Any SKUs?", 0), ["Shopify stock"])
         self.assertEqual(targets(w, "Any SKUs?", 1), ["Advance cursor"])
         for a, b in [("Shopify stock", "Airtable rows"), ("Airtable rows", "Plan updates"), ("Plan updates", "Any updates?")]:
             self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
-        self.assertEqual(targets(w, "Any updates?", 0), ["Chunk updates"])
+        self.assertCountEqual(targets(w, "Any updates?", 0), ["Chunk updates", "Expand stock log rows"])
         self.assertEqual(targets(w, "Any updates?", 1), ["Advance cursor"])
-        for a, b in [("Chunk updates", "Airtable update"), ("Airtable update", "Dispatch refresh"), ("Dispatch refresh", "Advance cursor")]:
+        for a, b in [("Chunk updates", "Airtable update"), ("Airtable update", "Dispatch refresh")]:
             self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
+        for a, b in [("Expand stock log rows", "Append stock log"), ("Dispatch refresh", "Advance cursor"), ("Append stock log", "Advance cursor")]:
+            self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
+
+        self.assertCountEqual(targets(w, "Shopify token", 0), ["Shopify orders", "Plan webhook check"])
+        for a, b in [("Plan webhook check", "List webhooks"), ("List webhooks", "Plan webhook ensure"),
+                     ("Plan webhook ensure", "Needs webhook?")]:
+            self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
+        self.assertEqual(targets(w, "Needs webhook?", 0), ["Plan webhook create"])
+        self.assertEqual(targets(w, "Needs webhook?", 1), ["Advance cursor"])
+        for a, b in [("Plan webhook create", "Create webhook"), ("Create webhook", "Confirm webhook"),
+                     ("Confirm webhook", "Advance cursor")]:
+            self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
+
+        self.assertCountEqual(targets(w, "Shopify orders", 0), ["Plan stock lookup", "Plan thank-yous"])
+        self.assertEqual(targets(w, "Plan thank-yous", 0), ["Any to thank?"])
+        self.assertEqual(targets(w, "Any to thank?", 0), ["Expand thank-yous"])
+        self.assertEqual(targets(w, "Any to thank?", 1), ["Advance cursor"])
+        for a, b in [("Expand thank-yous", "Tag order"), ("Tag order", "Confirm tag"),
+                     ("Confirm tag", "Send email"), ("Send email", "Advance cursor")]:
+            self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
+
+    def test_the_gmail_node_uses_the_gmail_credential_and_no_literal_addresses(self):
+        nodes = by_name(load())
+        self.assertIn("gmailOAuth2", nodes["Send email"]["credentials"])
+        self.assertEqual(nodes["Send email"]["credentials"]["gmailOAuth2"]["name"], "Gmail account")
+        text = (ROOT / FILE).read_text(encoding="utf-8")
+        self.assertIn("$vars.THANK_YOU_ALLOW_LIST", text)
+        self.assertIn("$vars.MAKE_WEBHOOK_URL", text)
 
     def test_the_cursor_is_advanced_last_and_only_there(self):
         w = load()
