@@ -12,9 +12,10 @@ CODE = "n8n-nodes-base.code"
 GEMINI = "@n8n/n8n-nodes-langchain.googleGemini"
 SHEETS = "n8n-nodes-base.googleSheets"
 WHATSAPP = "n8n-nodes-base.whatsApp"
+GMAIL = "n8n-nodes-base.gmail"
 EXPECTED_TYPES = {
     "lead-capture.workflow.json": {
-        "n8n-nodes-base.formTrigger", GEMINI, SHEETS, "n8n-nodes-base.if", WHATSAPP, CODE, "n8n-nodes-base.set",
+        "n8n-nodes-base.formTrigger", GEMINI, SHEETS, "n8n-nodes-base.if", WHATSAPP, CODE, "n8n-nodes-base.set", GMAIL,
     },
     "weekly-summary.workflow.json": {
         "n8n-nodes-base.scheduleTrigger", SHEETS, CODE, GEMINI, "n8n-nodes-base.set", WHATSAPP,
@@ -96,10 +97,21 @@ class LeadCaptureWiring(unittest.TestCase):
         self.assertEqual(targets(self.wf, "Is valid?", 1), ["Mark rejected"])
         self.assertEqual(targets(self.wf, "Mark rejected", 0), ["Append row"])
 
-    def test_parsed_leads_go_to_the_sheet_and_the_hot_check(self):
-        self.assertCountEqual(targets(self.wf, "Parse qualification", 0), ["Append row", "Is hot?"])
+    def test_parsed_leads_go_to_the_sheet_and_the_hot_and_warm_checks(self):
+        self.assertCountEqual(targets(self.wf, "Parse qualification", 0), ["Append row", "Is hot?", "Is warm?"])
         self.assertEqual(targets(self.wf, "Is hot?", 0), ["WhatsApp alert"])
         self.assertEqual(targets(self.wf, "Is hot?", 1), [])
+
+    def test_warm_leads_get_a_planned_gmail_draft(self):
+        self.assertEqual(targets(self.wf, "Is warm?", 0), ["Plan draft"])
+        self.assertEqual(targets(self.wf, "Is warm?", 1), [])
+        self.assertEqual(targets(self.wf, "Plan draft", 0), ["Create Gmail draft"])
+
+    def test_the_gmail_draft_node_creates_not_sends_using_the_shared_credential(self):
+        node = self.nodes["Create Gmail draft"]
+        self.assertEqual(node["parameters"]["resource"], "draft")
+        self.assertEqual(node["parameters"]["operation"], "create")
+        self.assertEqual(node["credentials"]["gmailOAuth2"]["name"], "Gmail account")
 
     def test_an_llm_failure_does_not_drop_the_lead(self):
         self.assertEqual(self.nodes["Gemini qualify"].get("onError"), "continueRegularOutput")
@@ -116,6 +128,7 @@ class LeadCaptureWiring(unittest.TestCase):
         self.assertIn("function parseQualification", parse)
         self.assertIn("function acceptedRow", parse)
         self.assertNotIn("module.exports", parse)
+        self.assertIn("function draftEmail", self.nodes["Plan draft"]["parameters"]["jsCode"])
 
 
 class NoSecrets(unittest.TestCase):

@@ -16,7 +16,7 @@ PLACEHOLDER_ID = "REPLACE_IN_UI"
 # (Gemini 1.1+ has the includeMergedResponse option this file relies on).
 V = {
     "form": 2.2, "code": 2, "if": 2.2, "set": 3.4, "gemini": 1.2, "sheets": 4.7,
-    "whatsapp": 1.1, "schedule": 1.2, "error": 1,
+    "whatsapp": 1.1, "schedule": 1.2, "error": 1, "gmail": 2.2,
 }
 
 QUALIFY_PROMPT = """=You qualify inbound leads for a freelance automation developer. Score the lead from 1 to 10 for how likely it is a real, well-scoped project with a workable budget that deserves a reply today.
@@ -133,6 +133,14 @@ def whatsapp_node(position, text_expression, name="WhatsApp alert"):
     }, credentials={"whatsAppApi": "WhatsApp account"})
 
 
+def gmail_draft_node(name, position, to_expr, subject_expr, message_expr):
+    return node(name, "n8n-nodes-base.gmail", V["gmail"], position, {
+        "resource": "draft", "operation": "create",
+        "subject": subject_expr, "emailType": "text", "message": message_expr,
+        "options": {"sendTo": to_expr},
+    }, credentials={"gmailOAuth2": "Gmail account"})
+
+
 def if_node(name, position, left, operator, right=""):
     return node(name, "n8n-nodes-base.if", V["if"], position, {
         "conditions": {
@@ -185,6 +193,13 @@ def lead_capture():
         if_node("Is hot?", [1440, -240], "={{ $json.tier }}", {"type": "string", "operation": "equals"}, "hot"),
         whatsapp_node([1680, -240],
                       "={{ 'Hot lead (' + $json.score + '/10): ' + $json.name + ', ' + ($json.company || 'no company') + '. ' + $json.reason }}"),
+        if_node("Is warm?", [1440, 240], "={{ $json.tier }}",
+                {"type": "string", "operation": "equals"}, "warm"),
+        code_node("Plan draft", [1680, 240], js("warm_draft.js",
+                  tail="return [{ json: draftEmail($json) }];")),
+        gmail_draft_node("Create Gmail draft", [1920, 240],
+                          to_expr="={{ $json.to }}", subject_expr="={{ $json.subject }}",
+                          message_expr="={{ $json.text }}"),
     ]
     edges = [
         ("Lead Form", "Validate lead", 0), ("Validate lead", "Is valid?", 0),
@@ -192,6 +207,8 @@ def lead_capture():
         ("Gemini qualify", "Normalize LLM output", 0), ("Normalize LLM output", "Parse qualification", 0),
         ("Parse qualification", "Append row", 0), ("Parse qualification", "Is hot?", 0),
         ("Mark rejected", "Append row", 0), ("Is hot?", "WhatsApp alert", 0),
+        ("Parse qualification", "Is warm?", 0), ("Is warm?", "Plan draft", 0),
+        ("Plan draft", "Create Gmail draft", 0),
     ]
     return workflow("Lead capture and qualify", nodes, edges)
 

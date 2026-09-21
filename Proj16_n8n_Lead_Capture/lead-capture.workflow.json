@@ -295,6 +295,75 @@
           "name": "WhatsApp account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Is warm?-cond",
+              "leftValue": "={{ $json.tier }}",
+              "rightValue": "warm",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        240
+      ],
+      "name": "Is warm?"
+    },
+    {
+      "parameters": {
+        "jsCode": "function draftEmail(lead) {\n  const firstName = String(lead?.name ?? '').trim().split(/\\s+/)[0] || 'there';\n  const company = String(lead?.company ?? '').trim();\n  const subject = company ? `Re: your project (${company})` : 'Re: your project';\n  const reply = String(lead?.suggested_reply ?? '');\n  return {\n    to: lead?.email ?? '',\n    subject,\n    text: `Hi ${firstName},\\n\\n${reply}\\n\\nJhurald`,\n  };\n}\n\nreturn [{ json: draftEmail($json) }];\n"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1680,
+        240
+      ],
+      "name": "Plan draft"
+    },
+    {
+      "parameters": {
+        "resource": "draft",
+        "operation": "create",
+        "subject": "={{ $json.subject }}",
+        "emailType": "text",
+        "message": "={{ $json.text }}",
+        "options": {
+          "sendTo": "={{ $json.to }}"
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        240
+      ],
+      "name": "Create Gmail draft",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "REPLACE_IN_UI",
+          "name": "Gmail account"
+        }
+      }
     }
   ],
   "connections": {
@@ -372,6 +441,11 @@
             "node": "Is hot?",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Is warm?",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -392,6 +466,28 @@
         [
           {
             "node": "WhatsApp alert",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is warm?": {
+      "main": [
+        [
+          {
+            "node": "Plan draft",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Plan draft": {
+      "main": [
+        [
+          {
+            "node": "Create Gmail draft",
             "type": "main",
             "index": 0
           }
