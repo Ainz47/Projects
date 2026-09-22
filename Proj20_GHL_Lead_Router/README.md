@@ -1,39 +1,61 @@
 # Proj20: GHL Lead Qualifier & Router
 
 A FastAPI backend scores inbound leads from a GoHighLevel (GHL) funnel with
-an LLM, and an n8n workflow glues GHL's webhook to that backend and (once
-Phase 2 lands) writes the result back into GHL: a tag, custom fields, and a
-pipeline stage move, then GHL's own workflow branches by tier.
+an LLM, and an n8n workflow glues GHL's webhook to that backend and writes
+the result back into GHL: a tag, custom fields, and a pipeline stage move,
+then GHL's own workflow branches by tier.
 
 ```
 GHL funnel -> contact + opportunity created -> GHL workflow webhook
       -> n8n: Call backend /qualify -> merge tier/score/reason/reply
-      -> [Phase 2] n8n writes back to GHL -> GHL workflow branches by tag
-            hot  -> SMS + task + booking link
-            warm -> templated nurture sequence (auto-sent, not personalized)
+      -> n8n writes back to GHL -> GHL workflow branches by tag
+            hot  -> Email (score/reason from the write-back)
+            warm -> templated nurture email (auto-sent, not personalized)
             cold -> no action
 ```
 
 ## Status
-Phase 1 (this commit): the backend service and the webhook-to-backend half
-of the n8n workflow are built and tested. Phase 2 (GHL write-back, the
-manual GHL build, deployment, and live verification) is blocked on creating
-a free GHL Marketplace Developer sandbox account - see
-`docs/ghl-build-steps.md`.
+Built, deployed, and verified end to end against a live GHL sandbox. The
+backend runs on Render (`https://projects-f8p2.onrender.com`); the n8n
+workflow (`27AgIzoreHN8ssGK`) is published and wired to the sandbox's `From
+Form` webhook through a Cloudflare tunnel exposing the local n8n instance.
+Three real GHL contacts (hot/warm/cold) were run through the full chain -
+webhook -> qualify -> tag -> custom fields -> opportunity stage move -> GHL's
+own tag-triggered workflows firing - and confirmed via the GHL API and CRM
+UI, not just n8n's own execution log. See `docs/screenshots/` for the
+pipeline, CRM record, funnel canvas, and both GHL workflow canvases from
+that run.
 
 ## What is verified
-Checked automatically: `backend/tests` (pytest) covers the qualification
-logic's tier boundaries, malformed-output handling, and the `/qualify` and
-`/health` endpoints via `TestClient`. `tests/test_exports.py` (unittest)
-checks the n8n export's structure, wiring, and that it contains no secrets
-and matches the generator that built it.
+Checked automatically: `backend/tests` (pytest, 14 tests) covers the
+qualification logic's tier boundaries, malformed-output handling, and the
+`/qualify` and `/health` endpoints via `TestClient`. `tests/test_exports.py`
+(unittest, 17 tests) checks the n8n export's structure, wiring, that it
+contains no secrets, and that it matches the generator that built it.
 
-Not yet done (Phase 2): no live GHL sandbox exists yet, so nothing here has
-been run end to end against a real funnel submission.
+Checked live, this session: all three test contacts (hot, warm, cold)
+replayed clean through the fully-wired chain via `n8n-mcp`
+`execute_workflow` / `get_workflow_execution`, including real GHL
+opportunity-stage moves. GHL's own tag-triggered workflows (Hot Leads, Warm
+Leads) were independently confirmed to fire - not inferred from n8n's "200
+OK" on the tag write - by pulling each contact's conversation via the
+`leadconnector` API and finding the score/reason custom fields correctly
+populated in the sent message. Two real bugs were caught this way that
+would not have shown up in unit tests: GHL's webhook Custom Data sending an
+empty `opportunityId` for an opportunity that already existed (fixed by
+having n8n look the id up itself instead of trusting the webhook field),
+and the GHL API rejecting camelCase `contactId` despite the `leadconnector`
+MCP's own docs saying otherwise (real API wants snake_case `contact_id`).
+
+Known gap: the Hot Leads GHL workflow's original SMS action fails (sandbox
+has no SMS-capable number) and was left in place alongside a working Email
+action rather than deleted, since it fails harmlessly and Email already
+covers the hot-lead notification.
 
 ## Set up
 1. Backend: `cd backend && py -m pip install -r requirements.txt`, set
-   `GEMINI_API_KEY`, run `py -m uvicorn app.main:app --reload`.
+   `GEMINI_API_KEY`, run `py -m uvicorn app.main:app --reload` (or deploy,
+   e.g. to Render).
 2. n8n: import `ghl-lead-router.workflow.json`, paste the running backend's
    `/qualify` URL into the `Call backend /qualify` node.
 3. GHL: follow `docs/ghl-build-steps.md`.
@@ -66,4 +88,8 @@ never committed, same convention as every other credential/ID in this repo.
 ## Known limits
 - The lead's message goes into the prompt, so someone can try to talk the
   model into a higher score, same known limit as Proj16's qualifier.
-- Phase 1 has no deployment; the backend runs locally until Phase 2.
+- Render's free tier spins the backend down after 15 minutes idle; a cold
+  start takes roughly 15-36s and can occasionally surface a transient
+  `ECONNRESET` on the first request after a spin-down, which a retry clears.
+- The GHL sandbox has no SMS-capable number, so the Hot Leads workflow's
+  notification runs over Email instead of SMS.
