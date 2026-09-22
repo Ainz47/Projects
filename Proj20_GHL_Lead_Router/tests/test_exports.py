@@ -75,7 +75,11 @@ class ExportStructure(unittest.TestCase):
             ["Add tier tag"],
         )
         self.assertEqual(
-            [e["node"] for e in conn["Add tier tag"]["main"][0]], ["Is hot?", "Append lead log"],
+            [e["node"] for e in conn["Add tier tag"]["main"][0]],
+            ["Look up opportunity by contact", "Append lead log"],
+        )
+        self.assertEqual(
+            [e["node"] for e in conn["Look up opportunity by contact"]["main"][0]], ["Is hot?"],
         )
 
     def test_the_tier_branch_moves_the_opportunity_to_the_matching_stage(self):
@@ -91,7 +95,8 @@ class ExportStructure(unittest.TestCase):
         # a new plain generic credential on this node (confirmed live via n8n-mcp
         # validation against all 5 of these nodes).
         nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
-        for name in ["Write score/reason/reply to GHL", "Add tier tag", "Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
+        for name in ["Write score/reason/reply to GHL", "Add tier tag", "Look up opportunity by contact",
+                     "Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
             node = nodes[name]
             self.assertEqual(node["parameters"]["genericAuthType"], "httpTemplatedCustomAuth")
             self.assertEqual(node["credentials"]["httpTemplatedCustomAuth"]["name"], "GHL Private Integration Token")
@@ -104,6 +109,26 @@ class ExportStructure(unittest.TestCase):
         self.assertEqual(fields_body.count("id: ''"), 3)
         for name in ["Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
             self.assertIn("pipelineStageId: ''", nodes[name]["parameters"]["jsonBody"])
+        lookup_query = nodes["Look up opportunity by contact"]["parameters"]["queryParameters"]["parameters"]
+        location_param = next(p for p in lookup_query if p["name"] == "location_id")
+        self.assertEqual(location_param["value"], "")
+
+    def test_the_stage_move_nodes_look_up_the_opportunity_id_instead_of_trusting_the_webhook(self):
+        # GHL's own webhook Custom Data sends opportunityId: '' even when the
+        # opportunity already exists (confirmed live against the real hot test
+        # contact) - the stage-move nodes must resolve the id from the lookup
+        # node's own response, not from the webhook-supplied field.
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        lookup = nodes["Look up opportunity by contact"]
+        self.assertEqual(lookup["parameters"]["method"], "GET")
+        self.assertEqual(lookup["parameters"]["url"], "https://services.leadconnectorhq.com/opportunities/search")
+        contact_param = next(p for p in lookup["parameters"]["queryParameters"]["parameters"] if p["name"] == "contact_id")
+        self.assertIn("Merge qualification onto lead", contact_param["value"])
+        for name in ["Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
+            url = nodes[name]["parameters"]["url"]
+            self.assertIn("Look up opportunity by contact", url)
+            self.assertIn("opportunities[0].id", url)
+            self.assertNotIn("Merge qualification onto lead", url)
 
 
 class CrossProjectLinks(unittest.TestCase):

@@ -23,7 +23,7 @@
         "url": "",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ name: $json.name, email: $json.email, company: $json.company, message: $json.message, budget: $json.budget, timeline: $json.timeline }) }}",
+        "jsonBody": "={{ JSON.stringify({ name: $json.body.customData.name, email: $json.body.customData.email, company: $json.body.company_name, message: $json.body.customData.message, budget: $json.body.customData.budget, timeline: $json.body.customData.timeline }) }}",
         "options": {
           "response": {
             "response": {
@@ -44,6 +44,54 @@
       "parameters": {
         "assignments": {
           "assignments": [
+            {
+              "id": "contactId",
+              "name": "contactId",
+              "value": "={{ $('GHL lead webhook').item.json.body.customData.contactId }}",
+              "type": "string"
+            },
+            {
+              "id": "opportunityId",
+              "name": "opportunityId",
+              "value": "={{ $('GHL lead webhook').item.json.body.customData.opportunityId }}",
+              "type": "string"
+            },
+            {
+              "id": "name",
+              "name": "name",
+              "value": "={{ $('GHL lead webhook').item.json.body.customData.name }}",
+              "type": "string"
+            },
+            {
+              "id": "email",
+              "name": "email",
+              "value": "={{ $('GHL lead webhook').item.json.body.customData.email }}",
+              "type": "string"
+            },
+            {
+              "id": "company",
+              "name": "company",
+              "value": "={{ $('GHL lead webhook').item.json.body.company_name }}",
+              "type": "string"
+            },
+            {
+              "id": "message",
+              "name": "message",
+              "value": "={{ $('GHL lead webhook').item.json.body.customData.message }}",
+              "type": "string"
+            },
+            {
+              "id": "budget",
+              "name": "budget",
+              "value": "={{ $('GHL lead webhook').item.json.body.customData.budget }}",
+              "type": "string"
+            },
+            {
+              "id": "timeline",
+              "name": "timeline",
+              "value": "={{ $('GHL lead webhook').item.json.body.customData.timeline }}",
+              "type": "string"
+            },
             {
               "id": "tier",
               "name": "tier",
@@ -85,7 +133,7 @@
     {
       "parameters": {
         "method": "PUT",
-        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contactId }}",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Merge qualification onto lead').item.json.contactId }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
@@ -99,7 +147,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ customFields: [{ id: '', fieldValue: String($json.score) }, { id: '', fieldValue: $json.reason }, { id: '', fieldValue: $json.suggested_reply } ] }) }}",
+        "jsonBody": "={{ JSON.stringify({ customFields: [{ id: '', fieldValue: String($('Merge qualification onto lead').item.json.score) }, { id: '', fieldValue: $('Merge qualification onto lead').item.json.reason }, { id: '', fieldValue: $('Merge qualification onto lead').item.json.suggested_reply } ] }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -119,7 +167,7 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contactId }}/tags",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Merge qualification onto lead').item.json.contactId }}/tags",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
@@ -133,7 +181,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ tags: [$json.tier] }) }}",
+        "jsonBody": "={{ JSON.stringify({ tags: [$('Merge qualification onto lead').item.json.tier] }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -143,6 +191,56 @@
         0
       ],
       "name": "Add tier tag",
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "GHL Private Integration Token"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://services.leadconnectorhq.com/opportunities/search",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "sendQuery": true,
+        "queryParameters": {
+          "parameters": [
+            {
+              "name": "contact_id",
+              "value": "={{ $('Merge qualification onto lead').item.json.contactId }}"
+            },
+            {
+              "name": "location_id",
+              "value": ""
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        0
+      ],
+      "name": "Look up opportunity by contact",
       "credentials": {
         "httpTemplatedCustomAuth": {
           "id": "REPLACE_IN_UI",
@@ -162,7 +260,7 @@
           "conditions": [
             {
               "id": "Is hot?-cond",
-              "leftValue": "={{ $json.tier }}",
+              "leftValue": "={{ $('Merge qualification onto lead').item.json.tier }}",
               "rightValue": "hot",
               "operator": {
                 "type": "string",
@@ -177,7 +275,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1200,
+        1440,
         0
       ],
       "name": "Is hot?"
@@ -185,7 +283,7 @@
     {
       "parameters": {
         "method": "PUT",
-        "url": "=https://services.leadconnectorhq.com/opportunities/{{ $json.opportunityId }}",
+        "url": "=https://services.leadconnectorhq.com/opportunities/{{ $('Look up opportunity by contact').item.json.opportunities[0].id }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
@@ -205,7 +303,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1440,
+        1680,
         -160
       ],
       "name": "Move to Hot stage",
@@ -228,7 +326,7 @@
           "conditions": [
             {
               "id": "Is warm?-cond",
-              "leftValue": "={{ $json.tier }}",
+              "leftValue": "={{ $('Merge qualification onto lead').item.json.tier }}",
               "rightValue": "warm",
               "operator": {
                 "type": "string",
@@ -243,7 +341,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1440,
+        1680,
         160
       ],
       "name": "Is warm?"
@@ -251,7 +349,7 @@
     {
       "parameters": {
         "method": "PUT",
-        "url": "=https://services.leadconnectorhq.com/opportunities/{{ $json.opportunityId }}",
+        "url": "=https://services.leadconnectorhq.com/opportunities/{{ $('Look up opportunity by contact').item.json.opportunities[0].id }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
@@ -271,7 +369,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1680,
+        1920,
         80
       ],
       "name": "Move to Warm stage",
@@ -285,7 +383,7 @@
     {
       "parameters": {
         "method": "PUT",
-        "url": "=https://services.leadconnectorhq.com/opportunities/{{ $json.opportunityId }}",
+        "url": "=https://services.leadconnectorhq.com/opportunities/{{ $('Look up opportunity by contact').item.json.opportunities[0].id }}",
         "authentication": "genericCredentialType",
         "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
@@ -305,7 +403,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1680,
+        1920,
         240
       ],
       "name": "Move to Cold stage",
@@ -333,20 +431,141 @@
           "mappingMode": "defineBelow",
           "value": {
             "timestamp": "={{ $now.toISO() }}",
-            "name": "={{ $json.name }}",
-            "email": "={{ $json.email }}",
-            "company": "={{ $json.company }}",
-            "message": "={{ $json.message }}",
-            "budget": "={{ $json.budget }}",
-            "timeline": "={{ $json.timeline }}",
+            "name": "={{ $('Merge qualification onto lead').item.json.name }}",
+            "email": "={{ $('Merge qualification onto lead').item.json.email }}",
+            "company": "={{ $('Merge qualification onto lead').item.json.company }}",
+            "message": "={{ $('Merge qualification onto lead').item.json.message }}",
+            "budget": "={{ $('Merge qualification onto lead').item.json.budget }}",
+            "timeline": "={{ $('Merge qualification onto lead').item.json.timeline }}",
             "status": "accepted",
-            "tier": "={{ $json.tier }}",
-            "score": "={{ $json.score }}",
-            "reason": "={{ $json.reason }}",
-            "suggested_reply": "={{ $json.suggested_reply }}"
+            "tier": "={{ $('Merge qualification onto lead').item.json.tier }}",
+            "score": "={{ $('Merge qualification onto lead').item.json.score }}",
+            "reason": "={{ $('Merge qualification onto lead').item.json.reason }}",
+            "suggested_reply": "={{ $('Merge qualification onto lead').item.json.suggested_reply }}"
           },
           "matchingColumns": [],
-          "schema": []
+          "schema": [
+            {
+              "id": "timestamp",
+              "displayName": "timestamp",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "name",
+              "displayName": "name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "company",
+              "displayName": "company",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "message",
+              "displayName": "message",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "budget",
+              "displayName": "budget",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "timeline",
+              "displayName": "timeline",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "status",
+              "displayName": "status",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "tier",
+              "displayName": "tier",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "score",
+              "displayName": "score",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "reason",
+              "displayName": "reason",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "suggested_reply",
+              "displayName": "suggested_reply",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ]
         },
         "options": {
           "useAppend": true
@@ -371,12 +590,12 @@
         "operation": "send",
         "phoneNumberId": "",
         "recipientPhoneNumber": "",
-        "textBody": "={{ 'Hot GHL lead (' + $json.score + '/10): ' + $json.name + ', ' + ($json.company || 'no company') + '. ' + $json.reason }}"
+        "textBody": "={{ 'Hot GHL lead (' + $('Merge qualification onto lead').item.json.score + '/10): ' + $('Merge qualification onto lead').item.json.name + ', ' + ($('Merge qualification onto lead').item.json.company || 'no company') + '. ' + $('Merge qualification onto lead').item.json.reason }}"
       },
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1.1,
       "position": [
-        1680,
+        1920,
         -320
       ],
       "name": "WhatsApp hot lead alert",
@@ -385,7 +604,8 @@
           "id": "REPLACE_IN_UI",
           "name": "WhatsApp account"
         }
-      }
+      },
+      "onError": "continueRegularOutput"
     }
   ],
   "connections": {
@@ -437,12 +657,23 @@
       "main": [
         [
           {
-            "node": "Is hot?",
+            "node": "Look up opportunity by contact",
             "type": "main",
             "index": 0
           },
           {
             "node": "Append lead log",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Look up opportunity by contact": {
+      "main": [
+        [
+          {
+            "node": "Is hot?",
             "type": "main",
             "index": 0
           }
