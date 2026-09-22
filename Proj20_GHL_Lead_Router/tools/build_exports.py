@@ -6,13 +6,16 @@ import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
+PLACEHOLDER_ID = "REPLACE_IN_UI"
 
-V = {"webhook": 2, "http": 4.2, "set": 3.4}
+V = {"webhook": 2, "http": 4.2, "set": 3.4, "if": 2.2}
 
 
-def node(name, type_, version, position, parameters, **extra):
+def node(name, type_, version, position, parameters, credentials=None, **extra):
     n = {"parameters": parameters, "type": type_, "typeVersion": version,
          "position": position, "name": name}
+    if credentials:
+        n["credentials"] = {k: {"id": PLACEHOLDER_ID, "name": v} for k, v in credentials.items()}
     n.update(extra)
     return n
 
@@ -59,11 +62,85 @@ def merge_result_node():
     })
 
 
+GHL_BASE = "https://services.leadconnectorhq.com"
+GHL_VERSION = "2021-07-28"
+GHL_CREDENTIAL = {"httpHeaderAuth": "GHL Private Integration Token"}
+
+
+def ghl_request_node(name, position, method, url_expr, json_body_expr):
+    return node(name, "n8n-nodes-base.httpRequest", V["http"], position, {
+        "method": method, "url": url_expr,
+        "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+        "sendHeaders": True, "headerParameters": {"parameters": [{"name": "Version", "value": GHL_VERSION}]},
+        "sendBody": True, "specifyBody": "json", "jsonBody": json_body_expr,
+        "options": {},
+    }, credentials=GHL_CREDENTIAL)
+
+
+def write_custom_fields_node(position):
+    body = (
+        "={{ JSON.stringify({ customFields: ["
+        "{ id: '', fieldValue: String($json.score) }, "
+        "{ id: '', fieldValue: $json.reason }, "
+        "{ id: '', fieldValue: $json.suggested_reply } "
+        "] }) }}"
+    )
+    return ghl_request_node(
+        "Write score/reason/reply to GHL", position, "PUT",
+        "=" + GHL_BASE + "/contacts/{{ $json.contactId }}", body,
+    )
+
+
+def add_tier_tag_node(position):
+    body = "={{ JSON.stringify({ tags: [$json.tier] }) }}"
+    return ghl_request_node(
+        "Add tier tag", position, "POST",
+        "=" + GHL_BASE + "/contacts/{{ $json.contactId }}/tags", body,
+    )
+
+
+def move_stage_node(name, position):
+    body = "={{ JSON.stringify({ pipelineStageId: '' }) }}"
+    return ghl_request_node(
+        name, position, "PUT",
+        "=" + GHL_BASE + "/opportunities/{{ $json.opportunityId }}", body,
+    )
+
+
+def if_node(name, position, left, operator, right=""):
+    return node(name, "n8n-nodes-base.if", V["if"], position, {
+        "conditions": {
+            "options": {"caseSensitive": True, "leftValue": "", "typeValidation": "strict", "version": 2},
+            "conditions": [{"id": f"{name}-cond", "leftValue": left, "rightValue": right, "operator": operator}],
+            "combinator": "and",
+        },
+        "options": {},
+    })
+
+
 def ghl_lead_router():
-    nodes = [webhook_node(), qualify_request_node(), merge_result_node()]
+    nodes = [
+        webhook_node(), qualify_request_node(), merge_result_node(),
+        write_custom_fields_node([720, 0]),
+        add_tier_tag_node([960, 0]),
+        if_node("Is hot?", [1200, 0], "={{ $json.tier }}",
+                {"type": "string", "operation": "equals"}, "hot"),
+        move_stage_node("Move to Hot stage", [1440, -160]),
+        if_node("Is warm?", [1440, 160], "={{ $json.tier }}",
+                {"type": "string", "operation": "equals"}, "warm"),
+        move_stage_node("Move to Warm stage", [1680, 80]),
+        move_stage_node("Move to Cold stage", [1680, 240]),
+    ]
     edges = [
         ("GHL lead webhook", "Call backend /qualify", 0),
         ("Call backend /qualify", "Merge qualification onto lead", 0),
+        ("Merge qualification onto lead", "Write score/reason/reply to GHL", 0),
+        ("Write score/reason/reply to GHL", "Add tier tag", 0),
+        ("Add tier tag", "Is hot?", 0),
+        ("Is hot?", "Move to Hot stage", 0),
+        ("Is hot?", "Is warm?", 1),
+        ("Is warm?", "Move to Warm stage", 0),
+        ("Is warm?", "Move to Cold stage", 1),
     ]
     return workflow("GHL lead router", nodes, edges)
 

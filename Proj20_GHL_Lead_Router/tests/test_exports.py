@@ -11,7 +11,8 @@ import build_exports  # noqa: E402
 WEBHOOK = "n8n-nodes-base.webhook"
 HTTP = "n8n-nodes-base.httpRequest"
 SET = "n8n-nodes-base.set"
-EXPECTED_TYPES = {"ghl-lead-router.workflow.json": {WEBHOOK, HTTP, SET}}
+IF = "n8n-nodes-base.if"
+EXPECTED_TYPES = {"ghl-lead-router.workflow.json": {WEBHOOK, HTTP, SET, IF}}
 SECRET_PATTERNS = {
     "google_api_key": r"AIza[0-9A-Za-z_-]{20,}",
     "bearer_token": r"Bearer [A-Za-z0-9._-]{20,}",
@@ -57,6 +58,44 @@ class ExportStructure(unittest.TestCase):
         self.assertEqual(
             [e["node"] for e in conn["Call backend /qualify"]["main"][0]], ["Merge qualification onto lead"],
         )
+
+    def test_the_merge_step_leads_into_the_write_back_chain(self):
+        wf = load("ghl-lead-router.workflow.json")
+        conn = wf["connections"]
+        self.assertEqual(
+            [e["node"] for e in conn["Merge qualification onto lead"]["main"][0]],
+            ["Write score/reason/reply to GHL"],
+        )
+        self.assertEqual(
+            [e["node"] for e in conn["Write score/reason/reply to GHL"]["main"][0]],
+            ["Add tier tag"],
+        )
+        self.assertEqual(
+            [e["node"] for e in conn["Add tier tag"]["main"][0]], ["Is hot?"],
+        )
+
+    def test_the_tier_branch_moves_the_opportunity_to_the_matching_stage(self):
+        wf = load("ghl-lead-router.workflow.json")
+        conn = wf["connections"]
+        self.assertEqual([e["node"] for e in conn["Is hot?"]["main"][0]], ["Move to Hot stage"])
+        self.assertEqual([e["node"] for e in conn["Is hot?"]["main"][1]], ["Is warm?"])
+        self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][0]], ["Move to Warm stage"])
+        self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][1]], ["Move to Cold stage"])
+
+    def test_ghl_write_back_nodes_use_the_shared_header_auth_credential(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        for name in ["Write score/reason/reply to GHL", "Add tier tag", "Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
+            node = nodes[name]
+            self.assertEqual(node["credentials"]["httpHeaderAuth"]["name"], "GHL Private Integration Token")
+            self.assertEqual(node["credentials"]["httpHeaderAuth"]["id"], build_exports.PLACEHOLDER_ID)
+            self.assertEqual(node["parameters"]["headerParameters"]["parameters"], [{"name": "Version", "value": "2021-07-28"}])
+
+    def test_the_custom_field_ids_and_pipeline_stage_ids_are_left_blank_for_the_owner_to_fill_in(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        fields_body = nodes["Write score/reason/reply to GHL"]["parameters"]["jsonBody"]
+        self.assertEqual(fields_body.count("id: ''"), 3)
+        for name in ["Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
+            self.assertIn("pipelineStageId: ''", nodes[name]["parameters"]["jsonBody"])
 
 
 class NoSecrets(unittest.TestCase):
