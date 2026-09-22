@@ -31,6 +31,8 @@ running: `http://<n8n-host>/webhook/ghl-lead-router`). Set the webhook's body
 to this JSON, using GHL's merge fields:
 ```json
 {
+  "contactId": "{{contact.id}}",
+  "opportunityId": "{{opportunity.id}}",
   "name": "{{contact.first_name}} {{contact.last_name}}",
   "email": "{{contact.email}}",
   "company": "{{contact.company_name}}",
@@ -39,25 +41,43 @@ to this JSON, using GHL's merge fields:
   "timeline": "{{contact.inquiry_timeline}}"
 }
 ```
-Confirm the exact merge-field syntax against the sandbox's own workflow
-editor when building this live; GHL's merge-field picker inside the webhook
-action body editor is the source of truth if it differs from the above.
+`contactId` and `opportunityId` are not sent to the backend's `/qualify`
+call (it only uses the six lead fields) but pass straight through n8n's
+`Merge qualification onto lead` step, so the write-back nodes below can
+address the right contact and opportunity. Confirm the exact merge-field
+syntax against the sandbox's own workflow editor when building this live;
+GHL's merge-field picker inside the webhook action body editor is the
+source of truth if it differs from the above.
 
-## 5. Branching by tier (blocked on Task 7)
-The router (n8n) writes `lead_score`, `lead_reason`, `lead_suggested_reply`
-and a tag (`hot` / `warm` / `cold`) back onto the contact, and moves the
-opportunity to the matching pipeline stage. The exact API calls n8n's
-write-back nodes use, and whether OAuth or a Private Integration Token is
-the smoother auth path, are confirmed in Task 7 (the pre-build check) once
-the sandbox and the `leadconnector` MCP exist - not written here to avoid
-guessing at an unconfirmed API shape. Once Task 7 lands, this workflow adds:
-a wait step (or a second trigger, "Tag Added") that branches on the tag:
-- `hot`: SMS the owner, task created, offer a calendar booking link.
+## 5. Get a Private Integration Token
+Settings > Private Integrations > Create a new integration, scopes
+`contacts.write`, `contacts.readonly`, `opportunities.write`,
+`opportunities.readonly`, `locations/customFields.readonly`. Copy the token;
+it goes into n8n's `GHL Private Integration Token` credential (Header Auth,
+header name `Authorization`, value `Bearer <token>`), never into source.
+
+## 6. Write-back (n8n, confirmed against the live sandbox)
+The router (n8n) calls GHL's REST API directly with the token above:
+- `PUT https://services.leadconnectorhq.com/contacts/{contactId}` with
+  `customFields: [{id, fieldValue}]` for `lead_score`, `lead_reason`,
+  `lead_suggested_reply` (field IDs looked up once, see the plan's Task 4).
+- `POST https://services.leadconnectorhq.com/contacts/{contactId}/tags`
+  with `{tags: [tier]}`.
+- `PUT https://services.leadconnectorhq.com/opportunities/{opportunityId}`
+  with `{pipelineStageId}` (the Hot/Warm/Cold stage ID for that tier, see
+  the plan's Task 4), moving it out of `New`.
+Every write needs the header `Version: 2021-07-28` alongside the Bearer
+token.
+
+## 7. Branching by tag (GHL's own workflow, after the tag is added)
+Add a second trigger to the same workflow (or a new one), "Tag Added",
+watching for `hot`, `warm`, `cold`:
+- `hot`: SMS the owner, create a task, offer a calendar booking link.
 - `warm`: enroll in a templated (non-personalized) email nurture sequence.
 - `cold`: no action.
 
-## 6. Snapshot export
-Once the full build above is done, export a Snapshot (Settings > Account
-Snapshots) for the portfolio deliverable. Confirm during the live build
-whether GHL offers a downloadable file or only a shareable link - the spec
-flags this as unconfirmed for a Marketplace Developer sandbox specifically.
+## 8. Snapshot export
+Confirmed: GHL has no API for Snapshot export (`search_operations` found
+zero matching operations). Export via Settings > Account Snapshots in the
+UI; if GHL only offers a shareable link rather than a downloadable file for
+a Marketplace Developer sandbox, document the link instead in the README.
