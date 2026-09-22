@@ -42,6 +42,27 @@ been run end to end against a real funnel submission.
 `tools/build_exports.py` generates `ghl-lead-router.workflow.json`. Never
 hand-edit the JSON; edit the generator and re-run `py tools/build_exports.py`.
 
+## Cross-project links
+Proj20 is its own standalone case study (own backend, own repo, own
+README/CI) but shares the local n8n instance with Proj16 (lead capture) and
+Proj19 (Shopify stock sync), and links to both through real, already-existing
+infrastructure rather than merged workflows:
+- **Shared error alerting**: `settings.errorWorkflow` points at the same
+  `Workflow error alert` workflow Proj19 already uses - one failure channel
+  across all three, not three separate ones.
+- **Shared reporting**: `Append lead log` writes each qualified GHL lead to a
+  `LeadLog` tab in the same spreadsheet Proj19 writes `StockLog` to. Proj16's
+  `Weekly lead summary` workflow reads `Leads`, `StockLog`, and `LeadLog`
+  together, so one weekly digest covers leads, stock, and CRM activity.
+  `LeadLog` uses the same column shape as Proj16's `Leads` sheet
+  (`code/rows.js`'s `SHEET_COLUMNS`), so Proj16's `summarize()` handles both
+  with no new parsing logic.
+- **Shared alert channel**: `WhatsApp hot lead alert` reuses the same
+  `WhatsApp account` credential Proj16's own hot-lead alert uses.
+The spreadsheet ID and error-workflow ID are filled in at import time (or
+already resolve automatically inside the one shared local n8n instance) -
+never committed, same convention as every other credential/ID in this repo.
+
 ## Known limits
 - The lead's message goes into the prompt, so someone can try to talk the
   model into a higher score, same known limit as Proj16's qualifier.

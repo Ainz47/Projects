@@ -315,6 +315,77 @@
           "name": "GHL Private Integration Token"
         }
       }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "LeadLog"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "timestamp": "={{ $now.toISO() }}",
+            "name": "={{ $json.name }}",
+            "email": "={{ $json.email }}",
+            "company": "={{ $json.company }}",
+            "message": "={{ $json.message }}",
+            "budget": "={{ $json.budget }}",
+            "timeline": "={{ $json.timeline }}",
+            "status": "accepted",
+            "tier": "={{ $json.tier }}",
+            "score": "={{ $json.score }}",
+            "reason": "={{ $json.reason }}",
+            "suggested_reply": "={{ $json.suggested_reply }}"
+          },
+          "matchingColumns": [],
+          "schema": []
+        },
+        "options": {
+          "useAppend": true
+        }
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1200,
+        -320
+      ],
+      "name": "Append lead log",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_IN_UI",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "send",
+        "phoneNumberId": "",
+        "recipientPhoneNumber": "",
+        "textBody": "={{ 'Hot GHL lead (' + $json.score + '/10): ' + $json.name + ', ' + ($json.company || 'no company') + '. ' + $json.reason }}"
+      },
+      "type": "n8n-nodes-base.whatsApp",
+      "typeVersion": 1.1,
+      "position": [
+        1680,
+        -320
+      ],
+      "name": "WhatsApp hot lead alert",
+      "credentials": {
+        "whatsAppApi": {
+          "id": "REPLACE_IN_UI",
+          "name": "WhatsApp account"
+        }
+      }
     }
   ],
   "connections": {
@@ -369,6 +440,11 @@
             "node": "Is hot?",
             "type": "main",
             "index": 0
+          },
+          {
+            "node": "Append lead log",
+            "type": "main",
+            "index": 0
           }
         ]
       ]
@@ -378,6 +454,11 @@
         [
           {
             "node": "Move to Hot stage",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "WhatsApp hot lead alert",
             "type": "main",
             "index": 0
           }
@@ -412,6 +493,7 @@
   },
   "active": false,
   "settings": {
-    "executionOrder": "v1"
+    "executionOrder": "v1",
+    "errorWorkflow": "BHscSap9QKZQruIu"
   }
 }

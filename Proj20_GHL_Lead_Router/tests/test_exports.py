@@ -12,12 +12,16 @@ WEBHOOK = "n8n-nodes-base.webhook"
 HTTP = "n8n-nodes-base.httpRequest"
 SET = "n8n-nodes-base.set"
 IF = "n8n-nodes-base.if"
-EXPECTED_TYPES = {"ghl-lead-router.workflow.json": {WEBHOOK, HTTP, SET, IF}}
+SHEETS = "n8n-nodes-base.googleSheets"
+WHATSAPP = "n8n-nodes-base.whatsApp"
+EXPECTED_TYPES = {"ghl-lead-router.workflow.json": {WEBHOOK, HTTP, SET, IF, SHEETS, WHATSAPP}}
 SECRET_PATTERNS = {
     "google_api_key": r"AIza[0-9A-Za-z_-]{20,}",
     "bearer_token": r"Bearer [A-Za-z0-9._-]{20,}",
     "email_address": r"[A-Za-z0-9._%+-]+@(?!example\.com\b)[A-Za-z0-9.-]+\.[A-Za-z]{2,}",
     "windows_user_path": r"[A-Za-z]:\\+Users",
+    "phone_number": r"\+\d{10,}",
+    "google_doc_id": r"/d/[A-Za-z0-9_-]{25,}",
 }
 
 
@@ -71,13 +75,13 @@ class ExportStructure(unittest.TestCase):
             ["Add tier tag"],
         )
         self.assertEqual(
-            [e["node"] for e in conn["Add tier tag"]["main"][0]], ["Is hot?"],
+            [e["node"] for e in conn["Add tier tag"]["main"][0]], ["Is hot?", "Append lead log"],
         )
 
     def test_the_tier_branch_moves_the_opportunity_to_the_matching_stage(self):
         wf = load("ghl-lead-router.workflow.json")
         conn = wf["connections"]
-        self.assertEqual([e["node"] for e in conn["Is hot?"]["main"][0]], ["Move to Hot stage"])
+        self.assertEqual([e["node"] for e in conn["Is hot?"]["main"][0]], ["Move to Hot stage", "WhatsApp hot lead alert"])
         self.assertEqual([e["node"] for e in conn["Is hot?"]["main"][1]], ["Is warm?"])
         self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][0]], ["Move to Warm stage"])
         self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][1]], ["Move to Cold stage"])
@@ -98,11 +102,53 @@ class ExportStructure(unittest.TestCase):
             self.assertIn("pipelineStageId: ''", nodes[name]["parameters"]["jsonBody"])
 
 
+class CrossProjectLinks(unittest.TestCase):
+    """Proj20 shares its local n8n instance with Proj16/Proj19 (see README's
+    Cross-project links section): a LeadLog tab in the same spreadsheet Proj19
+    writes StockLog to, the same shared error-alert workflow, and a hot-lead
+    WhatsApp alert reusing Proj16's channel."""
+
+    def test_the_workflow_uses_the_shared_error_alert_workflow(self):
+        wf = load("ghl-lead-router.workflow.json")
+        self.assertEqual(wf["settings"]["errorWorkflow"], build_exports.SHARED_ERROR_WORKFLOW_ID)
+
+    def test_the_leadlog_sheet_name_is_set_but_the_spreadsheet_id_is_left_blank(self):
+        # Same convention as Proj16's sheets_node(): the document ID names a real
+        # account's spreadsheet, so it's filled in at import time, never committed.
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        params = nodes["Append lead log"]["parameters"]
+        self.assertEqual(params["documentId"]["value"], "")
+        self.assertEqual(params["sheetName"]["value"], "LeadLog")
+
+    def test_the_leadlog_columns_match_proj16s_leads_sheet_shape(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        columns = nodes["Append lead log"]["parameters"]["columns"]["value"]
+        expected = {"timestamp", "name", "email", "company", "message", "budget",
+                    "timeline", "status", "tier", "score", "reason", "suggested_reply"}
+        self.assertEqual(set(columns), expected)
+
+    def test_the_whatsapp_alert_reuses_proj16s_credential_name(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        node = nodes["WhatsApp hot lead alert"]
+        self.assertEqual(node["credentials"]["whatsAppApi"]["name"], "WhatsApp account")
+        self.assertEqual(node["credentials"]["whatsAppApi"]["id"], build_exports.PLACEHOLDER_ID)
+
+
 class NoSecrets(unittest.TestCase):
     def test_exports_contain_no_secret_shaped_strings(self):
         text = (ROOT / "ghl-lead-router.workflow.json").read_text(encoding="utf-8")
         for label, pattern in SECRET_PATTERNS.items():
             self.assertIsNone(re.search(pattern, text), label)
+
+    def test_the_patterns_catch_the_shapes_they_claim_to(self):
+        samples = {
+            "google_api_key": "AIza" + "A" * 35,
+            "email_address": "someone@" + "gmail.com",
+            "phone_number": "+63" + "9171234567",
+            "google_doc_id": "/d/" + "x" * 40,
+        }
+        for label, sample in samples.items():
+            self.assertIsNotNone(re.search(SECRET_PATTERNS[label], sample), label)
 
 
 class GeneratorSync(unittest.TestCase):

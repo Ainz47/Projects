@@ -82,12 +82,42 @@
     },
     {
       "parameters": {
-        "jsCode": "const WEEK_MS = 7 * 24 * 60 * 60 * 1000;\n\nfunction summarize(rows, nowMs) {\n  const counts = { hot: 0, warm: 0, cold: 0, needs_review: 0, rejected: 0 };\n  const hotLeads = [];\n  for (const row of rows) {\n    const at = Date.parse(row.timestamp);\n    if (!Number.isFinite(at) || at < nowMs - WEEK_MS) continue;\n    const tier = Object.hasOwn(counts, row.tier) ? row.tier : 'needs_review';\n    counts[tier] += 1;\n    if (tier === 'hot') hotLeads.push({ company: row.company, reason: row.reason });\n  }\n  const total = Object.values(counts).reduce((sum, n) => sum + n, 0);\n  return { total, counts, hotLeads };\n}\n\nfunction summarizeStock(rows, nowMs) {\n  let changes = 0;\n  const soldOut = new Set();\n  for (const row of rows ?? []) {\n    const at = Date.parse(row.timestamp);\n    if (!Number.isFinite(at) || at < nowMs - WEEK_MS) continue;\n    changes += 1;\n    if (Number(row.new_stock) === 0) soldOut.add(row.sku);\n  }\n  return { changes, soldOut: [...soldOut].sort() };\n}\n\nconst leadRows = $('Read leads').all().map((item) => item.json);\nconst stockRows = $('Read stock log').all().map((item) => item.json);\nconst leadSummary = summarize(leadRows, Date.now());\nconst stockSummary = summarizeStock(stockRows, Date.now());\nreturn [{ json: { ...leadSummary, store: stockSummary } }];\n"
+        "operation": "read",
+        "documentId": {
+          "__rl": true,
+          "mode": "url",
+          "value": ""
+        },
+        "sheetName": {
+          "__rl": true,
+          "mode": "name",
+          "value": "LeadLog"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        720,
+        0
+      ],
+      "name": "Read GHL leads",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "REPLACE_IN_UI",
+          "name": "Google Sheets account"
+        }
+      },
+      "alwaysOutputData": true
+    },
+    {
+      "parameters": {
+        "jsCode": "const WEEK_MS = 7 * 24 * 60 * 60 * 1000;\n\nfunction summarize(rows, nowMs) {\n  const counts = { hot: 0, warm: 0, cold: 0, needs_review: 0, rejected: 0 };\n  const hotLeads = [];\n  for (const row of rows) {\n    const at = Date.parse(row.timestamp);\n    if (!Number.isFinite(at) || at < nowMs - WEEK_MS) continue;\n    const tier = Object.hasOwn(counts, row.tier) ? row.tier : 'needs_review';\n    counts[tier] += 1;\n    if (tier === 'hot') hotLeads.push({ company: row.company, reason: row.reason });\n  }\n  const total = Object.values(counts).reduce((sum, n) => sum + n, 0);\n  return { total, counts, hotLeads };\n}\n\nfunction summarizeStock(rows, nowMs) {\n  let changes = 0;\n  const soldOut = new Set();\n  for (const row of rows ?? []) {\n    const at = Date.parse(row.timestamp);\n    if (!Number.isFinite(at) || at < nowMs - WEEK_MS) continue;\n    changes += 1;\n    if (Number(row.new_stock) === 0) soldOut.add(row.sku);\n  }\n  return { changes, soldOut: [...soldOut].sort() };\n}\n\nconst leadRows = $('Read leads').all().map((item) => item.json);\nconst stockRows = $('Read stock log').all().map((item) => item.json);\nconst ghlRows = $('Read GHL leads').all().map((item) => item.json);\nconst leadSummary = summarize(leadRows, Date.now());\nconst stockSummary = summarizeStock(stockRows, Date.now());\nconst ghlSummary = summarize(ghlRows, Date.now());\nreturn [{ json: { ...leadSummary, store: stockSummary, crm: ghlSummary } }];\n"
       },
       "type": "n8n-nodes-base.code",
       "typeVersion": 2,
       "position": [
-        720,
+        960,
         0
       ],
       "name": "Summarize week"
@@ -105,7 +135,7 @@
         "messages": {
           "values": [
             {
-              "content": "=Write a weekly summary for a freelance automation developer. Plain text, no markdown, no greeting, exactly four lines.\nLine 1: the total number of leads and the count per tier.\nLine 2: the hot leads by company with the reason, or \"No hot leads.\"\nLine 3: one suggestion for next week.\nLine 4: the demo store: the number of stock updates this week, and any newly sold-out SKUs, or \"No stock activity.\"\n\nData (JSON):\n{{ JSON.stringify($json) }}"
+              "content": "=Write a weekly summary for a freelance automation developer. Plain text, no markdown, no greeting, exactly five lines.\nLine 1: the total number of leads and the count per tier.\nLine 2: the hot leads by company with the reason, or \"No hot leads.\"\nLine 3: one suggestion for next week.\nLine 4: the demo store: the number of stock updates this week, and any newly sold-out SKUs, or \"No stock activity.\"\nLine 5: the CRM (GoHighLevel) side: the total number of qualified leads and the count per tier, or \"No CRM leads.\"\n\nData (JSON):\n{{ JSON.stringify($json) }}"
             }
           ]
         },
@@ -116,7 +146,7 @@
       "type": "@n8n/n8n-nodes-langchain.googleGemini",
       "typeVersion": 1.2,
       "position": [
-        960,
+        1200,
         0
       ],
       "name": "Gemini summary",
@@ -145,7 +175,7 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        1200,
+        1440,
         0
       ],
       "name": "Normalize LLM output"
@@ -160,7 +190,7 @@
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1.1,
       "position": [
-        1440,
+        1680,
         0
       ],
       "name": "WhatsApp summary",
@@ -196,6 +226,17 @@
       ]
     },
     "Read stock log": {
+      "main": [
+        [
+          {
+            "node": "Read GHL leads",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read GHL leads": {
       "main": [
         [
           {
