@@ -1,0 +1,114 @@
+{
+  "name": "GHL lead router",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "ghl-lead-router",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2,
+      "position": [
+        0,
+        0
+      ],
+      "name": "GHL lead webhook",
+      "webhookId": "ghl-lead-router"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ name: $json.name, email: $json.email, company: $json.company, message: $json.message, budget: $json.budget, timeline: $json.timeline }) }}",
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "name": "Call backend /qualify"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "tier",
+              "name": "tier",
+              "value": "={{ $json.tier }}",
+              "type": "string"
+            },
+            {
+              "id": "reason",
+              "name": "reason",
+              "value": "={{ $json.reason }}",
+              "type": "string"
+            },
+            {
+              "id": "suggested_reply",
+              "name": "suggested_reply",
+              "value": "={{ $json.suggested_reply }}",
+              "type": "string"
+            },
+            {
+              "id": "score",
+              "name": "score",
+              "value": "={{ $json.score }}",
+              "type": "number"
+            }
+          ]
+        },
+        "options": {
+          "includeOtherFields": true
+        }
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        0
+      ],
+      "name": "Merge qualification onto lead"
+    }
+  ],
+  "connections": {
+    "GHL lead webhook": {
+      "main": [
+        [
+          {
+            "node": "Call backend /qualify",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Call backend /qualify": {
+      "main": [
+        [
+          {
+            "node": "Merge qualification onto lead",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  }
+}
