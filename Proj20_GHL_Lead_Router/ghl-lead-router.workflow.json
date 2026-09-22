@@ -87,7 +87,7 @@
         "method": "PUT",
         "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contactId }}",
         "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -110,7 +110,7 @@
       ],
       "name": "Write score/reason/reply to GHL",
       "credentials": {
-        "httpHeaderAuth": {
+        "httpTemplatedCustomAuth": {
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
@@ -121,7 +121,7 @@
         "method": "POST",
         "url": "=https://services.leadconnectorhq.com/contacts/{{ $json.contactId }}/tags",
         "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -144,7 +144,7 @@
       ],
       "name": "Add tier tag",
       "credentials": {
-        "httpHeaderAuth": {
+        "httpTemplatedCustomAuth": {
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
@@ -187,7 +187,7 @@
         "method": "PUT",
         "url": "=https://services.leadconnectorhq.com/opportunities/{{ $json.opportunityId }}",
         "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -210,7 +210,7 @@
       ],
       "name": "Move to Hot stage",
       "credentials": {
-        "httpHeaderAuth": {
+        "httpTemplatedCustomAuth": {
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
@@ -253,7 +253,7 @@
         "method": "PUT",
         "url": "=https://services.leadconnectorhq.com/opportunities/{{ $json.opportunityId }}",
         "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -276,7 +276,7 @@
       ],
       "name": "Move to Warm stage",
       "credentials": {
-        "httpHeaderAuth": {
+        "httpTemplatedCustomAuth": {
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
@@ -287,7 +287,7 @@
         "method": "PUT",
         "url": "=https://services.leadconnectorhq.com/opportunities/{{ $json.opportunityId }}",
         "authentication": "genericCredentialType",
-        "genericAuthType": "httpHeaderAuth",
+        "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": true,
         "headerParameters": {
           "parameters": [
@@ -310,7 +310,7 @@
       ],
       "name": "Move to Cold stage",
       "credentials": {
-        "httpHeaderAuth": {
+        "httpTemplatedCustomAuth": {
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }

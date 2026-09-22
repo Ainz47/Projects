@@ -53,8 +53,12 @@ source of truth if it differs from the above.
 Settings > Private Integrations > Create a new integration, scopes
 `contacts.write`, `contacts.readonly`, `opportunities.write`,
 `opportunities.readonly`, `locations/customFields.readonly`. Copy the token;
-it goes into n8n's `GHL Private Integration Token` credential (Header Auth,
-header name `Authorization`, value `Bearer <token>`), never into source.
+it goes into n8n's `GHL Private Integration Token` credential, never into
+source. Use credential type **HTTP Templated Custom Auth**, not Header
+Auth - n8n rejects creating a new plain Header Auth credential on this
+node (confirmed live via n8n-mcp validation). Template:
+`{"headers":{"Authorization":"Bearer {{api_key}}"}}`, then paste the raw
+token (no `Bearer ` prefix) into the credential's `api_key` field.
 
 ## 6. Write-back (n8n, confirmed against the live sandbox)
 The router (n8n) calls GHL's REST API directly with the token above:

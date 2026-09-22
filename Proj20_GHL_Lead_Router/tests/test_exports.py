@@ -86,12 +86,16 @@ class ExportStructure(unittest.TestCase):
         self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][0]], ["Move to Warm stage"])
         self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][1]], ["Move to Cold stage"])
 
-    def test_ghl_write_back_nodes_use_the_shared_header_auth_credential(self):
+    def test_ghl_write_back_nodes_use_the_shared_templated_auth_credential(self):
+        # httpTemplatedCustomAuth, not plain httpHeaderAuth: n8n rejects creating
+        # a new plain generic credential on this node (confirmed live via n8n-mcp
+        # validation against all 5 of these nodes).
         nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
         for name in ["Write score/reason/reply to GHL", "Add tier tag", "Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
             node = nodes[name]
-            self.assertEqual(node["credentials"]["httpHeaderAuth"]["name"], "GHL Private Integration Token")
-            self.assertEqual(node["credentials"]["httpHeaderAuth"]["id"], build_exports.PLACEHOLDER_ID)
+            self.assertEqual(node["parameters"]["genericAuthType"], "httpTemplatedCustomAuth")
+            self.assertEqual(node["credentials"]["httpTemplatedCustomAuth"]["name"], "GHL Private Integration Token")
+            self.assertEqual(node["credentials"]["httpTemplatedCustomAuth"]["id"], build_exports.PLACEHOLDER_ID)
             self.assertEqual(node["parameters"]["headerParameters"]["parameters"], [{"name": "Version", "value": "2021-07-28"}])
 
     def test_the_custom_field_ids_and_pipeline_stage_ids_are_left_blank_for_the_owner_to_fill_in(self):

@@ -75,13 +75,18 @@ def merge_result_node():
 
 GHL_BASE = "https://services.leadconnectorhq.com"
 GHL_VERSION = "2021-07-28"
-GHL_CREDENTIAL = {"httpHeaderAuth": "GHL Private Integration Token"}
+# httpTemplatedCustomAuth, not plain httpHeaderAuth: n8n rejects creating a
+# NEW plain generic credential on this node (confirmed live via n8n-mcp
+# validation against all 5 GHL write-back nodes). The credential's own
+# template is {"headers":{"Authorization":"Bearer {{api_key}}"}}, token goes
+# in its api_key field - see docs/ghl-build-steps.md step 5.
+GHL_CREDENTIAL = {"httpTemplatedCustomAuth": "GHL Private Integration Token"}
 
 
 def ghl_request_node(name, position, method, url_expr, json_body_expr):
     return node(name, "n8n-nodes-base.httpRequest", V["http"], position, {
         "method": method, "url": url_expr,
-        "authentication": "genericCredentialType", "genericAuthType": "httpHeaderAuth",
+        "authentication": "genericCredentialType", "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": True, "headerParameters": {"parameters": [{"name": "Version", "value": GHL_VERSION}]},
         "sendBody": True, "specifyBody": "json", "jsonBody": json_body_expr,
         "options": {},
