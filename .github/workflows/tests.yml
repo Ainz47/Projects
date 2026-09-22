@@ -107,3 +107,17 @@ jobs:
           python-version: "3.14"
       - run: node --test "tests/*.test.js"
       - run: python -X utf8 -m unittest discover -s tests -p "test_*.py"
+
+  proj20-ghl-lead-router:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Proj20_GHL_Lead_Router
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: cd backend && python -m pip install -r requirements.txt
+      - run: cd backend && python -X utf8 -m pytest tests -v
+      - run: python -X utf8 -m unittest discover -s tests -p "test_*.py"
