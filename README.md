@@ -2,9 +2,9 @@
 
 [![tests](https://github.com/Ainz47/Projects/actions/workflows/tests.yml/badge.svg)](https://github.com/Ainz47/Projects/actions/workflows/tests.yml)
 
-A collection of 19 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, a storefront UI, workflow automation, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
+A collection of 20 production-oriented projects spanning data engineering, AI pipelines, web scraping, IoT, offline-first apps, a storefront UI, workflow automation, and agent tooling, plus three case studies of client work whose code stays private. Built mostly in Python and JavaScript, with cloud infrastructure where the job needed it (Azure, Supabase, GCP, CouchDB).
 
-**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. Proj17's checks are unit-tested against fake DNS in the same run, and its page was tried by hand in a browser against live DNS. Proj18's logic, cart and Shopify exporter are unit-tested in the same run (the exporter against fake API responses only, never a real store), alongside a type check, a size budget and a check that the committed page matches the build; the built page was also checked by hand in a browser (search, filters, keyboard navigation, reduced motion, blocked storage, an unknown-product route), see `Proj18_Coffee_Storefront/AUDIT.md`. Proj19's Code-node logic and export generator are unit-tested (62 checks) in the same run, and the workflow itself was run live against a real Shopify development store, catching and fixing two real bugs along the way, see `Proj19_Shopify_Stock_Sync/AUDIT.md`. The other projects are documented with architecture notes and diagrams, not automated tests.
+**What is verified automatically:** Proj14 (282 JS and 88 Python tests) and Proj15 (211 checks) run on every push in GitHub Actions on a clean Windows runner, and the badge above is that run. Proj16 has its Code-node logic unit-tested and its exported workflows structure-checked in the same run; the workflows themselves were run by hand on a local n8n. Proj17's checks are unit-tested against fake DNS in the same run, and its page was tried by hand in a browser against live DNS. Proj18's logic, cart and Shopify exporter are unit-tested in the same run (the exporter against fake API responses only, never a real store), alongside a type check, a size budget and a check that the committed page matches the build; the built page was also checked by hand in a browser (search, filters, keyboard navigation, reduced motion, blocked storage, an unknown-product route), see `Proj18_Coffee_Storefront/AUDIT.md`. Proj19's Code-node logic and export generator are unit-tested (62 checks) in the same run, and the workflow itself was run live against a real Shopify development store, catching and fixing two real bugs along the way, see `Proj19_Shopify_Stock_Sync/AUDIT.md`. Proj20's backend qualification logic is pytest-tested (14 tests) and its n8n export is structure-checked (17 tests) in the same run; the full system — backend, n8n write-back, and GHL's own tag-triggered/multi-step workflows and a two-page conditional funnel — was verified live end to end against a real GHL sandbox across two build phases, with 7 real bugs found and fixed along the way. The other projects are documented with architecture notes and diagrams, not automated tests.
 
 ---
 
@@ -17,14 +17,15 @@ Pick the row that matches what you are hiring for.
 | Web scraping, data extraction, anti-bot handling | [Proj1](#1-schooljobs), [Proj2](#2-shopeehijacker), [Proj9](#9-geodata-ai-ingestion-engine) |
 | Backend APIs and webhooks | [Proj6](#6-cloud-report-engine), [Proj7](#7-fastapi-etl-alerts), [Proj13](#13-astorga-flood-watch) |
 | Workflow automation in n8n | [Proj16](#16-n8n-lead-capture), [Proj19](#19-shopify-order-to-stock-sync) |
+| GoHighLevel (GHL) automation, CRM workflows and funnels | [Proj20](#20-ghl-lead-qualifier--router) |
 | Email deliverability (SPF, DKIM, DMARC) | [Proj17](#17-email-deliverability-checker) |
 | Data engineering (dbt, orchestration, IaC) | [Proj8](#8-arxiv-pipeline) |
-| WordPress and CMS automation | [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine) |
+| WordPress and CMS automation | [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine), [Proj20](#20-ghl-lead-qualifier--router) |
 | AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling), [Proj16](#16-n8n-lead-capture) |
 | Claude Code skills, hooks and guardrails | [Proj15](#15-claude-code-tooling) |
 | Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [Proj18](#18-dynamic-coffee-storefront), [storefront case study](case-studies/storefront-spa-port.md) |
 | Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md), [Proj18](#18-dynamic-coffee-storefront) (data shapes and export code, not a live store), [Proj19](#19-shopify-order-to-stock-sync) (Admin API order polling, verified live against a real dev store) |
-| Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md), [Proj16](#16-n8n-lead-capture), [Proj17](#17-email-deliverability-checker) |
+| Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md), [Proj16](#16-n8n-lead-capture), [Proj17](#17-email-deliverability-checker), [Proj20](#20-ghl-lead-qualifier--router) |
 | Embedded and IoT | [Proj4](#4-smartparkingiot), [Proj13](#13-astorga-flood-watch) |
 
 ---
@@ -52,6 +53,7 @@ Pick the row that matches what you are hiring for.
 | 17 | [Email Deliverability Checker](#17-email-deliverability-checker) | Email / DNS Tooling | JavaScript, DNS-over-HTTPS, node:test |
 | 18 | [Dynamic Coffee Storefront](#18-dynamic-coffee-storefront) | Storefront UI | TypeScript, React, Vite, Shopify Admin GraphQL, vitest |
 | 19 | [Shopify Order to Stock Sync](#19-shopify-order-to-stock-sync) | Workflow Automation | n8n, Shopify Admin GraphQL, Airtable API, GitHub Actions |
+| 20 | [GHL Lead Qualifier & Router](#20-ghl-lead-qualifier--router) | Workflow Automation / CRM | Python, FastAPI, n8n, GoHighLevel (GHL) |
 
 ---
 
@@ -264,6 +266,17 @@ An n8n workflow that polls a Shopify development store for new orders every 5 mi
 
 ---
 
+## 20. GHL Lead Qualifier & Router
+
+A FastAPI backend scores inbound leads from a GoHighLevel (GHL) funnel with an LLM, and an n8n workflow glues GHL's webhook to that backend and writes the result back: a tag, custom fields, and a pipeline stage move, then GHL's own workflow branches by tier. A second phase adds real GHL-native depth on top: a Hot branch with a task and a calendar-booking link, a Warm branch with a wait-stepped nurture drip that re-branches to hot on a real email click, a Cold branch with a re-engagement email, and a two-page conditional funnel built as a GHL Survey with Jump-To logic (not a plain Form, which has no per-field branching).
+
+**Stack:** Python · FastAPI · n8n · GoHighLevel (GHL) · Gemini  
+**Highlights:** Live-verified against a real GHL sandbox across both phases via the GHL API and a real inbox, not just execution logs; 7 real bugs found and fixed along the way, including GHL sending an empty `opportunityId` for an opportunity that already existed (fixed by having the workflow resolve it via GHL's own API instead of trusting the webhook field) and a re-branch that changed a contact's tag without moving the CRM's pipeline stage (fixed with a Find/Update Opportunity step, verified live watching a real stage move).
+
+[→ View project](Proj20_GHL_Lead_Router/)
+
+---
+
 ## Case studies
 
 Client work where the code stays private, written up by situation, constraint, build and outcome.
@@ -280,7 +293,7 @@ Client work where the code stays private, written up by situation, constraint, b
 **Data / ETL:** dbt · MotherDuck (DuckDB) · Supabase (PostgreSQL) · CouchDB / PouchDB · SQLite · Parquet  
 **AI / LLMs:** Anthropic Claude · Google Gemini (text + vision + image gen)  
 **Orchestration & Infra:** Kestra · n8n (self-hosted) · Azure Blob Storage · Terraform · Docker  
-**Web / APIs:** React · Vite · FastAPI · WordPress REST API · Shopify Admin GraphQL · Airtable API · Brevo API · Playwright · BeautifulSoup4 · DNS-over-HTTPS  
+**Web / APIs:** React · Vite · FastAPI · WordPress REST API · Shopify Admin GraphQL · GoHighLevel (GHL) API · Airtable API · Brevo API · Playwright · BeautifulSoup4 · DNS-over-HTTPS  
 **Agent tooling:** Claude Code hooks, skills and guardrails · MCP  
 **Hardware:** ESP32 / ESP8266 · LoRa · ultrasonic sensing  
 **Visualization:** Metabase · Jinja2 / WeasyPrint (PDF)
