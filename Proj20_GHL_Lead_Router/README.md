@@ -26,6 +26,16 @@ UI, not just n8n's own execution log. See `docs/screenshots/` for the
 pipeline, CRM record, funnel canvas, and both GHL workflow canvases from
 that run.
 
+A second, GHL-native advanced-workflows phase (built and live-verified
+2026-09-23/24) replaced the thin single-action hot/warm/cold branches and
+single-page funnel with real multi-step, conditional GHL-native depth: a
+Hot branch with a Task action and a calendar-booking link, a Warm branch
+with a 3-step wait-stepped nurture drip that re-branches to hot on a real
+email click, a Cold branch with a single re-engagement email, and a
+two-page conditional funnel built as a GHL Survey (Budget answer drives a
+Jump-To condition to a Timeline or Blocker question). Backend and n8n were
+untouched for this phase; it's entirely GHL-sandbox-native.
+
 ## What is verified
 Checked automatically: `backend/tests` (pytest, 14 tests) covers the
 qualification logic's tier boundaries, malformed-output handling, and the
@@ -47,10 +57,43 @@ having n8n look the id up itself instead of trusting the webhook field),
 and the GHL API rejecting camelCase `contactId` despite the `leadconnector`
 MCP's own docs saying otherwise (real API wants snake_case `contact_id`).
 
-Known gap: the Hot Leads GHL workflow's original SMS action fails (sandbox
-has no SMS-capable number) and was left in place alongside a working Email
-action rather than deleted, since it fails harmlessly and Email already
-covers the hot-lead notification.
+Checked live, the advanced-workflows phase (2026-09-23/24): all four
+branches verified against the GHL API and a real Gmail inbox, not just the
+sandbox UI. **Hot**: a contact tagged `hot` directly via API produced a
+correctly-titled, correctly-due Task on the contact record within
+`get-all-tasks`, and `{{user.calendar_link}}` in the Hot email resolves to
+the live "Proj20 Intro Call" booking link. **Warm-to-hot re-branch**: a
+warm-tagged test contact (`+proj20warmclick` Gmail alias) received the
+Day-0 nurture email; a real human click on its tracked link (automated
+`WebFetch` clicks do not register with GHL's click tracking, confirmed
+twice) added the `hot` tag within about a minute and correctly fired the
+Hot branch's Task. **Warm-to-cold**: a warm-tagged contact that never
+opened or clicked (`+proj20warmcold` alias) picked up the `cold` tag after
+its drip completed, and a distinct re-engagement email ("Still thinking
+about it, Proj20?") landed about 3.5 minutes later - confirmed as a
+separate send, not a repeat of the nurture emails. **Funnel**: a live
+submission with Budget "$5,000+" produced a contact with `inquiry_timeline`
+populated and no blocker field; a submission with "Under $5,000" produced
+`inquiry_blocker` populated and no timeline field, proving the Survey's
+Jump-To condition branches per-contact, not just per-slide-order. A
+correctness gap not in the original spec was also caught and fixed here:
+neither the Hot nor Cold workflow moved the opportunity's pipeline stage on
+a re-branch, desyncing the tag from the CRM Kanban view; both workflows now
+include a Find Opportunity -> Update Opportunity step, verified live by
+watching a real opportunity move New -> Hot via the API.
+
+Live-test methodology: all three wait steps (Warm's two, Cold's one) were
+temporarily shrunk to 3 minutes each to make same-session verification
+possible, then restored to their production durations (Warm: 3 days, 4
+days; Cold: 30 days) on 2026-09-24 once every branch above had been
+confirmed.
+
+Known, accepted deviation: the spec for the advanced-workflows phase called
+for dropping the Hot Leads workflow's original SMS action entirely. It was
+left in place instead - an explicit decision, not an oversight - since the
+sandbox has no SMS-capable number so it fails harmlessly, and the new Task
+action plus Email (with the calendar-booking link) already cover the
+hot-lead notification.
 
 ## Set up
 1. Backend: `cd backend && py -m pip install -r requirements.txt`, set
@@ -91,5 +134,8 @@ never committed, same convention as every other credential/ID in this repo.
 - Render's free tier spins the backend down after 15 minutes idle; a cold
   start takes roughly 15-36s and can occasionally surface a transient
   `ECONNRESET` on the first request after a spin-down, which a retry clears.
-- The GHL sandbox has no SMS-capable number, so the Hot Leads workflow's
-  notification runs over Email instead of SMS.
+- The sandbox funnel has no domain attached, so it has no real public URL;
+  live testing used GHL's own preview link instead. The preview domain's
+  Cloudflare Turnstile check occasionally fails silently (a form submit
+  produces no error and no contact) - a short pause before submitting
+  clears it, confirmed by retrying a failed submission successfully.
