@@ -4,11 +4,16 @@ One-click WordPress site builder for rank and rent local service businesses. Fil
 
 Built as an operator tool rather than a developer script: the person running it needs no Python, no WordPress admin experience, and no knowledge of the codebase.
 
+## Live demo
+
+[abashedbike.s2-tastewp.com](https://abashedbike.s2-tastewp.com/) — a full run against a fresh TasteWP install, published 2026-09-26 (native Gutenberg blocks, v2). This is a free-trial WordPress sandbox and **will expire and stop resolving after a few days** — the screenshots below are the durable record once it does.
+
 ## What's verified
 
 Every feature claim below was checked against the actual source, not just the old description:
 
-- **A real end-to-end deploy is on record**, not just described. `logs/run_summary_20260511_234402.json` and five per-page JSON files show a real run against a live (free-trial TasteWP) WordPress install, five service pages, all `"status": "success"` with real WP page IDs and URLs. `screenshots/Editor/` and `screenshots/Preview/` (committed to this repo, not gitignored) are actual WP admin screenshots of the published result, including real Gemini-written copy with local landmark references baked into the text.
+- **A second real end-to-end deploy, this time on the native-Gutenberg-block v2 build**: an 8-page run against a fresh TasteWP install (`abashedbike.s2-tastewp.com`) on 2026-09-26, all pages published with `"status": "success"`. Opened each published page's block editor afterward and read the browser console directly — zero block-validation errors (only unrelated host-platform CORS noise from TasteWP's own onboarding widget, and core WP deprecation notices). `screenshots/Preview_v2/` and `screenshots/Editor_v2/` are the public-facing evidence.
+- **The original end-to-end deploy is also on record**, not just described. `logs/run_summary_20260511_234402.json` and five per-page JSON files show a real run against a live (free-trial TasteWP) WordPress install, five service pages, all `"status": "success"` with real WP page IDs and URLs. `screenshots/Editor/` and `screenshots/Preview/` (committed to this repo, not gitignored) are actual WP admin screenshots of the published result, including real Gemini-written copy with local landmark references baked into the text.
 - **Idempotent deploys are real**: `wp_client.py`'s `upsert_page`/`upsert_post` look up the target by slug first, update if found, create if not, exactly as claimed.
 - **Content caching and granular retry are real**: `deployer.py`'s main `deploy()` checks `content_cache` before calling Gemini for every page type, and `deploy_retry()` re-runs only the specific failed items, then rebuilds the services hub and blog listing afterward, matching the README's description.
 - **The nonce/allowlist claim on the bundled plugin is real**: `plugins/rr-contact-handler.php`'s option writer calls `check_ajax_referer('wp_rest', '_wpnonce')` and restricts writes to an explicit allowlist (`rr_footer_config`, `rr_contact_email`), with a code comment explaining why (unrestricted option writes escalate to admin via `users_can_register` + `default_role`).
@@ -17,7 +22,7 @@ Every feature claim below was checked against the actual source, not just the ol
 
 ## What's NOT verified
 
-- The run evidence above comes from a disposable TasteWP trial site (`*.s6-tastewp.com`), not a real production WordPress host. The tool has not been shown running against a paid/permanent WP install in this repo's history.
+- Both runs' evidence comes from disposable TasteWP trial sites (`*.s6-tastewp.com`, `*.s2-tastewp.com`), not a real production WordPress host. The tool has not been shown running against a paid/permanent WP install in this repo's history. The live link above will stop working once TasteWP deletes the trial; the committed screenshots are what survives that.
 - The per-run JSON logs (`logs/`) are gitignored and local-only; they were used to verify the claims above but are not visible to someone browsing the public repo. The committed screenshots are the public-facing evidence.
 
 ## Overview
