@@ -171,8 +171,8 @@ Tracks building violations for NYC properties by querying the official DOB Open 
 
 Local Flask app that provisions a complete rank-and-rent WordPress site from a single form. Gemini writes the copy and Pexels supplies the imagery, then the tool publishes a homepage, one page per service, blog posts with a listing page, 12 FAQs, and a contact page with a quote form and Maps embed.
 
-**Stack:** Python · Flask · Google Gemini · Pexels API · WordPress REST API  
-**Highlights:** Live progress over SSE; content cache and Retry Failed so re-runs are idempotent; AI-driven internal interlinking; deployment history and one-click site reset; 14 pages published per run.
+**Stack:** Python · Flask · Google Gemini · Pexels API · WordPress REST API · WordPress Abilities API / MCP  
+**Highlights:** Pages are native Gutenberg block markup, not an HTML dump — validated clean against the block editor's own validator, with a 13-fix debug log kept alongside the code; a companion WP plugin exposes page create/read/update/list as MCP abilities, so an agent can address real pages directly; live progress over SSE; content cache and Retry Failed so re-runs are idempotent; AI-driven internal interlinking; deployment history and one-click site reset; 14 pages published per run.
 
 [→ View project](Proj11_Rank_Rent_Automation/)
 

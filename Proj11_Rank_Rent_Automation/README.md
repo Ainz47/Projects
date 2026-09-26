@@ -51,7 +51,8 @@ A standard run publishes 14 pages.
 - **AI-assisted interlinking**: Gemini proposes external keyword targets, filtered against the internal link map so it does not suggest terms the site already owns, then links are injected across published pages and posts
 - **Deployment history**: every run is recorded with its configuration and published URLs
 - **Theme handling**: verifies Astra is installed and active, installing it automatically where the host permits
-- **No page builders**: output is plain HTML/CSS blocks, so pages stay fast and portable
+- **Native Gutenberg blocks, no page builders**: pages are built from real `wp:*` block markup that validates clean in the block editor (not one big HTML dump), so they stay fast, portable, and editable by hand afterward. `docs/GUTENBERG_CONVERSION_NOTES.md` is the debug log from that conversion — 13 numbered validator mismatches found and fixed
+- **MCP-addressable via a companion abilities plugin**: `rr-wp-abilities/` registers `rr/create-page`, `rr/get-page`, `rr/update-page`, and `rr/list-pages` on WordPress's Abilities API, so an MCP client (Claude Code or any other) can create and inspect real block-editor pages directly, not just through this app's own UI. Setup steps and gotchas in `docs/WP_MCP_SETUP.md`
 
 ## Architecture
 
@@ -85,7 +86,8 @@ src/history.py (deployment record)
 | `src/content_cache.py` | File-based cache keyed on deployment config |
 | `src/interlinker.py` | Internal link map, Gemini keyword suggestions, link injection |
 | `src/history.py` | Deployment history persistence |
-| `templates/` | Per-page HTML/CSS block builders |
+| `templates/` | Per-page Gutenberg block builders |
+| `rr-wp-abilities/` | Companion WP plugin exposing page CRUD as MCP abilities (`rr/create-page`, `rr/get-page`, `rr/update-page`, `rr/list-pages`) |
 
 ## Installation
 
