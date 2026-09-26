@@ -6,13 +6,14 @@ Built as an operator tool rather than a developer script: the person running it 
 
 ## Live demo
 
-[abashedbike.s2-tastewp.com](https://abashedbike.s2-tastewp.com/) — a full run against a fresh TasteWP install, published 2026-09-26 (native Gutenberg blocks, v2). This is a free-trial WordPress sandbox and **will expire and stop resolving after a few days** — the screenshots below are the durable record once it does.
+[toughgrape.s6-tastewp.com](https://toughgrape.s6-tastewp.com/) — a full run against a fresh TasteWP install, published 2026-09-26 (native Gutenberg blocks, v2), 7-day trial window. This is a free-trial WordPress sandbox and **will expire and stop resolving once the trial ends** — the screenshots below are the durable record once it does. (An earlier same-day run on a shorter-lived TasteWP trial, `abashedbike.s2-tastewp.com`, is what the screenshots and console-validation check below were taken from; it expires sooner and isn't the link to send out.)
 
 ## What's verified
 
 Every feature claim below was checked against the actual source, not just the old description:
 
 - **A second real end-to-end deploy, this time on the native-Gutenberg-block v2 build**: an 8-page run against a fresh TasteWP install (`abashedbike.s2-tastewp.com`) on 2026-09-26, all pages published with `"status": "success"`. Opened each published page's block editor afterward and read the browser console directly — zero block-validation errors (only unrelated host-platform CORS noise from TasteWP's own onboarding widget, and core WP deprecation notices). `screenshots/Preview_v2/` and `screenshots/Editor_v2/` are the public-facing evidence.
+- **Repeated the same run against a second, longer-lived TasteWP trial** (`toughgrape.s6-tastewp.com`, 7-day window) to have a link that outlasts a single outreach cycle — also 8/8 pages published, 0 failed. This is the link in "Live demo" above.
 - **The original end-to-end deploy is also on record**, not just described. `logs/run_summary_20260511_234402.json` and five per-page JSON files show a real run against a live (free-trial TasteWP) WordPress install, five service pages, all `"status": "success"` with real WP page IDs and URLs. `screenshots/Editor/` and `screenshots/Preview/` (committed to this repo, not gitignored) are actual WP admin screenshots of the published result, including real Gemini-written copy with local landmark references baked into the text.
 - **Idempotent deploys are real**: `wp_client.py`'s `upsert_page`/`upsert_post` look up the target by slug first, update if found, create if not, exactly as claimed.
 - **Content caching and granular retry are real**: `deployer.py`'s main `deploy()` checks `content_cache` before calling Gemini for every page type, and `deploy_retry()` re-runs only the specific failed items, then rebuilds the services hub and blog listing afterward, matching the README's description.
