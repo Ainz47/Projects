@@ -1,67 +1,54 @@
-from fastapi import FastAPI, Request, HTTPException, Depends
+"""In-memory stand-in for the WordPress endpoints the pipeline uses. Run: py -m uvicorn mock_wp:app"""
+from fastapi import Depends, FastAPI, HTTPException, Request
 from fastapi.security import HTTPBasic, HTTPBasicCredentials
-import json
 
-app = FastAPI(title="Mock WordPress REST API")
-security = HTTPBasic()
+USERNAME, PASSWORD = "mock_admin", "mock_password"
 
-# Fake database to keep track of things in memory
-db = {
-    "media_counter": 100,
-    "posts_counter": 500,
-    "listings": {} # Maps place_ids to post_ids
-}
 
-# --- Authentication (Simulating WP Application Passwords) ---
-def verify_auth(credentials: HTTPBasicCredentials = Depends(security)):
-    if credentials.username != "mock_admin" or credentials.password != "mock_password":
-        raise HTTPException(status_code=401, detail="Unauthorized")
-    return credentials.username
+def create_app() -> FastAPI:
+    app = FastAPI(title="Mock WordPress REST API")
+    security = HTTPBasic()
+    state = {"next_media": 100, "next_post": 500, "posts": {}, "media": {}}
+    app.state.wp = state
 
-# --- Mock WP Media Library ---
-@app.post("/wp/v2/media", status_code=201)
-async def upload_media(request: Request, username: str = Depends(verify_auth)):
-    db["media_counter"] += 1
-    print(f"📸 Mock WP received an image upload! Assigned ID: {db['media_counter']}")
-    return {"id": db["media_counter"], "source_url": "http://mock-wp.local/image.jpg"}
+    def auth(creds: HTTPBasicCredentials = Depends(security)):
+        if (creds.username, creds.password) != (USERNAME, PASSWORD):
+            raise HTTPException(401, "Unauthorized")
 
-# --- Mock WP Custom Post Type (Directory Listings) ---
-@app.get("/wp/v2/directory_listing")
-async def check_existing_post(meta_key: str = None, meta_value: str = None, username: str = Depends(verify_auth)):
-    # Simulating the idempotency check
-    if meta_key == "place_id" and meta_value in db["listings"]:
-        print(f"🔍 Checking Place ID: Found existing post {db['listings'][meta_value]}")
-        return [{"id": db["listings"][meta_value]}]
-    
-    print(f"🔍 Checking Place ID: Nothing found. Safe to create new.")
-    return []
+    @app.post("/wp/v2/media", status_code=201, dependencies=[Depends(auth)])
+    async def upload_media(request: Request):
+        body = await request.body()
+        if not body:
+            raise HTTPException(400, "Empty upload")
+        state["next_media"] += 1
+        state["media"][state["next_media"]] = len(body)
+        return {"id": state["next_media"]}
 
-@app.post("/wp/v2/directory_listing", status_code=201)
-async def create_new_post(request: Request, username: str = Depends(verify_auth)):
-    data = await request.json()
-    db["posts_counter"] += 1
-    new_post_id = db["posts_counter"]
-    
-    print("\n" + "="*50)
-    print(f"🤝 Mock WP received CREATE request. Assigning new ID: {new_post_id}")
-    print("="*50)
-    print(json.dumps(data, indent=4)) # This is the flex!
-    print("="*50 + "\n")
-    
-    # THE FIX: Record the place_id -> post_id mapping for idempotency checks.
-    place_id = data.get("meta", {}).get("place_id")
-    if place_id:
-        db["listings"][place_id] = new_post_id
-        print(f"✍️  Mock DB recorded mapping: {place_id} -> {new_post_id}")
+    @app.get("/wp/v2/directory_listing", dependencies=[Depends(auth)])
+    async def list_listings(place_id: str | None = None):
+        posts = [p for p in state["posts"].values() if not place_id or p["meta"].get("place_id") == place_id]
+        return [{"id": p["id"], "featured_media": p.get("featured_media", 0)} for p in posts]
 
-    return {"id": new_post_id, "status": "publish"}
+    @app.post("/wp/v2/directory_listing", status_code=201, dependencies=[Depends(auth)])
+    async def create_listing(request: Request):
+        data = await request.json()
+        state["next_post"] += 1
+        post = {"featured_media": 0, **data, "id": state["next_post"]}
+        state["posts"][post["id"]] = post
+        return post
 
-@app.post("/wp/v2/directory_listing/{post_id}", status_code=200)
-async def update_existing_post(post_id: int, request: Request, username: str = Depends(verify_auth)):
-    data = await request.json()
-    print("\n" + "="*50)
-    print(f"🔄 Mock WP received UPDATE request for existing ID: {post_id}")
-    print("="*50)
-    print(json.dumps(data, indent=4))
-    print("="*50 + "\n")
-    return {"id": post_id, "status": "publish"}
+    @app.post("/wp/v2/directory_listing/{post_id}", dependencies=[Depends(auth)])
+    async def update_listing(post_id: int, request: Request):
+        if post_id not in state["posts"]:
+            raise HTTPException(404, "No such post")
+        data = await request.json()
+        post = state["posts"][post_id]
+        meta = {**post.get("meta", {}), **data.pop("meta", {})}
+        post.update(data)
+        post["meta"] = meta
+        return post
+
+    return app
+
+
+app = create_app()

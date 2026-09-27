@@ -37,3 +37,35 @@ class FakeGemini:
 @pytest.fixture
 def jpeg():
     return make_jpeg
+
+
+class MockSession:
+    """Lets WordPressClient (written against requests) talk to mock_wp through FastAPI's TestClient."""
+
+    def __init__(self, client):
+        self.client = client
+
+    def get(self, url, params=None, auth=None):
+        return self.client.get(url, params=params, auth=auth)
+
+    def post(self, url, json=None, data=None, headers=None, auth=None):
+        if data is not None:
+            return self.client.post(url, content=data, headers=headers, auth=auth)
+        return self.client.post(url, json=json, headers=headers, auth=auth)
+
+
+@pytest.fixture
+def mock_app():
+    import mock_wp
+
+    return mock_wp.create_app()
+
+
+@pytest.fixture
+def wp(mock_app):
+    from fastapi.testclient import TestClient
+
+    import mock_wp
+    from wp_importer import WordPressClient
+
+    return WordPressClient("http://testserver", (mock_wp.USERNAME, mock_wp.PASSWORD), session=MockSession(TestClient(mock_app)))

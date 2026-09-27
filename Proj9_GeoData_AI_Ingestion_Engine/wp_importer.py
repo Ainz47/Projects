@@ -1,128 +1,70 @@
+"""WordPress REST client for directory listings. Any unexpected response raises WordPressError."""
+import io
 import os
+
 import requests
-from requests.auth import HTTPBasicAuth
 from dotenv import load_dotenv
-from transformations import process_and_filter_image
+from PIL import Image
 
-load_dotenv()
+MIME = {"JPEG": "image/jpeg", "PNG": "image/png", "WEBP": "image/webp"}
 
-WP_BASE = os.getenv("WP_BASE_URL")
-print(f"DEBUG: Connecting to WP at -> {WP_BASE}") # Add this!
 
-AUTH = HTTPBasicAuth(os.getenv("WP_USERNAME"), os.getenv("WP_APP_PASSWORD"))
+class WordPressError(RuntimeError):
+    pass
 
-def upload_processed_image(image_url: str, category: str, business_name: str) -> int:
-    """The Gate Logic: Scraped -> Filter -> Resolution -> (Optional) Upscale"""
-    
-    # 1. Get the Scraped Image
-    response = requests.get(image_url)
-    if not response.ok:
-        print(f"❌ Failed to download image from {image_url}. Status: {response.status_code}")
-        return None
-    img_bytes = response.content
 
-    # Refactored: Use the centralized processing function from transformations.py
-    final_bytes = process_and_filter_image(
-        image_bytes=img_bytes, category=category, business_name=business_name
-    )
+def image_mime(image_bytes: bytes) -> str:
+    return MIME.get(Image.open(io.BytesIO(image_bytes)).format, "image/jpeg")
 
-    # Proceed to upload the final binary (Original or Enhanced)
-    return upload_binary_to_wp(final_bytes, f"{business_name.replace(' ', '_')}.jpg")
 
-def upload_binary_to_wp(image_bytes: bytes, filename: str) -> int:
-    """Uploads image bytes to WP Media Library and returns the ID."""
-    if not image_bytes:
-        return None
+class WordPressClient:
+    def __init__(self, base_url: str, auth: tuple[str, str], session=None):
+        self.base = base_url.rstrip("/")
+        self.auth = auth
+        self.session = session or requests.Session()
 
-    url = f"{WP_BASE}/wp/v2/media"
-    
-    headers = {
-        "Content-Disposition": f"attachment; filename={filename}",
-        "Content-Type": "image/jpeg"
-    }
+    @classmethod
+    def from_env(cls) -> "WordPressClient":
+        load_dotenv()
+        base, user, password = (os.getenv(k) for k in ("WP_BASE_URL", "WP_USERNAME", "WP_APP_PASSWORD"))
+        if not (base and user and password):
+            raise WordPressError("WP_BASE_URL, WP_USERNAME and WP_APP_PASSWORD must all be set in .env")
+        return cls(base, (user, password))
 
-    response = requests.post(url, headers=headers, data=image_bytes, auth=AUTH)
+    def _json(self, response, expected: int, what: str):
+        if response.status_code != expected:
+            raise WordPressError(f"{what} failed: HTTP {response.status_code} {response.text[:300]}")
+        return response.json()
 
-    if response.status_code == 201:
-        print(f"✅ Uploaded {filename} to WordPress Media Library.")
-        return response.json().get("id")
-    else:
-        print(f"❌ Failed to upload {filename}. Status: {response.status_code}, Response: {response.text}")
-    return None
-
-def upload_local_media(file_path: str) -> int:
-    """Uploads a local file to WP Media Library and returns the ID."""
-    if not file_path or not os.path.exists(file_path):
-        return None
-
-    url = f"{WP_BASE}/wp/v2/media"
-    filename = os.path.basename(file_path)
-    
-    headers = {
-        "Content-Disposition": f"attachment; filename={filename}",
-        "Content-Type": "image/jpeg"
-    }
-
-    with open(file_path, "rb") as img:
-        response = requests.post(url, headers=headers, data=img, auth=AUTH)
-
-    if response.status_code == 201:
-        return response.json().get("id")
-    return None
-
-def ingest_to_wordpress(payload: dict, source_image_url: str = None):
-    """Pushes data, handles the gallery loop, and maps IDs."""
-    cpt_endpoint = f"{WP_BASE}/wp/v2/directory_listing"
-    
-    featured_media_id = None
-    # GATEKEEPER LOGIC for the scraped "Ground Truth" image
-    if source_image_url:
-        print("🔎 Processing scraped image URL as potential featured image...")
-        featured_media_id = upload_processed_image(
-            image_url=source_image_url,
-            category=payload['acf_fields']['business_category'],
-            business_name=payload['title']
+    def find_listing(self, place_id: str) -> dict | None:
+        """Needs the proj9-directory-listing plugin, which adds the ?place_id= filter."""
+        r = self.session.get(
+            f"{self.base}/wp/v2/directory_listing",
+            params={"place_id": place_id, "_fields": "id,featured_media"},
+            auth=self.auth,
         )
+        posts = self._json(r, 200, "Listing lookup")
+        return {"id": posts[0]["id"], "featured_media": posts[0].get("featured_media", 0)} if posts else None
 
-    # 1. Process Gallery Images (Convert Filenames -> Media IDs)
-    gallery_ids = []
-    for img_path in payload["acf_fields"].get("gallery_images", []):
-        media_id = upload_local_media(img_path)
-        if media_id:
-            gallery_ids.append(media_id)
+    def upload_media(self, image_bytes: bytes, filename: str) -> int:
+        r = self.session.post(
+            f"{self.base}/wp/v2/media",
+            data=image_bytes,
+            headers={"Content-Disposition": f'attachment; filename="{filename}"', "Content-Type": image_mime(image_bytes)},
+            auth=self.auth,
+        )
+        return self._json(r, 201, f"Media upload ({filename})")["id"]
 
-    # Update ACF to use IDs instead of strings
-    payload["acf_fields"]["gallery_images"] = gallery_ids
-
-    # Determine the final featured image. Prioritize the first gallery image if it exists.
-    final_featured_media_id = gallery_ids[0] if gallery_ids else featured_media_id
-
-    # 2. Check for existing post (Idempotency)
-    search_params = {"meta_key": "place_id", "meta_value": payload['place_id']}
-    search_res = requests.get(cpt_endpoint, params=search_params, auth=AUTH)
-    existing_posts = search_res.json()
-
-    wp_data = {
-        "title": payload["title"],
-        "content": payload["content"],
-        "status": "publish",
-        "acf": payload["acf_fields"],
-        "meta": {"place_id": payload["place_id"]}
-    }
-    # Only add featured_media if we have one, to avoid sending 'None'
-    if final_featured_media_id:
-        wp_data["featured_media"] = final_featured_media_id
-
-    if existing_posts:
-        post_id = existing_posts[0]['id']
-        response = requests.post(f"{cpt_endpoint}/{post_id}", json=wp_data, auth=AUTH)
-        if response.status_code == 200:
-            print(f"🔄 Updated {payload['title']} (ID: {post_id})")
-        else:
-            print(f"❌ Failed to update {payload['title']}. Status: {response.status_code}, Response: {response.text}")
-    else:
-        response = requests.post(cpt_endpoint, json=wp_data, auth=AUTH)
-        if response.status_code == 201:
-            print(f"✅ Created {payload['title']} (ID: {response.json()['id']})")
-        else:
-            print(f"❌ Failed to create {payload['title']}. Status: {response.status_code}, Response: {response.text}")
+    def save_listing(self, listing: dict, post_id: int | None = None, featured_media: int | None = None, gallery_ids=()) -> tuple[str, int]:
+        """Creates the post, or updates post_id. A missing gallery leaves the stored one alone."""
+        meta = {**listing["meta"], "place_id": listing["place_id"]}
+        if gallery_ids:
+            meta["gallery_images"] = list(gallery_ids)
+        body = {"title": listing["title"], "content": listing["content"], "status": "publish", "meta": meta}
+        if featured_media:
+            body["featured_media"] = featured_media
+        if post_id:
+            r = self.session.post(f"{self.base}/wp/v2/directory_listing/{post_id}", json=body, auth=self.auth)
+            return "updated", self._json(r, 200, "Listing update")["id"]
+        r = self.session.post(f"{self.base}/wp/v2/directory_listing", json=body, auth=self.auth)
+        return "created", self._json(r, 201, "Listing create")["id"]
