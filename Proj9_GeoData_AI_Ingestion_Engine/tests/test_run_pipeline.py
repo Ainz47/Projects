@@ -93,4 +93,4 @@ def test_load_businesses_rejects_missing_fields(tmp_path):
 
 def test_high_res_url_asks_for_a_width_that_passes_the_gate():
     url = high_res_url("https://lh5.googleusercontent.com/p/AF1Qip=w256-h256-k-no")
-    assert url == "https://lh5.googleusercontent.com/p/AF1Qip=w1600-h1067-k-no"
+    assert url == "https://lh5.googleusercontent.com/p/AF1Qip=w1600-k-no"

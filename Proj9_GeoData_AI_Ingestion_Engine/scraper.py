@@ -6,8 +6,9 @@ import urllib.parse
 from playwright.sync_api import TimeoutError as PlaywrightTimeout
 from playwright.sync_api import sync_playwright
 
-# Wider than transformations.MIN_WIDTH, so a real photo passes the resolution gate as-is.
-PHOTO_SIZE = "=w1600-h1067-k-no"
+# Width only, wider than transformations.MIN_WIDTH, so a real photo passes the resolution gate as-is.
+# A width-and-height box (=w1600-h1067) lets a portrait photo come back 800px wide.
+PHOTO_SIZE = "=w1600-k-no"
 
 
 def high_res_url(src: str) -> str:
