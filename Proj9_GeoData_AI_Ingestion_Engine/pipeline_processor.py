@@ -1,48 +1,47 @@
-import os
-import json
+"""Turns one scraped business into the listing payload the WordPress client writes."""
 import hashlib
-from dotenv import load_dotenv
-from google import genai
+import unicodedata
 
-load_dotenv()
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+from gemini import TEXT_MODEL, get_client
 
-def generate_unique_story(business_name: str, category: str, location: str) -> str:
-    """Uses Gemini to generate a high-quality, unique description."""
-    print(f"🧠 Asking Gemini to write a story for {business_name}...")
-    prompt = f"Write an engaging, premium 2-paragraph directory listing story for a {category} called '{business_name}' located in {location}. Make it sound professional and enticing."
+FALLBACK_STORY = "A local {category} in {location}."
+
+
+def clean_text(value: str) -> str:
+    """Drops the private-use icon glyphs Google Maps puts in front of fields, and tidies whitespace."""
+    kept = "".join(ch for ch in value if unicodedata.category(ch) != "Co")
+    return " ".join(kept.split())
+
+
+def make_place_id(name: str, address: str) -> str:
+    return hashlib.md5(f"{name}_{address}".encode("utf-8")).hexdigest()
+
+
+def generate_unique_story(name: str, category: str, location: str, client=None) -> tuple[str, bool]:
+    """Returns (story, True) from Gemini, or (fallback, False) if the call fails or comes back empty."""
+    prompt = (
+        f"Write an engaging two-paragraph directory listing for a {category} called '{name}' "
+        f"in {location}. Professional and inviting. Do not invent prices, awards, opening hours or menu items."
+    )
     try:
-        response = client.models.generate_content(model='gemini-2.5-flash', contents=prompt)
-        return response.text.strip()
+        response = (client or get_client()).models.generate_content(model=TEXT_MODEL, contents=prompt)
+        text = (response.text or "").strip()
+        if text:
+            return text, True
     except Exception as e:
-        print(f"⚠️ Gemini story generation failed: {e}")
-        print("✨ Falling back to default content.")
-        return "A premium local destination offering an unforgettable experience."
+        print(f"Gemini story failed for {name}: {e}")
+    return FALLBACK_STORY.format(category=category.lower(), location=location), False
 
-def process_scraped_data(raw_data: dict) -> dict:
-    """Formats the data into the Ivy-Level Naperville Schema."""
-    print(f"⚙️ Structuring ACF Data for {raw_data['name']}...")
-    
-    unique_string = f"{raw_data['name']}_{raw_data['address']}".encode('utf-8')
-    place_id = hashlib.md5(unique_string).hexdigest()
-    story = generate_unique_story(raw_data['name'], raw_data['category'], raw_data['city'])
 
-    # The Enriched "Ivy-Level" Schema
-    enriched_json = {
-        "place_id": place_id,
-        "title": raw_data["name"],
+def build_listing(raw: dict, story: str) -> dict:
+    name, address = clean_text(raw["name"]), clean_text(raw["address"])
+    return {
+        "place_id": make_place_id(name, address),
+        "title": name,
         "content": story,
-        "acf_fields": {
-            "business_address": raw_data["address"],
-            "business_category": raw_data["category"],
-            "amenities": ["Outdoor Seating", "Craft Cocktails", "Farm-to-Table"], # Mocked for Prototype
-            "opening_hours": {
-                "monday": "Closed",
-                "tuesday_thursday": "11:00 AM - 9:00 PM",
-                "friday_saturday": "11:00 AM - 10:00 PM",
-                "sunday": "11:00 AM - 8:00 PM"
-            },
-            "gallery_images": raw_data.get("gallery_images", [])
-        }
+        "meta": {
+            "business_address": address,
+            "business_category": raw["category"],
+            "business_city": raw["city"],
+        },
     }
-    return enriched_json
