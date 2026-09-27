@@ -19,3 +19,5 @@ __pycache__/
 *.mv.db
 *.sqlite
 node_modules/
+# Proj9 reports from the superseded run on another project's demo site.
+Proj9_GeoData_AI_Ingestion_Engine/runs_toughgrape/
