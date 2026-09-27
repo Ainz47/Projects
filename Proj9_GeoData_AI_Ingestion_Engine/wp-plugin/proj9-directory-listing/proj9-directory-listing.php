@@ -9,7 +9,15 @@ if (!defined('ABSPATH')) {
     exit;
 }
 
-add_action('init', function () {
+add_action('init', 'proj9_register_listing');
+
+// Register once on activation too, then flush, so /listings/ works on a fresh site without re-saving permalinks.
+register_activation_hook(__FILE__, function () {
+    proj9_register_listing();
+    flush_rewrite_rules();
+});
+
+function proj9_register_listing() {
     register_post_type('directory_listing', [
         'label'        => 'Directory Listings',
         'public'       => true,
@@ -34,7 +42,7 @@ add_action('init', function () {
         'auth_callback' => $can_edit,
         'show_in_rest'  => ['schema' => ['type' => 'array', 'items' => ['type' => 'integer']]],
     ]);
-});
+}
 
 // GET /wp/v2/directory_listing?place_id=<md5> : exact match on that one meta key only.
 add_filter('rest_directory_listing_query', function ($args, $request) {
