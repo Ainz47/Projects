@@ -1,40 +1,26 @@
-import requests
-import os
-from dotenv import load_dotenv
+"""Posts the high-labor alert to a Discord (or Slack-compatible) webhook."""
+import httpx
 
-# Load environment variables
-load_dotenv()
 
-# We will put this in your .env file shortly
-WEBHOOK_URL = os.getenv("ALERT_WEBHOOK_URL")
+def format_alert(store_id: str, day: str, metrics: dict) -> str:
+    cplh = f"${metrics['cplh']:.2f}" if metrics["cplh"] is not None else "n/a"
+    return (
+        f"🚨 **High labor cost: {store_id}**\n"
+        f"📅 {day}\n"
+        f"📈 Labor: {metrics['labor_pct']:.2f}% of sales\n"
+        f"🕒 Cost per labor hour: {cplh}\n"
+        f"Review the schedule for this day."
+    )
 
-def send_labor_alert(store_id: str, date: str, labor_pct: float, cplh: float):
-    """Triggers an alert if labor metrics exceed profitable thresholds."""
-    
-    if not WEBHOOK_URL:
-        print("⚠️ No Webhook URL found in .env. Skipping alert.")
-        return
 
-    # Formatting the payload for Discord/Slack
-    payload = {
-        "content": (
-            f"🚨 **HIGH LABOR COST ALERT: {store_id}** 🚨\n"
-            f"📅 **Date:** {date}\n"
-            f"📈 **Labor %:** {labor_pct}%\n"
-            f"🕒 **CPLH (Cost Per Labor Hour):** ${cplh}\n"
-            f"⚠️ *Action Required: Review 7shifts scheduling immediately.*"
-        )
-    }
-
-    print(f"🔔 Firing alert to Operations Team for {store_id}...")
-    
-    response = requests.post(WEBHOOK_URL, json=payload)
-    
-    if response.status_code == 204 or response.status_code == 200:
-        print("✅ Alert successfully delivered!")
-    else:
-        print(f"❌ Failed to send alert. Status Code: {response.status_code}")
-
-# Quick local test (only runs if you execute this file directly)
-if __name__ == "__main__":
-    send_labor_alert("Store_104", "2026-02-23", 28.5, 22.50)
+def send_labor_alert(webhook_url: str, store_id: str, day: str, metrics: dict,
+                     client: httpx.Client | None = None, timeout: float = 10.0) -> bool:
+    """True if the webhook accepted the message. Never raises: a failed alert must not fail the batch."""
+    try:
+        r = (client or httpx.Client(timeout=timeout)).post(webhook_url, json={"content": format_alert(store_id, day, metrics)})
+        if r.is_success:
+            return True
+        print(f"Alert for {store_id} {day} rejected: HTTP {r.status_code}")
+    except httpx.HTTPError as e:
+        print(f"Alert for {store_id} {day} failed: {type(e).__name__}")
+    return False
