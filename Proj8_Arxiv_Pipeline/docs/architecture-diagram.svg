@@ -1,103 +1,95 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
-  <title id="title">Proj8 Arxiv Pipeline Architecture Diagram</title>
-  <desc id="desc">Simplified architecture diagram for the Arxiv pipeline showing arXiv API, extraction, Azure Blob Storage, dbt, MotherDuck, and Metabase, with Kestra, Terraform, and environment secrets as supporting components.</desc>
-  <defs>
-    <style>
+<title id="title">arXiv Pipeline architecture diagram</title>
+<desc id="desc">arXiv API to extract.py to Parquet chunks with a checkpoint, then dbt staging and an incremental fact table on DuckDB or MotherDuck, served by Metabase. Kestra, Terraform, DuckDB and dbt tests support it.</desc>
+<defs>
+<style>
+
       text { font-family: "Segoe UI", Arial, sans-serif; fill: #18324a; }
       .title { font-size: 32px; font-weight: 700; }
       .subtitle { font-size: 16px; fill: #5c7289; }
       .section { font-size: 14px; font-weight: 700; fill: #2f5d88; letter-spacing: 0.06em; }
-      .node-title { font-size: 17px; font-weight: 700; }
-      .node-body { font-size: 13px; fill: #567089; }
-      .main-node { fill: #ffffff; stroke: #4c86b8; stroke-width: 2.5; rx: 22; }
-      .support-node { fill: #f4f8fc; stroke: #92b4d3; stroke-width: 2; rx: 20; }
-      .secret-node { fill: #f7f0ff; stroke: #8c75da; stroke-width: 2; rx: 20; }
-      .band { fill: #eef6fc; stroke: #d7e5f1; stroke-width: 2; rx: 30; }
-      .arrow { stroke: #2f6ea5; stroke-width: 4; fill: none; }
-      .dash-arrow { stroke: #7d6ac8; stroke-width: 2.5; stroke-dasharray: 10 8; fill: none; }
+      .node-title { font-weight: 700; }
+      .node-body { fill: #567089; }
+      .main-node { fill: #ffffff; stroke: #4c86b8; stroke-width: 2.5; }
+      .support-node { fill: #f4f8fc; stroke: #92b4d3; stroke-width: 2; }
+      .band { fill: #eef6fc; stroke: #d7e5f1; stroke-width: 2; }
+      .arrow { stroke: #2f6ea5; stroke-width: 3.5; fill: none; }
+      .up-arrow { stroke: #6f8fb0; stroke-width: 2.5; fill: none; }
       .label { font-size: 12px; fill: #456684; }
-      .note { font-size: 12px; fill: #6a7f95; }
-    </style>
-    <marker id="arrowhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M 0 0 L 12 6 L 0 12 z" fill="#2f6ea5"/>
-    </marker>
-    <marker id="dashhead" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto">
-      <path d="M 0 0 L 12 6 L 0 12 z" fill="#7d6ac8"/>
-    </marker>
-  </defs>
+      .note { font-size: 13px; fill: #4f6780; }
+      .note-strong { font-size: 13px; font-weight: 700; fill: #2f5d88; }
 
-  <rect x="0" y="0" width="1600" height="900" fill="#edf5fb"/>
-  <rect x="34" y="28" width="1532" height="844" rx="32" fill="#ffffff" stroke="#d8e5f0" stroke-width="2"/>
-
-  <text x="68" y="82" class="title">Proj8 Arxiv Pipeline</text>
-  <text x="68" y="112" class="subtitle">A simplified view of the batch data flow from arXiv to the analytics dashboard</text>
-
-  <rect x="70" y="170" width="1460" height="330" class="band"/>
-  <text x="96" y="205" class="section">CORE DATA FLOW</text>
-
-  <rect x="96" y="270" width="180" height="110" class="main-node"/>
-  <text x="186" y="314" text-anchor="middle" class="node-title">arXiv API</text>
-  <text x="186" y="340" text-anchor="middle" class="node-body">paper metadata source</text>
-
-  <rect x="336" y="270" width="190" height="110" class="main-node"/>
-  <text x="431" y="304" text-anchor="middle" class="node-title">Python Extractor</text>
-  <text x="431" y="330" text-anchor="middle" class="node-body">paginate + chunk</text>
-  <text x="431" y="352" text-anchor="middle" class="node-body">write parquet files</text>
-
-  <rect x="586" y="270" width="210" height="110" class="main-node"/>
-  <text x="691" y="304" text-anchor="middle" class="node-title">Azure Blob Storage</text>
-  <text x="691" y="330" text-anchor="middle" class="node-body">`raw-parquet-chunks`</text>
-  <text x="691" y="352" text-anchor="middle" class="node-body">raw parquet landing zone</text>
-
-  <rect x="856" y="270" width="170" height="110" class="main-node"/>
-  <text x="941" y="314" text-anchor="middle" class="node-title">dbt</text>
-  <text x="941" y="340" text-anchor="middle" class="node-body">stage + fact models</text>
-
-  <rect x="1086" y="270" width="200" height="110" class="main-node"/>
-  <text x="1186" y="304" text-anchor="middle" class="node-title">MotherDuck</text>
-  <text x="1186" y="330" text-anchor="middle" class="node-body">analytics warehouse</text>
-  <text x="1186" y="352" text-anchor="middle" class="node-body">`fact_math_papers`</text>
-
-  <rect x="1346" y="270" width="150" height="110" class="main-node"/>
-  <text x="1421" y="314" text-anchor="middle" class="node-title">Metabase</text>
-  <text x="1421" y="340" text-anchor="middle" class="node-body">dashboard + charts</text>
-
-  <path d="M 276 325 L 336 325" class="arrow" marker-end="url(#arrowhead)"/>
-  <path d="M 526 325 L 586 325" class="arrow" marker-end="url(#arrowhead)"/>
-  <path d="M 796 325 L 856 325" class="arrow" marker-end="url(#arrowhead)"/>
-  <path d="M 1026 325 L 1086 325" class="arrow" marker-end="url(#arrowhead)"/>
-  <path d="M 1286 325 L 1346 325" class="arrow" marker-end="url(#arrowhead)"/>
-
-  <text x="306" y="305" text-anchor="middle" class="label">fetch</text>
-  <text x="556" y="305" text-anchor="middle" class="label">upload</text>
-  <text x="826" y="305" text-anchor="middle" class="label">read raw</text>
-  <text x="1056" y="305" text-anchor="middle" class="label">materialize</text>
-  <text x="1316" y="305" text-anchor="middle" class="label">query</text>
-
-  <rect x="70" y="545" width="1460" height="250" class="band"/>
-  <text x="96" y="580" class="section">SUPPORTING COMPONENTS</text>
-
-  <rect x="290" y="628" width="180" height="92" class="support-node"/>
-  <text x="380" y="662" text-anchor="middle" class="node-title">Kestra</text>
-  <text x="380" y="688" text-anchor="middle" class="node-body">schedules and runs extraction</text>
-
-  <rect x="710" y="628" width="180" height="92" class="support-node"/>
-  <text x="800" y="662" text-anchor="middle" class="node-title">Terraform</text>
-  <text x="800" y="688" text-anchor="middle" class="node-body">provisions Azure storage</text>
-
-  <rect x="1130" y="628" width="220" height="92" class="secret-node"/>
-  <text x="1240" y="662" text-anchor="middle" class="node-title">`.env` Secrets</text>
-  <text x="1240" y="688" text-anchor="middle" class="node-body">Azure connection string + MD token</text>
-
-  <path d="M 380 628 L 431 380" class="arrow" marker-end="url(#arrowhead)"/>
-  <path d="M 800 628 L 691 380" class="arrow" marker-end="url(#arrowhead)"/>
-  <path d="M 1210 628 L 941 380" class="dash-arrow" marker-end="url(#dashhead)"/>
-  <path d="M 1270 628 L 1186 380" class="dash-arrow" marker-end="url(#dashhead)"/>
-  <path d="M 1330 628 L 1421 380" class="dash-arrow" marker-end="url(#dashhead)"/>
-
-  <text x="412" y="515" class="label">trigger job</text>
-  <text x="760" y="520" class="label">create storage</text>
-  <text x="1080" y="520" class="label">credentials</text>
-
-  <text x="70" y="835" class="note">This simplified image focuses on the main batch path and omits lower-level implementation details to keep the diagram readable.</text>
+</style>
+<marker id="head" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="13" refY="6" orient="auto"><path d="M0,0 L14,6 L0,12 z" fill="#2f6ea5"/></marker>
+<marker id="head-sup" markerUnits="userSpaceOnUse" markerWidth="14" markerHeight="12" refX="13" refY="6" orient="auto"><path d="M0,0 L14,6 L0,12 z" fill="#6f8fb0"/></marker>
+</defs>
+<rect width="1600" height="900" fill="#edf4fb"/>
+<rect x="34" y="28" width="1532" height="844" rx="34" fill="#ffffff" stroke="#d9e6f2" stroke-width="2"/>
+<text class="title" x="68" y="88">arXiv Pipeline</text>
+<text class="subtitle" x="68" y="116">Resumable batch extraction into Parquet, incremental dbt models on DuckDB, run daily by Kestra</text>
+<rect class="band" x="70" y="160" width="1460" height="250" rx="30"/>
+<text class="section" x="96" y="196">MAIN FLOW</text>
+<rect class="band" x="70" y="530" width="1460" height="188" rx="30"/>
+<text class="section" x="96" y="564">SUPPORTING</text>
+<rect class="main-node" x="96" y="250" width="181" height="124" rx="20"/>
+<text class="node-title" x="187" y="300" text-anchor="middle" font-size="17">arXiv API</text>
+<text class="node-body" x="187" y="324" text-anchor="middle" font-size="13">math.*, oldest first</text>
+<text class="node-body" x="187" y="342" text-anchor="middle" font-size="13">3 s between requests</text>
+<rect class="main-node" x="341" y="250" width="181" height="124" rx="20"/>
+<text class="node-title" x="432" y="300" text-anchor="middle" font-size="17">extract.py</text>
+<text class="node-body" x="432" y="324" text-anchor="middle" font-size="13">retries 429 / 5xx</text>
+<text class="node-body" x="432" y="342" text-anchor="middle" font-size="13">with backoff</text>
+<rect class="main-node" x="587" y="250" width="181" height="124" rx="20"/>
+<text class="node-title" x="677" y="300" text-anchor="middle" font-size="17">Parquet chunks</text>
+<text class="node-body" x="677" y="324" text-anchor="middle" font-size="13">local folder or Azure</text>
+<text class="node-body" x="677" y="342" text-anchor="middle" font-size="13">+ checkpoint file</text>
+<rect class="main-node" x="832" y="250" width="181" height="124" rx="20"/>
+<text class="node-title" x="923" y="300" text-anchor="middle" font-size="17">stg_arxiv_papers</text>
+<text class="node-body" x="923" y="324" text-anchor="middle" font-size="13">paper_id + version</text>
+<text class="node-body" x="923" y="342" text-anchor="middle" font-size="13">dedupe: newest version</text>
+<rect class="main-node" x="1077" y="250" width="181" height="124" rx="20"/>
+<text class="node-title" x="1168" y="300" text-anchor="middle" font-size="17">fact_math_papers</text>
+<text class="node-body" x="1168" y="324" text-anchor="middle" font-size="13">incremental on paper_id</text>
+<text class="node-body" x="1168" y="342" text-anchor="middle" font-size="13">key = md5(paper_id)</text>
+<rect class="main-node" x="1323" y="250" width="181" height="124" rx="20"/>
+<text class="node-title" x="1413" y="300" text-anchor="middle" font-size="17">Metabase</text>
+<text class="node-body" x="1413" y="324" text-anchor="middle" font-size="13">dashboard over</text>
+<text class="node-body" x="1413" y="342" text-anchor="middle" font-size="13">the fact table</text>
+<line class="arrow" x1="279" y1="312" x2="337" y2="312" marker-end="url(#head)"/>
+<text class="label" x="309" y="302" text-anchor="middle">fetch</text>
+<line class="arrow" x1="525" y1="312" x2="583" y2="312" marker-end="url(#head)"/>
+<text class="label" x="555" y="302" text-anchor="middle">write</text>
+<line class="arrow" x1="770" y1="312" x2="828" y2="312" marker-end="url(#head)"/>
+<text class="label" x="800" y="302" text-anchor="middle">read</text>
+<line class="arrow" x1="1015" y1="312" x2="1073" y2="312" marker-end="url(#head)"/>
+<text class="label" x="1045" y="302" text-anchor="middle">merge</text>
+<line class="arrow" x1="1261" y1="312" x2="1319" y2="312" marker-end="url(#head)"/>
+<text class="label" x="1291" y="302" text-anchor="middle">query</text>
+<rect class="support-node" x="341" y="590" width="181" height="104" rx="20"/>
+<text class="node-title" x="432" y="630" text-anchor="middle" font-size="17">Kestra</text>
+<text class="node-body" x="432" y="654" text-anchor="middle" font-size="13">daily: extract,</text>
+<text class="node-body" x="432" y="672" text-anchor="middle" font-size="13">then dbt build</text>
+<line class="up-arrow" x1="432" y1="586" x2="432" y2="378" marker-end="url(#head-sup)"/>
+<text class="label" x="442" y="486" font-size="12">runs</text>
+<rect class="support-node" x="587" y="590" width="181" height="104" rx="20"/>
+<text class="node-title" x="677" y="630" text-anchor="middle" font-size="17">Terraform</text>
+<text class="node-body" x="677" y="654" text-anchor="middle" font-size="13">Azure storage account</text>
+<text class="node-body" x="677" y="672" text-anchor="middle" font-size="13">+ raw container</text>
+<line class="up-arrow" x1="677" y1="586" x2="677" y2="378" marker-end="url(#head-sup)"/>
+<text class="label" x="687" y="486" font-size="12">provisions</text>
+<rect class="support-node" x="832" y="590" width="181" height="104" rx="20"/>
+<text class="node-title" x="923" y="630" text-anchor="middle" font-size="17">DuckDB</text>
+<text class="node-body" x="923" y="654" text-anchor="middle" font-size="13">a local file, or</text>
+<text class="node-body" x="923" y="672" text-anchor="middle" font-size="13">MotherDuck in the cloud</text>
+<line class="up-arrow" x1="923" y1="586" x2="923" y2="378" marker-end="url(#head-sup)"/>
+<text class="label" x="933" y="486" font-size="12">runs on</text>
+<rect class="support-node" x="1077" y="590" width="181" height="104" rx="20"/>
+<text class="node-title" x="1168" y="630" text-anchor="middle" font-size="17">dbt tests</text>
+<text class="node-body" x="1168" y="654" text-anchor="middle" font-size="13">unique + not_null keys,</text>
+<text class="node-body" x="1168" y="672" text-anchor="middle" font-size="13">no future dates</text>
+<line class="up-arrow" x1="1168" y1="586" x2="1168" y2="378" marker-end="url(#head-sup)"/>
+<text class="label" x="1178" y="486" font-size="12">checks</text>
+<text x="70" y="770"><tspan class="note-strong">Resumes:</tspan><tspan class="note" dx="8">the checkpoint sits next to the chunks, so a restarted run or a fresh container picks up at the last chunk.</tspan></text>
+<text x="70" y="796"><tspan class="note-strong">Verified 2026-09-27:</tspan><tspan class="note" dx="8">2,000 real papers in two resumed runs, both dbt builds 11/11, the second load incremental.</tspan></text>
+<text x="70" y="822"><tspan class="note-strong">Secrets:</tspan><tspan class="note" dx="8">AZURE_CONNECTION_STRING and MOTHERDUCK_TOKEN, from Kestra&#x27;s secret store.</tspan></text>
 </svg>

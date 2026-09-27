@@ -1,32 +1,29 @@
-# Proj2 Architecture Diagram
+# Shopee Search Capture: architecture
 
-This diagram reflects the current implementation in `Proj2_ShopeeHijacker`.
+Search results read from the page's own API responses in your logged-in Chrome, kept per run in SQLite.
 
 ```mermaid
 flowchart LR
-    chrome[Authenticated Chrome]
-    shopee[Shopee Search Pages]
-    cdp[Playwright via CDP]
-    intercept[Passive API Interceptor]
-    csv[Deduplicated CSV]
-    sqlite[SQLite Loader]
-    db[market_intelligence.db]
-
-    user[Engineer]
-    pandas[Pandas Cleanup]
-
-    user --> chrome
-    chrome --> shopee
-    cdp --> chrome
-    shopee --> intercept
-    intercept --> pandas --> csv --> sqlite --> db
+    m0["Your Chrome<br/>logged in to shopee.ph,<br/>remote debugging on"]
+    m1["shopee_capture.py<br/>attach over CDP,<br/>open its own tab"]
+    m2["Search pages<br/>page=0, 1, 2 ...<br/>stops on a login page"]
+    m3["API responses<br/>the page's own calls,<br/>only listened to"]
+    m4["shopee.py<br/>parse, dedupe on<br/>(shop ID, item ID)"]
+    m5["storage.py<br/>SQLite: run + products<br/>in one transaction"]
+    m0 -- attach --> m1
+    m1 -- navigate --> m2
+    m2 -- loads --> m3
+    m3 -- parse --> m4
+    m4 -- save --> m5
+    s0["You<br/>start Chrome and<br/>log in once"]
+    s0 -. logs in .-> m0
+    s1["Failure count<br/>bad JSON, missing IDs:<br/>counted and reported"]
+    m4 -. counts .-> s1
+    s2["CSV<br/>one file per run,<br/>under runs/"]
+    m5 -. also writes .-> s2
 ```
 
-## Data Flow
+- **No scripted requests:** it reads the traffic the page makes anyway, in its own tab, and never touches your other tabs.
+- **History:** runs are appended, never replaced, so an item's price and sales can be compared across days.
 
-1. The engineer opens Chrome in remote debugging mode and signs into Shopee manually.
-2. Playwright connects to that live browser through the Chrome DevTools Protocol.
-3. The script visits Shopee search result pages and listens for backend search API responses.
-4. Raw JSON product data is captured passively instead of replaying requests directly.
-5. Pandas deduplicates product rows and writes the result to CSV.
-6. A second script optionally loads the CSV into `market_intelligence.db` for analysis.
+Also as [SVG](./architecture-diagram.svg) and [PNG](./architecture-diagram.png).

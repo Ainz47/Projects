@@ -1,34 +1,30 @@
-# Proj9 Architecture Diagram
+# Directory ETL Pipeline: architecture
 
-This diagram reflects the current implementation in `Proj9_GeoData_AI_Ingestion_Engine`.
+Businesses found on Google Maps, written up by Gemini, saved to WordPress, updated in place on every re-run.
 
 ```mermaid
 flowchart LR
-    maps[Google Maps]
-    scrape[Playwright Scraper]
-    enrich[AI Enrichment Pipeline]
-    load[WordPress Importer]
-    wp[WordPress REST API]
-
-    gemini[Gemini APIs]
-    quality[Image Quality Gates + Fallbacks]
-    env[.env Secrets]
-    mock[Mock WordPress API]
-
-    maps --> scrape --> enrich --> load --> wp
-    gemini --> enrich
-    quality --> load
-    env -. config .-> scrape
-    env -. config .-> enrich
-    env -. config .-> load
-    mock -. local testing .-> load
+    m0["businesses.json<br/>names and city<br/>to look up"]
+    m1["scraper.py<br/>Playwright on Maps:<br/>name, address, photo"]
+    m2["pipeline_processor<br/>listing text by Gemini<br/>id: md5(name+address)"]
+    m3["wp_importer.py<br/>GET ?place_id= decides<br/>create or update"]
+    m4["Photo + gallery<br/>vet photo, redo it if<br/>under 1200px wide"]
+    m5["WordPress<br/>directory_listing post,<br/>one create or update"]
+    m0 -- read --> m1
+    m1 -- scrape --> m2
+    m2 -- look up --> m3
+    m3 -- new only --> m4
+    m4 -- save --> m5
+    s0["Gemini text<br/>two paragraphs, no<br/>invented prices"]
+    s0 -. writes .-> m2
+    s1["Gemini vision<br/>rejects menus, crowds;<br/>draws the gallery"]
+    s1 -. vets, generates .-> m4
+    s2["WP plugin 1.1.0<br/>post type, meta,<br/>?place_id= filter"]
+    s2 -. registers .-> m5
 ```
 
-## Data Flow
+- **Idempotent:** a re-run finds each listing by place_id and updates it, reusing the photo instead of uploading it again.
+- **Verified 2026-09-27:** live WordPress site, run 1 created 3 listings, run 2 updated the same 3, still exactly 3.
+- **Resilient:** one business failing is recorded in the report and the batch carries on; every call has a timeout.
 
-1. The scraper uses Playwright to collect business metadata and the cover image from Google Maps.
-2. The enrichment layer generates a business story, computes a deterministic `place_id`, and prepares the final JSON payload.
-3. Image quality checks validate relevance and resolution before upload.
-4. If enhancement or generation fails, the pipeline falls back to original or placeholder assets so execution continues.
-5. The WordPress importer uploads media, maps gallery items to media IDs, and creates or updates the listing through the REST API.
-6. A local FastAPI mock server can replace the real WordPress target during testing.
+Also as [SVG](./architecture-diagram.svg) and [PNG](./architecture-diagram.png).

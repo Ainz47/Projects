@@ -1,36 +1,32 @@
-# Proj7 Architecture Diagram
+# Restaurant Labor Alerts: architecture
 
-This diagram reflects the current implementation in `Proj7_FastAPI_ETL_Alerts`.
+POS and scheduler webhooks joined per store-day, labor metrics stored, one Discord alert over 25%.
 
 ```mermaid
 flowchart LR
-    toast[Toast POS]
-    shifts[7shifts]
-    api[FastAPI Webhooks]
-    db[Supabase / PostgreSQL]
-    logic[Background ETL Logic]
-    alerts[Discord / Slack Webhook]
-    ops[Operations Team]
-    env[.env Secrets]
-
-    toast --> api
-    shifts --> api
-    api --> db
-    api --> logic
-    logic --> db
-    logic --> alerts --> ops
-
-    env -. config .-> api
-    env -. config .-> db
-    env -. config .-> alerts
+    m0["Toast POS + 7shifts<br/>daily sales webhook,<br/>daily labor webhook"]
+    m1["FastAPI webhooks<br/>secret header check,<br/>validate, reply 202"]
+    m2["Store<br/>upserts its half of<br/>the store-day row"]
+    m3["Background job<br/>both halves in? then<br/>CPLH and labor %"]
+    m4["Alert claim<br/>claimed once, by a<br/>conditional update"]
+    m5["Discord<br/>one alert per<br/>store and day"]
+    m0 -- POST --> m1
+    m1 -- upsert --> m2
+    m2 -- read --> m3
+    m3 -- over 25% --> m4
+    m4 -- send --> m5
+    s0["mock_data_sender.py<br/>sales, labor, then a<br/>re-delivered labor"]
+    s0 -. replays .-> m0
+    s1["Pydantic models<br/>bad dates, negatives,<br/>odd store IDs: 422"]
+    s1 -. validate .-> m1
+    s2["Supabase Postgres<br/>unique store-day, RLS;<br/>or an in-memory store"]
+    m2 -. PostgREST .-> s2
+    s3["Release on failure<br/>Discord says no: the<br/>next webhook retries"]
+    s3 -. if send fails .-> m4
 ```
 
-## Data Flow
+- **Safe on re-delivery:** every write is an atomic upsert, and a re-sent webhook recomputes but never alerts twice.
+- **Verified 2026-09-27:** local run with the real Discord webhook: waiting, alerted, then already_alerted on re-delivery.
+- **Secrets:** WEBHOOK_SECRET, SUPABASE_URL + service-role key, ALERT_WEBHOOK_URL (.env).
 
-1. Toast POS sends sales payloads to the FastAPI sales webhook.
-2. 7shifts sends labor payloads to the FastAPI labor webhook.
-3. FastAPI validates the payloads and upserts daily records into Supabase.
-4. A background task checks whether both sales and labor data exist for the same store and date.
-5. The transformation layer calculates CPLH and labor percentage.
-6. The service updates the database with the computed metrics.
-7. If labor percentage exceeds the profitability threshold, the notifier sends a Discord or Slack alert.
+Also as [SVG](./architecture-diagram.svg) and [PNG](./architecture-diagram.png).
