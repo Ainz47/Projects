@@ -1,0 +1,31 @@
+{
+  "steps": [
+    {
+      "step": "POS sends sales",
+      "status": 202
+    },
+    {
+      "step": "Scheduler sends labor",
+      "status": 202
+    },
+    {
+      "step": "Scheduler re-sends labor",
+      "status": 202
+    }
+  ],
+  "health": {
+    "status": "ok",
+    "store": "MemoryStore",
+    "alerts": true
+  },
+  "row": {
+    "store_id": "Store_104",
+    "date": "2026-02-24",
+    "alert_sent_at": "2026-09-27T15:33:21.668892+00:00",
+    "gross_sales": 5000.0,
+    "labor_hours": 75.0,
+    "labor_cost": 1500.0,
+    "cplh": 20.0,
+    "labor_pct": 30.0
+  }
+}

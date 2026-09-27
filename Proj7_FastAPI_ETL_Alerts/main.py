@@ -64,12 +64,15 @@ def create_app(store, notify: Notify | None, secret: str | None, threshold: floa
         if not x_webhook_secret or not hmac.compare_digest(x_webhook_secret, secret):
             raise HTTPException(401, "bad or missing X-Webhook-Secret")
 
+    def process_and_log(store_id: str, day: str) -> None:
+        print(f"{store_id} {day}: {process_store_day(store, notify, threshold, store_id, day)}", flush=True)
+
     def ingest(store_id: str, day: date, fields: dict, background: BackgroundTasks) -> dict:
         try:
             store.save(store_id, day.isoformat(), fields)
         except httpx.HTTPError as e:
             raise HTTPException(502, f"storage unavailable: {type(e).__name__}") from e
-        background.add_task(process_store_day, store, notify, threshold, store_id, day.isoformat())
+        background.add_task(process_and_log, store_id, day.isoformat())
         return {"status": "accepted", "store_id": store_id, "date": day.isoformat()}
 
     @app.post("/webhook/sales", status_code=202, dependencies=[Depends(check_secret)])

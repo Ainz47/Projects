@@ -1,54 +1,84 @@
-# FastAPI ETL Alerts
+# Restaurant Labor Alerts (FastAPI webhooks -> Postgres -> Discord)
 
-A FastAPI microservice that takes daily sales and labor webhooks from two restaurant systems (modeled on Toast POS and 7shifts), computes Cost Per Labor Hour and Labor % of Sales, stores the result in Supabase, and posts a Discord/Slack webhook alert when labor cost crosses 25% of sales.
+A FastAPI service that takes the daily sales webhook from a restaurant's POS (modeled on Toast) and the daily labor webhook from its scheduler (modeled on 7shifts), joins them per store and day, computes Cost Per Labor Hour and Labor % of Sales, stores the result in Postgres (Supabase), and posts one Discord alert when labor goes over 25% of sales.
+
+Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md) | [docs/architecture-diagram.svg](./docs/architecture-diagram.svg) | [docs/architecture-diagram.png](./docs/architecture-diagram.png)
 
 ## What it does
 
-Two POST endpoints, `/webhook/sales` and `/webhook/labor`, each write their payload to a `daily_metrics` table in Supabase (keyed on `store_id` + `date`) and hand off to a FastAPI `BackgroundTasks` job so the webhook caller gets an immediate response instead of waiting on the calculation. That background job re-reads the row; once both a sales figure and a labor figure exist for the same store and date, it runs `transformations.py`'s math (CPLH = labor cost / labor hours, labor % = labor cost / gross sales * 100, both guarded against a zero denominator), writes the computed metrics back, and fires a Discord-formatted webhook alert if labor % is over 25.
+The two systems don't talk to each other and don't arrive in a fixed order, so each webhook saves its half of the day and returns `202 Accepted` straight away. A background job then checks whether both halves are in. When they are, it computes the metrics, saves them, and alerts if labor is over the threshold.
 
-## What's verified
+The parts that make that safe to run against real webhook senders, which retry and re-deliver:
 
-Read through all five source files (`main.py`, `database.py`, `transformations.py`, `notifier.py`, `mock_data_sender.py`) to confirm the architecture actually works as described: `BackgroundTasks` is used correctly (the webhook response returns before the metrics job runs), the math in `transformations.py` is correct for the two formulas above, and the alert payload/threshold logic in `notifier.py` matches what's described here.
+- **One row per store-day, written atomically.** `schema.sql` puts a unique constraint on `(store_id, date)` and every write is a Postgres `INSERT ... ON CONFLICT DO UPDATE` through Supabase's REST API. Each webhook only touches its own columns, so the sales webhook can't wipe the labor figures and two webhooks arriving together can't create two rows.
+- **At most one alert per store-day.** The alert is claimed with a single conditional update (`alert_sent_at` set only where it's still empty). Re-delivered webhooks recompute the metrics but don't alert again. If Discord rejects the message, the claim is released so the next webhook for that day retries.
+- **Zero isn't missing.** A day with zero sales is processed. Its labor % is recorded as undefined rather than 0%, since $800 of labor on no sales isn't "0% labor".
+- **Authenticated webhooks.** Both need an `X-Webhook-Secret` header. A server started without a secret refuses everything (503) rather than accepting everything.
+- **Validated input.** Real dates, no negative amounts, store IDs limited to letters, digits, `_` and `-`. Anything else gets a 422 before it reaches the database.
+- **Failures the sender can act on.** A storage outage returns 502 so the POS or scheduler retries later. A failed alert never fails the webhook. Every outbound call has a timeout.
 
-There is a `mock_data_sender.py` script that fires one hardcoded sales payload and one hardcoded labor payload (a single fictional `Store_104`) at a locally running server. That's the only way this has ever been exercised: nothing here has been run against real Toast POS or 7shifts data, or against a real Supabase instance as part of writing this README.
+## Local run
 
-**The "idempotent upsert" claim in earlier documentation for this project overstates what `database.py` actually does.** It doesn't use Supabase's native upsert; the code's own comment says so ("for this MVP, we will just use a simple insert/update approach"). Instead it does a manual read-then-write: check whether a row exists for that store and date, then either `UPDATE` or `INSERT`. That produces the same end result as a real upsert when calls happen one at a time, but it's not atomic: two webhooks for the same store and date arriving close together could both read "no existing row" and both try to insert, which either fails or duplicates depending on whether the table has a unique constraint on `(store_id, date)` (not something checked here, since there's no schema file in this repo to read).
+Run on 2026-09-27 with the in-memory store and a real Discord webhook: `mock_data_sender.py` sent the sales webhook, the labor webhook, then the labor webhook again (a re-delivery). Server log ([runs/local_demo.log](./runs/local_demo.log)):
 
-## What is NOT verified
+```
+POS sends sales: HTTP 202
+Store_104 2026-02-24: waiting
+Scheduler sends labor: HTTP 202
+Store_104 2026-02-24: alerted
+Scheduler re-sends labor: HTTP 202
+Store_104 2026-02-24: already_alerted
+```
 
-- No automated tests and no CI for this project (only Proj14-19 are wired into `.github/workflows/tests.yml`).
-- Never run against real POS or scheduling data, only the one hardcoded mock payload described above.
-- Whether the Supabase project behind this ever existed live, or still does, isn't something this README confirms.
-- The race condition described above has not been reproduced; it's a read of the code, not an observed failure.
+The stored row ([runs/local_demo.json](./runs/local_demo.json)) has CPLH $20.00 ($1,500 / 75 hours) and labor 30.00% ($1,500 / $5,000), with `alert_sent_at` set once.
 
-## Stack
+The Supabase store's requests (the upsert, the conditional claim, the filters and auth headers) are covered by tests against a mocked HTTP transport. It hasn't been run against a live Supabase project yet.
 
-Python · FastAPI · Pydantic · Supabase (PostgreSQL) · Discord/Slack webhooks
+## Running it
+
+```bash
+pip install -r requirements.txt
+```
+
+Settings go in `.env` (see [.env.example](./.env.example)):
+
+| Setting | Needed? | Without it |
+|---|---|---|
+| `WEBHOOK_SECRET` | yes | every webhook gets 503 |
+| `ALERT_WEBHOOK_URL` | no | metrics are stored, no alert is sent |
+| `SUPABASE_URL`, `SUPABASE_KEY` | no | an in-memory store (lost on restart) |
+| `LABOR_ALERT_PCT` | no | 25 |
+
+For Supabase, run `schema.sql` once in the project's SQL editor and use the **service-role** key: the table has row-level security on with no policies, so the public anon key can't read or write it.
+
+```bash
+uvicorn main:app
+python mock_data_sender.py          # in a second terminal
+```
+
+Endpoints: `POST /webhook/sales`, `POST /webhook/labor`, `GET /metrics/{store_id}/{date}` (all need the secret header), and `GET /health`, which reports which store is in use and whether alerts are on.
+
+**Tests** (no network, no accounts; they run in CI):
+
+```bash
+python -m pytest tests -q
+```
+
+They cover the math and the undefined cases, both arrival orders, re-delivery not re-alerting, a failed alert being retried, 20 threads racing for one alert claim, the secret check, invalid payloads, a storage outage, the Discord message and its failure modes, and the exact PostgREST requests the Supabase store sends.
 
 ## Project structure
 
 ```text
-main.py               FastAPI app: the two webhook routes and the background orchestrator
-database.py           Supabase client, read-then-write upsert-style storage
-transformations.py    CPLH and labor % math, isolated from the API and storage code
-notifier.py           Formats and sends the Discord/Slack alert
-mock_data_sender.py   Fires one hardcoded sales + labor payload at a local server for a manual smoke test
-docs/architecture-diagram.{md,svg,png}
+main.py               FastAPI app: webhooks, validation, the secret check, the background job
+store.py              MemoryStore and SupabaseStore (PostgREST over httpx): upsert, read, alert claim
+schema.sql            The daily_metrics table: unique (store_id, date), RLS on
+transformations.py    CPLH and labor % math, and the threshold check
+notifier.py           Formats and sends the Discord alert
+mock_data_sender.py   Plays sales, labor and a re-delivered labor webhook at a running server
+tests/                The test suite
+runs/                 The local run's server log and stored row
 ```
 
-`.env.sample` documents the two required variables (`SUPABASE_URL`, `SUPABASE_KEY`) plus `ALERT_WEBHOOK_URL`; there's no code here to read them from anywhere else.
+## Stack
 
-## Running it locally
-
-```bash
-pip install fastapi uvicorn supabase python-dotenv requests pydantic
-uvicorn main:app --reload
-```
-
-In a second terminal, with a real `.env` populated:
-
-```bash
-python mock_data_sender.py
-```
-
-This fires the one hardcoded sales payload, waits 3 seconds, then fires the one hardcoded labor payload, and prints the server's HTTP response for each. Since the mock labor % works out above 25% for the hardcoded numbers, a successful run should also produce a webhook alert if `ALERT_WEBHOOK_URL` is set.
+Python · FastAPI · Pydantic · PostgreSQL (Supabase, via PostgREST) · httpx · Discord webhooks
