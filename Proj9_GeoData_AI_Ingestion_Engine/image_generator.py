@@ -1,18 +1,26 @@
-"""Imagen calls. Both return bytes and never raise: callers get None, or the original photo back."""
+"""Gemini image calls. Both return bytes and never raise: callers get None, or the original photo back."""
+from google.genai import types
+
 from gemini import IMAGE_MODEL, get_client
 
 
 def _generate(prompt: str, client=None) -> bytes | None:
     try:
-        result = (client or get_client()).models.generate_images(
+        response = (client or get_client()).models.generate_content(
             model=IMAGE_MODEL,
-            prompt=prompt,
-            config=dict(number_of_images=1, output_mime_type="image/jpeg", aspect_ratio="16:9"),
+            contents=prompt,
+            config=types.GenerateContentConfig(
+                response_modalities=["IMAGE"],
+                image_config=types.ImageConfig(aspect_ratio="16:9"),
+            ),
         )
-        return result.generated_images[0].image.image_bytes
+        for part in response.candidates[0].content.parts:
+            if part.inline_data and part.inline_data.data:
+                return part.inline_data.data
+        print("Image generation returned no image")
     except Exception as e:
         print(f"Image generation failed: {e}")
-        return None
+    return None
 
 
 def generate_restaurant_image(business_name: str, shot: str, location: str, client=None) -> bytes | None:

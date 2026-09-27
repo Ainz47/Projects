@@ -34,8 +34,8 @@ class _ImagenFails:
     def __init__(self):
         self.models = self
 
-    def generate_images(self, **_):
-        raise RuntimeError("free tier")
+    def generate_content(self, **_):
+        raise RuntimeError("quota")
 
 
 def test_enhance_keeps_the_original_when_imagen_fails():

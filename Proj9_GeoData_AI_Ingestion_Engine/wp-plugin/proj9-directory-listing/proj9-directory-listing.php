@@ -56,9 +56,12 @@ add_filter('the_content', function ($content) {
     if ($address) {
         $html .= '<p class="listing-address"><strong>Address:</strong> ' . esc_html($address) . '</p>';
     }
-    $gallery = (array) get_post_meta($id, 'gallery_images', true);
-    foreach (array_filter(array_map('intval', $gallery)) as $media_id) {
-        $html .= wp_get_attachment_image($media_id, 'large');
+    $gallery = array_filter(array_map('intval', (array) get_post_meta($id, 'gallery_images', true)));
+    if ($gallery) {
+        $html .= '<h3>Gallery</h3><p class="listing-gallery-note"><em>AI-generated illustrations, not photos of the venue.</em></p>';
+        foreach ($gallery as $media_id) {
+            $html .= wp_get_attachment_image($media_id, 'large');
+        }
     }
     return $content . $html;
 });
