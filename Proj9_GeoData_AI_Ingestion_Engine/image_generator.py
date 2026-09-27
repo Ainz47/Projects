@@ -24,7 +24,7 @@ def _generate(prompt: str, client=None) -> bytes | None:
 
 
 def generate_restaurant_image(business_name: str, shot: str, location: str, client=None) -> bytes | None:
-    """A gallery image for `shot` (e.g. "exterior"), or None if Imagen is unavailable."""
+    """A gallery image for `shot` (e.g. "exterior"), or None if image generation is unavailable."""
     prompt = (
         f"A realistic, professional wide-angle photo showing the {shot} of a restaurant named "
         f"'{business_name}' in {location}. Daytime lighting, sharp focus, no text or signs."

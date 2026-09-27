@@ -1,69 +1,113 @@
 # Directory ETL Pipeline (Google Maps -> Gemini -> WordPress)
 
-A three-phase ETL pipeline: scrape a business listing off Google Maps with Playwright, enrich it with the Gemini API (text description, image quality gates, AI image generation), and push the result into a WordPress REST API as a custom post type. Built as a prototype against a single test business ("Allegory", a restaurant in Naperville, IL), not run against a live WordPress site.
+Give it a list of businesses and it builds a local directory site: it finds each one on Google Maps with Playwright, has Gemini write the listing and vet the photo, and saves the result to WordPress as a `directory_listing` post. Run it again and it updates the same posts instead of creating duplicates.
 
 Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md) | [docs/architecture-diagram.svg](./docs/architecture-diagram.svg) | [docs/architecture-diagram.png](./docs/architecture-diagram.png)
 
-## What's verified
+![Listing page for Allegory, built by the pipeline](./docs/screenshots/listing_allegory.jpg)
 
-- **The scraper is real and targets live Google Maps**, not a fixture (`scraper.py`, Playwright against `google.com/maps/search/...`, DOM selectors for the cover photo and address). The one demo run on record (`pipeline_demonstration_output.json`) has a real address string scraped off a live page, complete with a stray private-use Unicode icon glyph sitting in front of the street address, the kind of artifact a real scrape produces and a mock never would.
-- **The idempotency check is real**: `wp_importer.py`'s `ingest_to_wordpress` queries the target endpoint by `place_id` meta before deciding create vs. update. `place_id` is `md5(name + address)` (`pipeline_processor.py`), matching what the old README claimed.
-- **The quality gates are real code, not aspirational**: `transformations.py` runs a Gemini Vision relevance check (rejects menus, crowds, parking lots) and a local resolution check (PIL, threshold 1200px wide) before deciding whether an image needs AI enhancement.
-- **The fallback logic is real and was specifically exercised**: `demonstrate_enhancement_fallback.py` exists to force the AI-generation failure path (its own comment: "This is expected to fail on a free tier, triggering the except block") and confirm the pipeline still completes and writes a JSON payload. That's a genuine resilience test, not a happy-path demo pretending to be one.
-- **WordPress ingestion was tested against `mock_wp.py`** (a small FastAPI stand-in that tracks place_id -> post_id in memory), not against a real WordPress install. There's no evidence in this repo of a live WP CMS ever receiving this data.
+## Live run against a real WordPress site
 
-## What's NOT verified (and one real finding)
+Run on 2026-09-27 against a fresh WordPress install ("Naperville Eats", a temporary TasteWP site) with the plugin in `wp-plugin/` active, over three Naperville businesses from `businesses.json`. The reports are committed as they came out of the pipeline.
 
-- **The demo gallery images are not AI-generated, despite the filenames.** `demo_allegory_exterior_ai_hero.jpg` and `demo_allegory_interior_ai_hero.jpg` are byte-for-byte identical (same MD5). Tracing why: `demonstrate_enhancement_fallback.py` calls the demo image generator twice, once for "exterior," once for "interior dining room," and both calls hit the expected Gemini quota failure and fall back to writing a copy of the single scraped cover photo. So both files are the same real, non-AI exterior photo; the "interior" one is mislabeled. This is the fallback path working as designed, not a bug in the fallback logic, but it means there is no artifact anywhere in this repo showing the actual Gemini image-generation call succeeding.
-- **"AI upscaling/enhancement" of low-res images is really full regeneration, not enhancement.** `image_generator.py`'s `enhance_scraped_image` docstring says it plainly: "This function does NOT use the input image_bytes; it generates a new image." A low-res scraped photo triggers a brand-new Gemini image generated from a text description of the business, not an upscale of the original pixels. The old README's "AI upscaling/enhancement process" phrasing overstates what actually happens.
-- **The one recorded pipeline run also shows the Gemini text-generation fallback firing.** `pipeline_demonstration_output.json`'s `content` field reads "A premium local destination offering an unforgettable experience." That's the literal hardcoded fallback string in `pipeline_processor.py`'s `generate_unique_story`, used when the Gemini call raises. So on this run, none of the three Gemini calls (story text, image generation x2) produced real output; only the Vision relevance check may have (it defaults to `True` on error too, so even that's not confirmed either way from the artifact).
-- **A `supabase/` directory sits in this project's root** (config.toml, a full CLI scaffold) but nothing in any `.py` file imports or references it. It's dead scaffolding unrelated to the pipeline, not a real integration.
-- The `amenities` field in every generated payload is a hardcoded list ("Outdoor Seating", "Craft Cocktails", "Farm-to-Table"), not scraped or AI-derived. The old README didn't claim otherwise; noting it here for completeness.
+**Run 1** ([runs/live_run_1.jsonl](./runs/live_run_1.jsonl)): every business created, Gemini wrote every story, every scraped photo passed the gates and was uploaded, and two AI gallery images were generated per listing.
 
-## System Architecture
+```
+{"business": "Allegory", "status": "created", "post_id": 11, "ai_story": true, "image": "uploaded", "gallery": 2}
+{"business": "Quigley's Irish Pub", "status": "created", "post_id": 15, "ai_story": true, "image": "uploaded", "gallery": 2}
+{"business": "Empire Burgers + Brew", "status": "created", "post_id": 19, "ai_story": true, "image": "uploaded", "gallery": 2}
+```
 
-1. **Extraction:** Playwright scrapes name, address, and a cover photo URL from a Google Maps search result.
-2. **Transformation:** Gemini generates a description; scraped images go through a relevance filter and a resolution gate, with low-res images routed to AI regeneration (see caveat above).
-3. **Loading:** The structured payload and processed images post to a WordPress REST API, keyed by an MD5 `place_id` for idempotent create-or-update.
+**Run 2** ([runs/live_run_2.jsonl](./runs/live_run_2.jsonl)), same input: the same three posts updated, photos reused instead of uploaded again, no new gallery images, and the site's REST API still lists exactly three listings.
 
-## Repository Structure
+```
+{"business": "Allegory", "status": "updated", "post_id": 11, "ai_story": true, "image": "reused", "gallery": 0}
+{"business": "Quigley's Irish Pub", "status": "updated", "post_id": 15, "ai_story": true, "image": "reused", "gallery": 0}
+{"business": "Empire Burgers + Brew", "status": "updated", "post_id": 19, "ai_story": true, "image": "reused", "gallery": 0}
+```
 
-- `run_pipeline.py`: main orchestrator (happy path), imports `image_generator.py`.
-- `demonstrate_enhancement_fallback.py`: forces the AI-failure path to prove the pipeline degrades gracefully; imports `image_generator_demo.py`, a variant that falls back to copying the original scraped image instead of a text placeholder.
-- `scraper.py`: Playwright extraction from Google Maps.
-- `pipeline_processor.py`: builds the `place_id`, calls Gemini for the description, structures the ACF schema.
-- `transformations.py`: relevance filter (Gemini Vision) and resolution gate.
-- `image_generator.py` / `image_generator_demo.py`: Gemini image generation, with the demo variant's failure-path fallback described above.
-- `wp_importer.py`: media upload and idempotent create/update against the WP REST API.
-- `mock_wp.py`: FastAPI stand-in for WordPress, used for all ingestion testing so far.
-- `check_models.py`: lists Gemini models available to the configured API key.
+Screenshots: [a listing page](./docs/screenshots/listing_allegory.jpg), [another](./docs/screenshots/listing_quigleys.jpg), [the /listings/ archive](./docs/screenshots/listings_archive.jpg).
 
-## Setup & Installation
+The gallery images depict real businesses but are generated, so the listing page labels them "AI-generated illustrations, not photos of the venue". The main photo on each listing is the real one scraped from Google Maps.
+
+## How it works
+
+For each business in the input file:
+
+1. **Scrape** (`scraper.py`): Playwright searches Google Maps and reads the name, address and cover photo. The photo is requested at 1600px wide.
+2. **Write** (`pipeline_processor.py`): Gemini writes a two-paragraph listing, told not to invent prices, awards, hours or menu items. The Maps icon glyphs are stripped from the text, and `place_id = md5(name + address)` becomes the listing's identity.
+3. **Look up** (`wp_importer.py`): one `GET ?place_id=` against WordPress decides create or update.
+4. **Vet the photo** (`transformations.py`, new listings only): Gemini Vision rejects menus, crowds, parking lots and food close-ups; a photo under 1200px wide is regenerated from a prompt. On an update the existing featured image is reused, so nothing is re-downloaded or re-uploaded.
+5. **Gallery** (`image_generator.py`, optional `--gallery`, new listings only): an exterior and an interior image from Gemini's image model.
+6. **Save**: one create or update per business, with the featured image, the gallery and the meta fields in the same request.
+
+One business failing (not found, an API error) is recorded in the report and the batch carries on. Every Gemini and WordPress call has a timeout, so a stalled request can't hang the run.
+
+**The WordPress side** (`wp-plugin/proj9-directory-listing/`) registers the `directory_listing` post type at `/listings/`, the meta fields the pipeline writes, and the `?place_id=` REST filter that makes re-runs idempotent (an exact match on that one key, validated as an md5). On the public page it adds the address and the labelled gallery under the story.
+
+## Fallbacks
+
+| If this fails | What happens | Visible in the report as |
+|---|---|---|
+| Gemini story | A plain one-line description is used | `"ai_story": false` |
+| Photo download, or the relevance check says no | The listing is saved without a featured image | `"image": "none"` |
+| Relevance check errors out | The photo is kept rather than lost | (no change) |
+| Regenerating a small photo | The original photo is used | `"image": "uploaded"` |
+| A gallery image | That image is skipped | `"gallery"` below 2 |
+| Business not on Maps, or any other error | Nothing is written for it, the batch continues | `"status": "not_found"` / `"error"` |
+
+Low-res "enhancement" is regeneration from a text prompt, not upscaling of the original pixels. The live run didn't exercise it: all three scraped photos were at least 1200px wide.
+
+## Running it
 
 ```bash
-pip install requests python-dotenv playwright google-genai pillow fastapi uvicorn
+pip install -r requirements.txt
 playwright install chromium
 ```
 
-Create a `.env` in the project root (see `.env.sample`):
+`.env` in this folder (see `.env.example`):
 
 ```env
-GEMINI_API_KEY=your_gemini_api_key_here
-WP_BASE_URL=http://127.0.0.1:8000
-WP_USERNAME=mock_admin
-WP_APP_PASSWORD=mock_password
+GEMINI_API_KEY=...
+WP_BASE_URL=https://your-site.example/wp-json
+WP_USERNAME=your-wp-user
+WP_APP_PASSWORD=an-application-password
+# optional model overrides
+GEMINI_TEXT_MODEL=gemini-flash-latest
+GEMINI_IMAGE_MODEL=gemini-3.1-flash-image
 ```
 
-## Running It
+**Against a real WordPress site:** zip `wp-plugin/proj9-directory-listing`, upload and activate it (Plugins > Add New > Upload Plugin), create an application password under Users > Profile, then:
 
-**Happy path** (against the mock WP server):
 ```bash
-uvicorn mock_wp:app --reload
-python run_pipeline.py
+python run_pipeline.py --input businesses.json --gallery --report runs/my_run.jsonl
 ```
 
-**Resilience demo** (forces the AI-generation failure path and shows the fallback):
+**Without WordPress:** `mock_wp.py` is an in-memory stand-in for the same endpoints, including the `?place_id=` lookup.
+
 ```bash
-uvicorn mock_wp:app --reload
-python demonstrate_enhancement_fallback.py
+python -m uvicorn mock_wp:app   # WP_BASE_URL=http://127.0.0.1:8000, WP_USERNAME=mock_admin, WP_APP_PASSWORD=mock_password
+python run_pipeline.py --input businesses.json
 ```
+
+**Tests** (no network, no API key; they run in CI):
+
+```bash
+python -m pytest tests -q
+```
+
+They cover the listing builder and text cleanup, every fallback above, the photo gates, create-then-update against the mock (one post per business, photo reused, gallery kept), the batch carrying on past a failure, and that the plugin registers every meta key the pipeline writes.
+
+## Repository structure
+
+- `run_pipeline.py`: batch orchestrator and CLI, writes the JSONL report line by line.
+- `scraper.py`: Playwright extraction from Google Maps.
+- `pipeline_processor.py`: text cleanup, `place_id`, the Gemini story, the listing payload.
+- `transformations.py`: photo relevance (Gemini Vision) and resolution gates.
+- `image_generator.py`: gallery images and small-photo regeneration.
+- `gemini.py`: one lazily created Gemini client with a timeout, and the model names.
+- `wp_importer.py`: `WordPressClient` (lookup, media upload, create or update), every response checked.
+- `mock_wp.py`: FastAPI stand-in for WordPress.
+- `wp-plugin/`: the WordPress plugin.
+- `businesses.json`: the input used for the live run.
+- `check_models.py`: lists the Gemini models the configured key can use.
