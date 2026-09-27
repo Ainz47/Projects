@@ -1,0 +1,8 @@
+requests
+python-dotenv
+pillow
+google-genai
+playwright
+fastapi
+httpx
+pytest
