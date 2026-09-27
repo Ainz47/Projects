@@ -45,12 +45,16 @@ add_filter('rest_directory_listing_query', function ($args, $request) {
     return $args;
 }, 10, 2);
 
-// Show the address and gallery under the story on the public listing page.
+// Show the scraped photo above the story, and the address and gallery under it, on the public listing page.
+// Themes don't render a custom post type's featured image on their own, so the plugin does.
 add_filter('the_content', function ($content) {
     if (!is_singular('directory_listing') || !in_the_loop()) {
         return $content;
     }
     $id = get_the_ID();
+    if (has_post_thumbnail($id)) {
+        $content = get_the_post_thumbnail($id, 'large', ['class' => 'listing-photo']) . $content;
+    }
     $html = '';
     $address = get_post_meta($id, 'business_address', true);
     if ($address) {
