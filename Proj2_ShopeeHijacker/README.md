@@ -1,55 +1,51 @@
-# Proj2: Shopee Hijacker
+# Shopee Search Capture
 
-A script that attaches Playwright to an already-open, manually authenticated Chrome window (via the Chrome DevTools Protocol) and passively listens for Shopee's search API responses while paging through search results, instead of sending its own scripted requests for the data. A second script loads the resulting CSV into a local SQLite database.
+Captures Shopee search results from your own logged-in Chrome. It attaches to the browser over the Chrome DevTools Protocol, opens its own tab, pages through a search, and reads the product data out of the search API responses the page loads anyway, so it sends no scripted requests of its own. Each run is appended to SQLite with its timestamp and written to a CSV.
 
 Architecture diagram: [docs/architecture-diagram.md](./docs/architecture-diagram.md).
 
-## What it does
+## How it works
 
-`shopee_hijacker.py`:
+`py shopee_capture.py "mechanical keyboard" --pages 3`
 
-1. Prompts for a search keyword and a page count.
-2. Connects to a running Chrome instance at `http://localhost:9222` via `connect_over_cdp`, and uses the first browser context's first tab (`browser.contexts[0].pages[0]`). Chrome has to already be running in remote-debugging mode with Shopee open and logged in; the script does not launch or log in to a browser itself.
-3. Registers a `response` listener that matches any network response whose URL contains `search_items` or `/api/v4/search/search`, calls `response.json()`, and reads `items` from it. For each item it pulls `name`, `price` (divided by 100000, see note below), `historical_sold`, and `sold`, and labels them Title, Price (PHP), Exact Lifetime Sold, and Monthly Sold.
-4. Loops `page=0` through `page=max_pages-1`, navigating to `https://shopee.ph/search?keyword=...&page=N` and waiting (15 second timeout) for a matching `/api/v4/search/search` response before moving to the next page. A per-page failure is caught and printed; the loop continues to the next page rather than stopping.
-5. After each page load it does one scroll (`page.mouse.wheel(0, 2000)`) and a 1-second wait, presumably to trigger any lazy-loaded secondary calls. Nothing is captured or checked specifically from that scroll.
-6. Deduplicates the collected rows by Title with pandas and writes `shopee_<keyword>_<max_pages>_pages.csv`.
+1. **Attach** (`shopee_capture.py`): connects to Chrome at `http://localhost:9222` and opens a new tab in your logged-in session. It never touches your other tabs, and closes its own when done.
+2. **Page and listen**: for each page (`page=0`, `page=1`, ...) it navigates to the search URL and waits up to 15 seconds for the page's `/api/v4/search/search` response. A page that doesn't answer is skipped and counted. If Shopee sends the tab to its login page, the run stops and says so.
+3. **Parse** (`shopee.py`): reads each item's shop ID, item ID, title, price, lifetime sold and monthly sold, and builds the product URL. Shopee sends prices as integers in 1/100000 of a peso. Items without IDs, and responses that aren't readable JSON, are counted as failures and reported at the end rather than silently dropped.
+4. **Dedupe**: one row per (shop ID, item ID). Deduping on title, as the first version did, merged different products that share a name.
+5. **Store** (`storage.py`): one `capture_runs` row (keyword, pages requested and answered, item and failure counts, start and finish time) plus its `products`, written in a single transaction, so a failed save leaves no half run. Runs are appended, never replaced, so the same item's price and sales can be compared across days:
 
-`Shopee_csv_to_sql.py`: reads a CSV (the filename is hardcoded to `shopee_mechanical_keyboard_3_pages.csv`, not the dynamic name `shopee_hijacker.py` actually produces for a different keyword or page count) and loads it into `market_intelligence.db`, table `shopee_products`, with `if_exists='replace'`. Each run replaces the whole table; it does not append or keep history, even though a comment in the script mentions append as an option.
+```sql
+select r.started_at, p.price_php, p.monthly_sold
+from products p join capture_runs r on r.id = p.run_id
+where p.shopid = ? and p.itemid = ?
+order by r.started_at;
+```
 
-Price note: the code assumes Shopee's raw price integer is in hundred-thousandths of the listed currency unit (`price = raw_price / 100000`). That is what the code does; it has not been checked against a live Shopee page as part of this review.
-
-## What's in this folder as evidence
-
-- `shopee_mechanical_keyboard_3_pages.csv`: 161 product rows, columns Title, Price (PHP), Exact Lifetime Sold, Monthly Sold. Example rows: "Zeus G-61 Wired 61-Key RGB Mechanical Gaming Keyboard, Type-C, Blue Switch, Portable Design", 598.0 PHP, 10000 lifetime sold, 7000 monthly sold; "AULA F3261 61 Keys Mechanical Keyboard with Hot Swappable Switches, Wired Type-C", 919.0 PHP, 20000 lifetime sold, 171 monthly sold.
-- `market_intelligence.db`: one table, `shopee_products`, same 4 columns, 161 rows, matching the CSV row for row (expected, since the loader does a straight replace-load of that exact CSV).
-
-Both files are a one-time capture from a past run. They show the pipeline produced real output at some point; they are not a live or repeatable proof that it still works today.
-
-## What's not verified here
-
-- No test suite and no CI in this folder. Nothing runs automatically to catch a broken selector, a changed API path, or a change in Shopee's response schema.
-- The committed CSV and DB are a point-in-time capture (no run date or log is kept anywhere in this folder, so the capture date is unknown). That is evidence of a past successful run, not proof the target site's DOM or API still matches today.
-- The "zero-request footprint" idea (avoiding a "suspicious request volume" flag) is a design intent that follows from listening to responses instead of issuing requests. Nothing in this folder logs or measures request volume, detection, or account safety, so it has not actually been measured.
-- The `historical_sold` -> "Exact Lifetime Sold" and `sold` -> "Monthly Sold" labels are the script author's interpretation of Shopee's internal field names, not confirmed against any Shopee documentation (Shopee does not publish this API).
-- Both scripts swallow exceptions broadly (a bare `except Exception: pass` inside the response handler, and a generic `except Exception as e` around the whole hijack call that just prints a message). A partial or malformed capture would not necessarily be obvious from the console output alone.
-
-## Known limits
-
-- Filename mismatch between the two scripts: `shopee_hijacker.py` names its CSV after the keyword and page count, but `Shopee_csv_to_sql.py` has one filename hardcoded, so the loader only works unmodified for the exact keyword/page combination it was last edited for.
-- Assumes `browser.contexts[0].pages[0]` is the right tab; with more than one context or tab open in the debug Chrome window, it can attach to the wrong one.
-- Depends on Shopee continuing to expose `/api/v4/search/search`, which is an unofficial, internal endpoint that can change without notice.
-- Requires manual setup every run: launching Chrome with `--remote-debugging-port=9222` and being logged into Shopee before starting the script.
+The CSV (default `runs/<keyword>_<timestamp>.csv`) holds the same columns for the current run. The exit code is 1 when nothing was captured, and then nothing is saved.
 
 ## Setup
 
-1. Close all Chrome windows, then launch with remote debugging enabled:
+1. Close all Chrome windows, then start Chrome with remote debugging:
    - Windows: `chrome.exe --remote-debugging-port=9222`
    - macOS: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --remote-debugging-port=9222`
-2. Log into Shopee manually in that window.
-3. `pip install playwright pandas`
-4. Run `py shopee_hijacker.py` and enter a keyword and page count when prompted.
-5. Optional: edit `csv_filename` in `Shopee_csv_to_sql.py` to match the CSV just produced, then run it to load the data into `market_intelligence.db`.
+2. Log in to shopee.ph in that window.
+3. `pip install -r requirements.txt`
+4. `py shopee_capture.py "<keyword>" --pages 3` (options: `--db`, `--csv`, `--cdp`)
+
+## Tests
+
+```bash
+python -m pytest tests -q
+```
+
+No browser or network needed; they run in CI. They cover parsing (nested and flat item shapes, price scaling, items without IDs, empty pages), dedupe on item ID when titles collide, the response listener ignoring non-search calls and counting unreadable ones, run history across two runs, the one-transaction save, CSV quoting, and the CLI's exit codes.
+
+## Evidence and limits
+
+- `shopee_mechanical_keyboard_3_pages.csv` is a capture from the first version of this script: 161 products for "mechanical keyboard" over 3 pages (Title, Price (PHP), Exact Lifetime Sold, Monthly Sold). It predates the current columns, so it has no item IDs, and its capture date wasn't recorded.
+- The current version is tested offline against the response shapes above. It hasn't yet been run against live Shopee.
+- `/api/v4/search/search` is Shopee's internal, undocumented endpoint and can change without notice. The field meanings (`historical_sold` as lifetime sold, `sold` as monthly sold) are read from the data, not from Shopee documentation.
+- The low request footprint follows from the design (it only reads responses to page loads a person would make). Detection and account safety haven't been measured.
 
 ## Disclaimer
 

@@ -35,7 +35,7 @@ Pick the row that matches what you are hiring for.
 | # | Project | Domain | Stack |
 |---|---------|--------|-------|
 | 1 | [SchoolJobs](#1-schooljobs) | Web Scraping | Python, Playwright, SQLite |
-| 2 | [ShopeeHijacker](#2-shopeehijacker) | E-commerce Scraping | Python, Playwright CDP |
+| 2 | [Shopee Search Capture](#2-shopee-search-capture) | E-commerce Scraping | Python, Playwright CDP, SQLite |
 | 3 | [PDFExtractor](#3-pdfextractor) | Document Processing | Python, pdfplumber, SQLite |
 | 4 | [SmartParkingIoT](#4-smartparkingiot) | IoT / Embedded | C++, ESP32, LoRa, Blynk |
 | 5 | [WordPress ACF REST API](#5-wordpress-acf-rest-api) | CMS Integration | Python, WordPress REST API |
@@ -68,12 +68,12 @@ WAF-bypassing scraper that pulls job listings from the SchoolSpring/PowerSchool 
 
 ---
 
-## 2. ShopeeHijacker
+## 2. Shopee Search Capture
 
-Stealth e-commerce scraper that attaches to an existing Chrome window via Chrome DevTools Protocol and passively intercepts live Shopee API responses, no bot-triggering requests sent.
+E-commerce scraper that attaches to an existing, logged-in Chrome window via Chrome DevTools Protocol and passively reads the Shopee search API responses the page loads itself, no bot-triggering requests sent.
 
-**Stack:** Python · Playwright CDP · Pandas  
-**Highlights:** Zero suspicious request footprint; mouse.wheel() pagination to mimic human behavior; ID-based deduplication across pages.
+**Stack:** Python · Playwright CDP · SQLite  
+**Highlights:** Zero suspicious request footprint; one CLI from search to database; deduplication on Shopee's item ID; every run appended to SQLite so prices and sales have history; tested and in CI.
 
 [→ View project](Proj2_ShopeeHijacker/)
 

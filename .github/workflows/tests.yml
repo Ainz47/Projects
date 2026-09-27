@@ -135,6 +135,19 @@ jobs:
       - run: python -m pip install -r requirements.txt
       - run: python -X utf8 -m pytest tests -v
 
+  proj2-shopee-capture:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: Proj2_ShopeeHijacker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - run: python -m pip install pytest
+      - run: python -X utf8 -m pytest tests -v
+
   proj7-labor-alerts:
     runs-on: windows-latest
     defaults:
