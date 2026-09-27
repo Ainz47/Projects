@@ -1,4 +1,4 @@
-requests
-pandas
-pyarrow
-azure-storage-blob
+requests>=2.32
+pyarrow>=17
+# Only needed when --dest is azure://...
+azure-storage-blob>=12.20
