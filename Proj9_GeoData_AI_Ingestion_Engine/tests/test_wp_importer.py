@@ -46,6 +46,24 @@ def test_wrong_credentials_raise(mock_app):
         bad.find_listing("abc")
 
 
+def test_every_request_has_a_timeout(mock_app):
+    """A slow site must fail the one business, not hang the whole batch."""
+    seen = []
+
+    class Recording(MockSession):
+        def get(self, url, **kw):
+            seen.append(kw.get("timeout"))
+            return super().get(url, **kw)
+
+        def post(self, url, **kw):
+            seen.append(kw.get("timeout"))
+            return super().post(url, **kw)
+
+    client = WordPressClient("http://testserver", ("mock_admin", "mock_password"), session=Recording(TestClient(mock_app)), timeout=7)
+    client.save_listing(LISTING, featured_media=client.upload_media(make_jpeg(4, 4), "a.jpg"))
+    assert seen and all(t == 7 for t in seen)
+
+
 def test_from_env_needs_all_three_settings(monkeypatch):
     import wp_importer
 

@@ -18,10 +18,11 @@ def image_mime(image_bytes: bytes) -> str:
 
 
 class WordPressClient:
-    def __init__(self, base_url: str, auth: tuple[str, str], session=None):
+    def __init__(self, base_url: str, auth: tuple[str, str], session=None, timeout: float = 60):
         self.base = base_url.rstrip("/")
         self.auth = auth
         self.session = session or requests.Session()
+        self.timeout = timeout
 
     @classmethod
     def from_env(cls) -> "WordPressClient":
@@ -42,6 +43,7 @@ class WordPressClient:
             f"{self.base}/wp/v2/directory_listing",
             params={"place_id": place_id, "_fields": "id,featured_media"},
             auth=self.auth,
+            timeout=self.timeout,
         )
         posts = self._json(r, 200, "Listing lookup")
         return {"id": posts[0]["id"], "featured_media": posts[0].get("featured_media", 0)} if posts else None
@@ -52,6 +54,7 @@ class WordPressClient:
             data=image_bytes,
             headers={"Content-Disposition": f'attachment; filename="{filename}"', "Content-Type": image_mime(image_bytes)},
             auth=self.auth,
+            timeout=self.timeout,
         )
         return self._json(r, 201, f"Media upload ({filename})")["id"]
 
@@ -64,7 +67,7 @@ class WordPressClient:
         if featured_media:
             body["featured_media"] = featured_media
         if post_id:
-            r = self.session.post(f"{self.base}/wp/v2/directory_listing/{post_id}", json=body, auth=self.auth)
+            r = self.session.post(f"{self.base}/wp/v2/directory_listing/{post_id}", json=body, auth=self.auth, timeout=self.timeout)
             return "updated", self._json(r, 200, "Listing update")["id"]
-        r = self.session.post(f"{self.base}/wp/v2/directory_listing", json=body, auth=self.auth)
+        r = self.session.post(f"{self.base}/wp/v2/directory_listing", json=body, auth=self.auth, timeout=self.timeout)
         return "created", self._json(r, 201, "Listing create")["id"]

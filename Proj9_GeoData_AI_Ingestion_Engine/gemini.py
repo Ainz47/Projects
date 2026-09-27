@@ -10,10 +10,13 @@ from dotenv import load_dotenv
 load_dotenv()
 TEXT_MODEL = os.getenv("GEMINI_TEXT_MODEL", "gemini-flash-latest")
 IMAGE_MODEL = os.getenv("GEMINI_IMAGE_MODEL", "gemini-3.1-flash-image")
+# Without a timeout one stalled call holds up the whole batch; every caller already has a fallback.
+TIMEOUT_MS = 120_000
 
 
 @lru_cache(maxsize=1)
 def get_client():
     from google import genai
+    from google.genai import types
 
-    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"), http_options=types.HttpOptions(timeout=TIMEOUT_MS))

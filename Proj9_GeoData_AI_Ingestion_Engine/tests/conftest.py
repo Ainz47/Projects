@@ -45,10 +45,10 @@ class MockSession:
     def __init__(self, client):
         self.client = client
 
-    def get(self, url, params=None, auth=None):
+    def get(self, url, params=None, auth=None, timeout=None):
         return self.client.get(url, params=params, auth=auth)
 
-    def post(self, url, json=None, data=None, headers=None, auth=None):
+    def post(self, url, json=None, data=None, headers=None, auth=None, timeout=None):
         if data is not None:
             return self.client.post(url, content=data, headers=headers, auth=auth)
         return self.client.post(url, json=json, headers=headers, auth=auth)

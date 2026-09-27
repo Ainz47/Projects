@@ -45,9 +45,14 @@ def _slug(name: str) -> str:
 
 
 def process_business(biz: dict, wp: WordPressClient, steps: Steps, gallery: bool = False) -> dict:
+    def step(msg):
+        print(f"[{biz['name']}] {msg}", flush=True)
+
+    step("scraping Google Maps")
     raw = steps.scrape(biz["name"], biz["location"], biz["category"])
     if not raw:
         return {"business": biz["name"], "status": "not_found"}
+    step("writing the story")
     story, ai_story = steps.story(raw["name"], raw["category"], raw["city"])
     listing = build_listing(raw, story)
     existing = wp.find_listing(listing["place_id"])
@@ -56,6 +61,7 @@ def process_business(biz: dict, wp: WordPressClient, steps: Steps, gallery: bool
     if existing and existing["featured_media"]:
         featured, image = existing["featured_media"], "reused"
     else:
+        step("checking the photo")
         photo = steps.fetch(raw["image_url"])
         publishable = steps.gate(photo, raw["category"], raw["name"]) if photo else None
         if publishable:
@@ -64,10 +70,12 @@ def process_business(biz: dict, wp: WordPressClient, steps: Steps, gallery: bool
     gallery_ids = []
     if gallery and not existing:
         for shot in GALLERY_SHOTS:
+            step(f"generating the {shot} image")
             img = steps.gallery(listing["title"], shot, raw["city"])
             if img:
                 gallery_ids.append(wp.upload_media(img, f"{_slug(listing['title'])}-{_slug(shot)}.jpg"))
 
+    step("saving to WordPress")
     action, post_id = wp.save_listing(listing, post_id=existing["id"] if existing else None,
                                       featured_media=featured, gallery_ids=gallery_ids)
     return {"business": biz["name"], "status": action, "post_id": post_id, "place_id": listing["place_id"],
