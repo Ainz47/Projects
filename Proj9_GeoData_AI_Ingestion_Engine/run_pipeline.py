@@ -121,7 +121,7 @@ def load_businesses(path) -> list[dict]:
 def main(argv=None) -> int:
     ap = argparse.ArgumentParser(description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
     ap.add_argument("--input", default="businesses.json")
-    ap.add_argument("--gallery", action="store_true", help="also generate 2 AI gallery images per new listing (needs Imagen access)")
+    ap.add_argument("--gallery", action="store_true", help="also generate 2 AI gallery images per new listing (needs Gemini image access)")
     ap.add_argument("--report", help="JSONL report path (default runs/run_<timestamp>.jsonl)")
     args = ap.parse_args(argv)
     report = Path(args.report or f"runs/run_{datetime.now():%Y%m%d_%H%M%S}.jsonl")
