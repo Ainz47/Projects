@@ -1,62 +1,29 @@
-# 📋Dependencies
+# Dependencies
 
-This document provides a comprehensive map of the technical stack, library versions, and system dependencies required to maintain and reproduce the **arXiv Research Data Pipeline**.
+## Verified locally (2026-09-27)
 
----
+The local run in the README used Python 3.12 with:
 
-## 💻 1. System Requirements
-* **Operating System:** Windows 10/11 with **WSL2 (Ubuntu 22.04+)** or a native Linux environment (Debian-based preferred).
-* **Memory:** Minimum **8GB RAM** is required. The simultaneous execution of Kestra, dbt, and Metabase within Docker typically consumes ~5-6GB of memory.
-* **Storage:** ~2GB of local disk space for container images and temporary Parquet processing chunks.
-
----
-
-## ☁️ 2. External Services & Cloud
-* **Azure Blob Storage:** Requires an active Storage Account and a container named `raw-parquet-chunks`.
-* **MotherDuck:** Serverless DuckDB cloud instance. Requires an **Authentication Token**.
-* **arXiv API:** Public access; however, the pipeline respects the mandatory **3-second request interval** to prevent IP throttling.
-
----
-
-## 🐋 3. Containerization & Orchestration
-* **Docker Engine:** v24.0.0+
-* **Docker Compose:** v2.20.0+
-* **Kestra:** v0.17.0 (Standard Edition) for workflow orchestration and task scheduling.
-
----
-
-## 🐍 4. Python Extraction Layer (Python 3.11+)
-The `extract.py` script utilizes the following libraries for data retrieval and cloud streaming:
-
-| Library | Version | Purpose |
+| Package | Version | Used by |
 | :--- | :--- | :--- |
-| `requests` | ^2.31.0 | API communication and pagination logic. |
-| `pandas` | ^2.1.0 | In-memory data structuring and cleaning. |
-| `pyarrow` | ^14.0.0 | High-performance Parquet serialization. |
-| `azure-storage-blob` | ^12.19.0 | Streaming data directly to Azure Data Lake. |
-| `python-dotenv` | ^1.0.0 | Secure management of environment variables. |
+| `requests` | 2.34.2 | extraction: API calls |
+| `pyarrow` | 25.0.1 | extraction: Parquet writing |
+| `dbt-core` | 1.12.5 | transformation |
+| `dbt-duckdb` | 1.11.0 | transformation |
+| `duckdb` | 1.5.5 | transformation (local DuckDB file) |
+| `pytest` | 9.1.1 | tests |
 
----
+`azure-storage-blob` (12.20+) is only needed when `--dest` is an `azure://` prefix. It's in `extraction/requirements.txt` for the Docker image.
 
-## 💎 5. Transformation Layer (dbt)
-The transformation environment is specifically pinned to ensure compatibility between the dbt adapter and the MotherDuck serverless protocol.
+The dbt image (`transformation/arxiv_transform/Dockerfile`) pins the same dbt and DuckDB versions. MotherDuck only accepts certain DuckDB client versions, and the MotherDuck target hasn't been re-run with these, so check its supported versions before a cloud run.
 
-* **`dbt-core`**: 1.7.18
-* **`dbt-duckdb`**: 1.7.1
-* **`duckdb`**: **1.4.4** (Pinned to prevent protocol mismatches with MotherDuck's engine).
+## Cloud and containers (not re-run for this version)
 
----
+- **Azure Blob Storage:** a storage account with a `raw-parquet-chunks` container (`infrastructure/`, Terraform 1.5+ with the azurerm provider pinned in `.terraform.lock.hcl`).
+- **MotherDuck:** an account and a `MOTHERDUCK_TOKEN`.
+- **Docker Engine 24+ and Compose v2:** for Kestra (`orchestration/`) and Metabase (`visualization/`).
+- **Metabase:** a custom image on `eclipse-temurin:21-jre-jammy`, since the community DuckDB JDBC driver needs glibc. Allow about 8 GB of RAM for Kestra, a task container and Metabase together.
 
-## 📊 6. Visualization Layer (Metabase)
-To overcome shared library conflicts (`glibc` vs `musl`), the Metabase environment is built on a custom Ubuntu-based image with the following dependencies:
+## arXiv API
 
-* **Base Runtime:** `eclipse-temurin:21-jre-jammy` (Provides the necessary `glibc` environment).
-* **System Libraries:** `libstdc++6`, `g++`, `libc6-compat`.
-* **BI Software:** Metabase v0.50.21.
-* **Database Driver:** `duckdb.metabase-driver.jar` (Community-sourced JDBC driver).
-
----
-
-## 🛠️ 7. Infrastructure as Code
-* **Terraform:** v1.5.0+ 
-* **Azure Provider:** Used to provision the Resource Group and Storage Account containers automatically.
+Public, no key. The extractor waits 3 seconds between requests, as arXiv's terms ask.

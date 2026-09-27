@@ -1,0 +1,35 @@
+15:55:33  Running with dbt=1.12.5
+15:55:34  Registered adapter: duckdb=1.11.0
+15:55:35  Found 2 models, 9 data tests, 501 macros
+15:55:35  
+15:55:35  Concurrency: 4 threads (target='local')
+15:55:35  
+15:55:36  1 of 11 START sql view model main.stg_arxiv_papers ............................. [RUN]
+15:55:37  1 of 11 OK created sql view model main.stg_arxiv_papers ........................ [OK in 0.17s]
+15:55:37  2 of 11 START test not_null_stg_arxiv_papers_paper_id .......................... [RUN]
+15:55:37  3 of 11 START test unique_stg_arxiv_papers_paper_id ............................ [RUN]
+15:55:37  2 of 11 PASS not_null_stg_arxiv_papers_paper_id ................................ [PASS in 0.11s]
+15:55:37  3 of 11 PASS unique_stg_arxiv_papers_paper_id .................................. [PASS in 0.14s]
+15:55:37  4 of 11 START sql incremental model main.fact_math_papers ...................... [RUN]
+15:55:37  4 of 11 OK created sql incremental model main.fact_math_papers ................. [OK in 0.33s]
+15:55:37  5 of 11 START test assert_no_future_dates ...................................... [RUN]
+15:55:37  6 of 11 START test not_null_fact_math_papers_paper_id .......................... [RUN]
+15:55:37  7 of 11 START test not_null_fact_math_papers_paper_key ......................... [RUN]
+15:55:37  8 of 11 START test not_null_fact_math_papers_primary_category .................. [RUN]
+15:55:37  5 of 11 PASS assert_no_future_dates ............................................ [PASS in 0.07s]
+15:55:37  8 of 11 PASS not_null_fact_math_papers_primary_category ........................ [PASS in 0.07s]
+15:55:37  7 of 11 PASS not_null_fact_math_papers_paper_key ............................... [PASS in 0.07s]
+15:55:37  6 of 11 PASS not_null_fact_math_papers_paper_id ................................ [PASS in 0.07s]
+15:55:37  9 of 11 START test not_null_fact_math_papers_published_timestamp ............... [RUN]
+15:55:37  10 of 11 START test unique_fact_math_papers_paper_id ........................... [RUN]
+15:55:37  11 of 11 START test unique_fact_math_papers_paper_key .......................... [RUN]
+15:55:37  9 of 11 PASS not_null_fact_math_papers_published_timestamp ..................... [PASS in 0.09s]
+15:55:37  10 of 11 PASS unique_fact_math_papers_paper_id ................................. [PASS in 0.10s]
+15:55:37  11 of 11 PASS unique_fact_math_papers_paper_key ................................ [PASS in 0.10s]
+15:55:37  
+15:55:37  Finished running 1 incremental model, 9 data tests, 1 view model in 0 hours 0 minutes and 2.06 seconds (2.06s).
+15:55:37  
+15:55:37  Completed successfully
+15:55:37  
+15:55:37  Done. PASS=11 WARN=0 ERROR=0 SKIP=0 NO-OP=0 REUSED=0 TOTAL=11
+exit 0

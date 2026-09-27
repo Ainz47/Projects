@@ -139,7 +139,7 @@ Real-time ETL microservice that aggregates restaurant POS data (Toast) and labor
 Full data engineering capstone (DE Zoomcamp). Batch ETL pulls arXiv math papers via API, stages parquet chunks to Azure Data Lake, transforms with dbt in MotherDuck (DuckDB), orchestrated by Kestra, visualized in Metabase.
 
 **Stack:** Python · Terraform · Azure Blob Storage · MotherDuck (DuckDB) · dbt · Kestra · Metabase · Docker  
-**Highlights:** IaC-provisioned Azure infrastructure; MD5 surrogate keys for 100% pipeline idempotency; dbt clustering on timestamp + category; custom Metabase Dockerfile for DuckDB JDBC.
+**Highlights:** resumable extraction (checkpoint stored with the chunks, offset-named files so re-runs overwrite); incremental dbt model keyed on MD5 of the arXiv id, with dedupe and data tests; Kestra flow; IaC-provisioned Azure infrastructure; custom Metabase Dockerfile for DuckDB JDBC; verified with a real 2,000-paper local run, tested in CI.
 
 [→ View project](Proj8_Arxiv_Pipeline/)
 

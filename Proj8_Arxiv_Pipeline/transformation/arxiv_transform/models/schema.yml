@@ -1,0 +1,21 @@
+version: 2
+
+models:
+  - name: stg_arxiv_papers
+    description: One row per arXiv paper, highest version kept.
+    columns:
+      - name: paper_id
+        data_tests: [unique, not_null]
+
+  - name: fact_math_papers
+    description: Incremental fact table of papers from the cat:math.* query, keyed on the arXiv id.
+    columns:
+      - name: paper_key
+        description: md5 of paper_id
+        data_tests: [unique, not_null]
+      - name: paper_id
+        data_tests: [unique, not_null]
+      - name: primary_category
+        data_tests: [not_null]
+      - name: published_timestamp
+        data_tests: [not_null]

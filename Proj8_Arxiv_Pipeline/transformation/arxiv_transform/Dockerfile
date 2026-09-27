@@ -1,10 +1,10 @@
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 WORKDIR /app
 
-# Pin BOTH dbt-duckdb and the underlying duckdb engine
-RUN pip install --no-cache-dir dbt-duckdb==1.7.1 duckdb==1.4.4
+# The versions the local end-to-end run was verified with.
+RUN pip install --no-cache-dir dbt-core==1.12.5 dbt-duckdb==1.11.0 duckdb==1.5.5
 
 COPY . .
 
-CMD ["dbt", "run", "--profiles-dir", "."]
+CMD ["dbt", "build", "--profiles-dir", ".", "--target", "motherduck"]

@@ -1,0 +1,36 @@
+-- raw rows across all chunks vs papers after dedupe
+raw_rows | staged | fact_rows
+2000 | 2000 | 2000
+
+-- load batches in the fact table (run 1 full load, run 2 incremental)
+dbt_updated_at | papers
+2026-09-27 23:54:13.999458+08:00 | 1000
+2026-09-27 23:55:37.394262+08:00 | 1000
+
+-- date range
+first_paper | last_paper
+1989-04-15 00:00:00 | 1995-01-03 02:00:13
+
+-- top primary categories
+primary_category | n
+hep-th | 612
+math.AG | 362
+math.FA | 298
+math.LO | 195
+math.DG | 88
+math.CA | 81
+math.DS | 81
+math.CO | 52
+
+-- cross-listed (matched cat:math.* but primary is not math)
+count_star()
+630
+
+-- sample rows
+paper_key | paper_id | version | title | author_count | published
+7a42f3110a943a3628670de459d00474 | math/9201239 | 1 | A note on canonical functions | 2 | 1989-04-15
+6da723d1b5e006b71ad899feca2689e3 | math/9201203 | 1 | Convex bodies with few faces | 2 | 1989-10-26
+bcf56f405366de4ff5279c40a212b9eb | math/9201205 | 1 | Volume ratios and a reverse isoperimetric inequality | 1 | 1989-10-26
+6d90053003b8f4a4bc5f2216bbb62937 | math/9201204 | 1 | Shadows of convex bodies | 1 | 1989-10-26
+9e6536749b3862f85ead148a9f523748 | math/9201206 | 1 | On the volume of the intersection of two $L_p^n$ balls | 2 | 1989-11-09
+

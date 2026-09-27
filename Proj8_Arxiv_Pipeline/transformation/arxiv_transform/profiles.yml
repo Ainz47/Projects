@@ -1,12 +1,18 @@
-# profiles.yml
 arxiv_transform:
-  target: dev
+  target: local
   outputs:
-    dev:
+    # A DuckDB file next to the project. Reads ../../data/raw by default.
+    local:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', 'arxiv_local.duckdb') }}"
+      threads: 4
+
+    # MotherDuck (reads MOTHERDUCK_TOKEN), reading the chunks from Azure Blob Storage.
+    motherduck:
       type: duckdb
       path: 'md:arxiv_dev'
       extensions:
         - azure
         - motherduck
       settings:
-        azure_storage_connection_string: "{{ env_var('AZURE_CONN_STRING') }}"
+        azure_storage_connection_string: "{{ env_var('AZURE_CONNECTION_STRING') }}"

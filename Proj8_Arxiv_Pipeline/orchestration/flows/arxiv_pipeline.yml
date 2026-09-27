@@ -1,0 +1,46 @@
+id: arxiv_pipeline
+namespace: portfolio.arxiv
+description: |
+  Daily: extract new arXiv math papers into Azure Blob Storage (resuming from
+  the checkpoint stored next to the chunks), then dbt build on MotherDuck.
+  Both images are built locally from extraction/ and transformation/arxiv_transform/.
+
+tasks:
+  - id: extract
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: arxiv-extract:latest
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+    env:
+      AZURE_CONNECTION_STRING: "{{ secret('AZURE_CONNECTION_STRING') }}"
+    commands:
+      - python /app/extract.py --dest azure://raw-parquet-chunks/raw
+    retry:
+      type: exponential
+      interval: PT5M
+      maxInterval: PT1H
+      maxAttempts: 3
+
+  - id: dbt_build
+    type: io.kestra.plugin.scripts.shell.Commands
+    containerImage: arxiv-dbt:latest
+    taskRunner:
+      type: io.kestra.plugin.scripts.runner.docker.Docker
+      pullPolicy: NEVER
+    env:
+      AZURE_CONNECTION_STRING: "{{ secret('AZURE_CONNECTION_STRING') }}"
+      MOTHERDUCK_TOKEN: "{{ secret('MOTHERDUCK_TOKEN') }}"
+    commands:
+      - cd /app && dbt build --profiles-dir . --target motherduck
+
+errors:
+  - id: log_failure
+    type: io.kestra.plugin.core.log.Logger
+    level: ERROR
+    message: "arxiv_pipeline failed in {{ task.id }} (execution {{ execution.id }})"
+
+triggers:
+  - id: daily
+    type: io.kestra.plugin.core.trigger.Schedule
+    cron: "0 6 * * *"

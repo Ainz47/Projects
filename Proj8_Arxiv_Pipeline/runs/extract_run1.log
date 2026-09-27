@@ -1,0 +1,5 @@
+2026-09-27 23:51:56,138 INFO resuming at offset 0 into data\raw
+2026-09-27 23:51:59,650 INFO wrote arxiv_math_00000000.parquet (500 records), checkpoint at 500
+2026-09-27 23:52:04,069 INFO wrote arxiv_math_00000500.parquet (500 records), checkpoint at 1000
+2026-09-27 23:52:04,070 INFO done: 1000 records in 2 chunks, next offset 1000
+exit 0
