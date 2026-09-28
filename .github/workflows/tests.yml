@@ -180,3 +180,13 @@ jobs:
         run: |
           dbt build --profiles-dir . --vars '{raw_path: "../../ci_raw/*.parquet"}'
           dbt build --profiles-dir . --vars '{raw_path: "../../ci_raw/*.parquet"}'
+
+  portfolio-work-page:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.14"
+      - name: Upwork copy of the portfolio page is current and has no contact details
+        run: python -X utf8 -m unittest tools/test_build_work_page.py -v
