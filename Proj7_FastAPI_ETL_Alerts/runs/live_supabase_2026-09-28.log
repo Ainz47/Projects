@@ -1,0 +1,11 @@
+INFO:     Started server process [46988]
+INFO:     Waiting for application startup.
+INFO:     Application startup complete.
+INFO:     127.0.0.1:5492 - "GET /health HTTP/1.1" 200 OK
+INFO:     127.0.0.1:5492 - "POST /webhook/sales HTTP/1.1" 202 Accepted
+Store_104 2026-09-28: waiting
+INFO:     127.0.0.1:5492 - "POST /webhook/labor HTTP/1.1" 202 Accepted
+INFO:     127.0.0.1:5492 - "POST /webhook/labor HTTP/1.1" 202 Accepted
+Store_104 2026-09-28: already_alerted
+Store_104 2026-09-28: alerted
+INFO:     127.0.0.1:5492 - "GET /metrics/Store_104/2026-09-28 HTTP/1.1" 200 OK

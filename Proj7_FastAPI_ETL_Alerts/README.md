@@ -32,7 +32,13 @@ Store_104 2026-02-24: already_alerted
 
 The stored row ([runs/local_demo.json](./runs/local_demo.json)) has CPLH $20.00 ($1,500 / 75 hours) and labor 30.00% ($1,500 / $5,000), with `alert_sent_at` set once.
 
-The Supabase store's requests (the upsert, the conditional claim, the filters and auth headers) are covered by tests against a mocked HTTP transport. It hasn't been run against a live Supabase project yet.
+## Live Supabase run
+
+Run on 2026-09-28 against a live Supabase project with the service-role key and the same Discord webhook, same three webhooks for Store_104 on 2026-09-28. All three returned 202, the health check reported `SupabaseStore` with alerts on, and the server log ([runs/live_supabase_2026-09-28.log](./runs/live_supabase_2026-09-28.log)) shows one `alerted` and one `already_alerted` for the day. Read back from Supabase afterwards: a single row for the store-day with CPLH 20 and labor 30%, `alert_sent_at` set once ([runs/live_supabase_2026-09-28.json](./runs/live_supabase_2026-09-28.json)). A request without the key was refused (401).
+
+The project also holds the row from the service's first version (2026-02-24, same figures), which the run left untouched. That table predated `alert_sent_at` and the unique `(store_id, date)` constraint, so both were added with `alter table` instead of recreating it.
+
+The Supabase store's requests (the upsert, the conditional claim, the filters and auth headers) are also covered by tests against a mocked HTTP transport.
 
 ## Running it
 
@@ -76,7 +82,7 @@ transformations.py    CPLH and labor % math, and the threshold check
 notifier.py           Formats and sends the Discord alert
 mock_data_sender.py   Plays sales, labor and a re-delivered labor webhook at a running server
 tests/                The test suite
-runs/                 The local run's server log and stored row
+runs/                 Server logs and stored rows from the local and live Supabase runs
 ```
 
 ## Stack
