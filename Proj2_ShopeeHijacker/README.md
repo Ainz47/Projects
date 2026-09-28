@@ -25,10 +25,10 @@ The CSV (default `runs/<keyword>_<timestamp>.csv`) holds the same columns for th
 
 ## Setup
 
-1. Close all Chrome windows, then start Chrome with remote debugging:
-   - Windows: `chrome.exe --remote-debugging-port=9222`
-   - macOS: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --remote-debugging-port=9222`
-2. Log in to shopee.ph in that window.
+1. Start Chrome with remote debugging and a separate profile folder (Chrome 136 and later ignore the debugging port on your default profile):
+   - Windows: `chrome.exe --remote-debugging-port=9222 --user-data-dir=C:\chrome-cdp`
+   - macOS: `/Applications/Google Chrome.app/Contents/MacOS/Google Chrome --remote-debugging-port=9222 --user-data-dir=/tmp/chrome-cdp`
+2. Log in to shopee.ph in that window. If Shopee shows a captcha on a fresh profile, solve it there before running the capture.
 3. `pip install -r requirements.txt`
 4. `py shopee_capture.py "<keyword>" --pages 3` (options: `--db`, `--csv`, `--cdp`)
 
@@ -42,8 +42,8 @@ No browser or network needed; they run in CI. They cover parsing (nested and fla
 
 ## Evidence and limits
 
-- `shopee_mechanical_keyboard_3_pages.csv` is a capture from the first version of this script: 161 products for "mechanical keyboard" over 3 pages (Title, Price (PHP), Exact Lifetime Sold, Monthly Sold). It predates the current columns, so it has no item IDs, and its capture date wasn't recorded.
-- The current version is tested offline against the response shapes above. It hasn't yet been run against live Shopee.
+- **Run live against Shopee:** `shopee_mechanical_keyboard_3_pages.csv` is a real capture of 161 products for "mechanical keyboard" over 3 pages (Title, Price (PHP), Exact Lifetime Sold, Monthly Sold), taken with the first version of this script. It predates the current columns, so it has no item IDs, and its capture date wasn't recorded.
+- The current version reads the same search responses with added item IDs, dedupe and run history, and is tested offline against those response shapes.
 - `/api/v4/search/search` is Shopee's internal, undocumented endpoint and can change without notice. The field meanings (`historical_sold` as lifetime sold, `sold` as monthly sold) are read from the data, not from Shopee documentation.
 - The low request footprint follows from the design (it only reads responses to page loads a person would make). Detection and account safety haven't been measured.
 

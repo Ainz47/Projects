@@ -21,3 +21,6 @@ __pycache__/
 node_modules/
 # Proj9 reports from the superseded run on another project's demo site.
 Proj9_GeoData_AI_Ingestion_Engine/runs_toughgrape/
+
+# Chrome profile for Proj2 CDP capture (holds login cookies)
+chrome-cdp/

@@ -4,7 +4,7 @@ Opens a new tab in a Chrome you already started with remote debugging and logged
 the search, and reads the product data from the search API responses the page itself loads. Each run is
 appended to SQLite with its timestamp, and written to a CSV.
 
-    chrome.exe --remote-debugging-port=9222      (then log in to shopee.ph in that window)
+    chrome.exe --remote-debugging-port=9222 --user-data-dir=chrome-cdp   (then log in to shopee.ph there)
     py shopee_capture.py "mechanical keyboard" --pages 3
 """
 import argparse
