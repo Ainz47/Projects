@@ -20,7 +20,7 @@ Pick the row that matches what you are hiring for.
 | GoHighLevel (GHL) automation, CRM workflows and funnels | [Proj20](#20-ghl-lead-qualifier--router) |
 | Email deliverability (SPF, DKIM, DMARC) | [Proj17](#17-email-deliverability-checker) |
 | Data engineering (dbt, orchestration, IaC) | [Proj8](#8-arxiv-pipeline) |
-| WordPress and CMS automation | [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine), [Proj20](#20-ghl-lead-qualifier--router) |
+| WordPress and CMS automation | [Proj21](#21-trailmark-wordpress-site-build) (a full Elementor + WooCommerce site, SEO, redirects, speed and accessibility measured), [Proj5](#5-wordpress-acf-rest-api), [Proj11](#11-rank-rent-automation), [Proj9](#9-geodata-ai-ingestion-engine), [Proj20](#20-ghl-lead-qualifier--router) |
 | AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling), [Proj16](#16-n8n-lead-capture) |
 | Claude Code skills, hooks and guardrails | [Proj15](#15-claude-code-tooling) |
 | Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [Proj18](#18-dynamic-coffee-storefront), [storefront case study](case-studies/storefront-spa-port.md) |
@@ -54,6 +54,7 @@ Pick the row that matches what you are hiring for.
 | 18 | [Dynamic Coffee Storefront](#18-dynamic-coffee-storefront) | Storefront UI | TypeScript, React, Vite, Shopify Admin GraphQL, vitest |
 | 19 | [Shopify Order to Stock Sync](#19-shopify-order-to-stock-sync) | Workflow Automation | n8n, Shopify Admin GraphQL, Airtable API, GitHub Actions |
 | 20 | [GHL Lead Qualifier & Router](#20-ghl-lead-qualifier--router) | Workflow Automation / CRM | Python, FastAPI, n8n, GoHighLevel (GHL) |
+| 21 | [Trailmark WordPress Site Build](#21-trailmark-wordpress-site-build) | WordPress Site / Technical SEO | WordPress, Elementor, WooCommerce, Yoast, Contact Form 7, Python, Lighthouse |
 
 ---
 
@@ -274,6 +275,17 @@ A FastAPI backend scores inbound leads from a GoHighLevel (GHL) funnel with an L
 **Highlights:** Live-verified against a real GHL sandbox across both phases via the GHL API and a real inbox, not just execution logs; 7 real bugs found and fixed along the way, including GHL sending an empty `opportunityId` for an opportunity that already existed (fixed by having the workflow resolve it via GHL's own API instead of trusting the webhook field) and a re-branch that changed a contact's tag without moving the CRM's pipeline stage (fixed with a Find/Update Opportunity step, verified live watching a real stage move).
 
 [→ View project](Proj20_GHL_Lead_Router/)
+
+---
+
+## 21. Trailmark WordPress Site Build
+
+A 15-page B2B software site in WordPress for a fictional product, built to match the page set and functions of a real small-business site from a job post (not its design): Elementor pages, site-wide header and footer templates, Calendly and Contact Form 7 demo paths, and a WooCommerce shop whose guest checkout was tested end to end. Then the rebuild work that job asked for, measured before and after with Lighthouse: Yoast titles, descriptions, sitemap and schema written from a script, seven 301 redirects from old Shopify-style URLs, accessibility fixes in Elementor's own markup, and self-hosted fonts.
+
+**Stack:** WordPress · Elementor · WooCommerce · Yoast SEO · Contact Form 7 · Calendly · Python · Lighthouse · Playwright  
+**Highlights:** SEO 92 to 100 and accessibility to 100 on every page tested; diagnosed an SEO plugin that showed as active but never ran on WordPress 7.1 / PHP 8.5 and moved the site to Yoast; one stylesheet pushed into the header template instead of pasted per page; [live static copy](https://ainz47.github.io/Projects/trailmark/) built by a script that also catches the JavaScript Elementor loads at run time. GA4/GTM is not installed, and that's stated in the project.
+
+[→ View project](Proj21_Trailmark_WordPress_Build/)
 
 ---
 

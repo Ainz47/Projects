@@ -1,0 +1,28 @@
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+/* Trailmark a11y fixes for third-party markup (see DESIGN.md).
+   1. Elementor Tabs put role="tablist" on the content wrapper, which holds tabpanels (invalid ARIA).
+   2. With that role gone, the phone-only tab titles inside the wrapper have no tablist parent.
+      On phones they behave as accordion headers, so they become buttons with aria-expanded.
+   3. UAE's skip link targets #content, which Elementor pages do not have. */
+document.querySelectorAll('.elementor-tabs-content-wrapper[role="tablist"]').forEach(function (el) {
+  el.removeAttribute('role');
+  el.removeAttribute('aria-orientation');
+});
+document.querySelectorAll('.elementor-tab-mobile-title').forEach(function (t) {
+  var sync = function () {
+    t.removeAttribute('aria-selected');
+    t.setAttribute('aria-expanded', t.classList.contains('elementor-active') ? 'true' : 'false');
+  };
+  t.setAttribute('role', 'button');
+  t.setAttribute('tabindex', '0');
+  sync();
+  new MutationObserver(sync).observe(t, { attributes: true, attributeFilter: ['class', 'aria-selected'] });
+});
+if (!document.getElementById('content')) {
+  var header = document.querySelector('header');
+  var target = document.querySelector('main') || (header && header.nextElementSibling);
+  if (target) { target.id = 'content'; target.setAttribute('tabindex', '-1'); }
+}
+});
+</script>

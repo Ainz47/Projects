@@ -6,7 +6,7 @@ Built as an operator tool rather than a developer script: the person running it 
 
 ## Live demo
 
-[toughgrape.s6-tastewp.com](https://toughgrape.s6-tastewp.com/) — a full run against a fresh TasteWP install, published 2026-09-26 (native Gutenberg blocks, v2), 7-day trial window. This is a free-trial WordPress sandbox and **will expire and stop resolving once the trial ends** — the screenshots below are the durable record once it does. (An earlier same-day run on a shorter-lived TasteWP trial, `abashedbike.s2-tastewp.com`, is what the screenshots and console-validation check below were taken from; it expires sooner and isn't the link to send out.)
+**Expired:** the TasteWP trial ended around 2026-10-03, so the link no longer resolves; the screenshots below are the record. `toughgrape.s6-tastewp.com` was a full run against a fresh TasteWP install, published 2026-09-26 (native Gutenberg blocks, v2), 7-day trial window. This is a free-trial WordPress sandbox and **will expire and stop resolving once the trial ends** — the screenshots below are the durable record once it does. (An earlier same-day run on a shorter-lived TasteWP trial, `abashedbike.s2-tastewp.com`, is what the screenshots and console-validation check below were taken from; it expires sooner and isn't the link to send out.)
 
 ## What's verified
 
