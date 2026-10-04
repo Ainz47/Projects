@@ -1,0 +1,14 @@
+<script>
+/* Trailmark tracking (see DESIGN.md). GTM container GTM-N4K3H9NX holds the GA4 tag (G-MJ9C96P299)
+   and a generate_lead event. This widget loads GTM on every page (the header template reaches all of
+   them) and bridges Contact Form 7's success event into the dataLayer, since CF7 doesn't push one. */
+window.dataLayer = window.dataLayer || [];
+(function (w, d, s, l, i) {
+  w[l] = w[l] || []; w[l].push({ 'gtm.start': new Date().getTime(), event: 'gtm.js' });
+  var f = d.getElementsByTagName(s)[0], j = d.createElement(s), dl = l != 'dataLayer' ? '&l=' + l : '';
+  j.async = true; j.src = 'https://www.googletagmanager.com/gtm.js?id=' + i + dl; f.parentNode.insertBefore(j, f);
+})(window, document, 'script', 'dataLayer', 'GTM-N4K3H9NX');
+document.addEventListener('wpcf7mailsent', function (e) {
+  window.dataLayer.push({ event: 'wpcf7mailsent', formId: String(e.detail && e.detail.contactFormId) });
+});
+</script>

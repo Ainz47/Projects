@@ -6,6 +6,7 @@ generated stylesheet into the header template:
 
   py emcp_call.py push-css          # tm-css.min.html -> header template style widget
   py emcp_call.py push-a11y         # a11y_fixes.html -> header template script widget
+  py emcp_call.py push-tracking     # tracking.html (GTM + CF7 dataLayer bridge) -> header template widget
   py emcp_call.py tools <filter>    # list tool names containing <filter>
 """
 import json
@@ -18,6 +19,7 @@ HERE = Path(__file__).parent
 ENDPOINT = f"{BASE}/wp-json/mcp/emcp-tools-server"
 HEADER_POST, CSS_WIDGET = 176, "40a983b"  # Trailmark header template, tm-css html widget
 A11Y_WIDGET = "4ec6148"  # same template, a11y fixes script widget
+TRACKING_WIDGET = "461e2b9"  # same template, GTM loader + CF7 dataLayer bridge
 
 
 class Mcp:
@@ -67,10 +69,11 @@ def main():
         out = m.call("emcp-tools-update-element",
                      {"post_id": HEADER_POST, "element_id": CSS_WIDGET, "settings": {"html": html}})
         print(out[:200], f"| pushed {len(html)} bytes")
-    elif cmd == "push-a11y":
-        html = (HERE / "a11y_fixes.html").read_text(encoding="utf-8")
+    elif cmd in ("push-a11y", "push-tracking"):
+        src, widget = ("a11y_fixes.html", A11Y_WIDGET) if cmd == "push-a11y" else ("tracking.html", TRACKING_WIDGET)
+        html = (HERE / src).read_text(encoding="utf-8")
         out = m.call("emcp-tools-update-element",
-                     {"post_id": HEADER_POST, "element_id": A11Y_WIDGET, "settings": {"html": html}})
+                     {"post_id": HEADER_POST, "element_id": widget, "settings": {"html": html}})
         print(out[:200], f"| pushed {len(html)} bytes")
 
 

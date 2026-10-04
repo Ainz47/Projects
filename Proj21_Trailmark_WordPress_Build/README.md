@@ -38,11 +38,13 @@ Home mobile Largest Contentful Paint went from 4.66 s to 4.2 s.
 
 **Speed.** The biggest render-blocking request was Google Fonts asking for every weight from 300 to 900 with italics. Switching Elementor to serve the fonts from the site itself removed the third-party requests.
 
+**Form tracking.** A GTM container loads the GA4 tag on every page, and a small header script turns Contact Form 7's success event into a dataLayer event, which GTM sends to GA4 as `generate_lead` with the form ID. The container was built as an import file ([`gtm/trailmark_gtm_import.json`](gtm/trailmark_gtm_import.json)) and checked by reading the GA4 requests in the browser, batched POST bodies included.
+
 **A static copy that still reads like the site.** [`static_export.py`](static_export.py) fetches every public page and every asset it and its CSS reference, including image URLs Elementor hides inside entity-encoded JSON, and rewrites the site address for a GitHub Pages subfolder.
 
 ## What's NOT done or NOT verified
 
-- GA4 and Google Tag Manager are not installed on this site.
+- Contact Form 7 can't send mail on the TasteWP sandbox (no mail server), so the forms show an error after submit there. A real install needs an SMTP plugin. The lead tracking was verified by firing CF7's own success event in the browser.
 - Font Awesome is still loaded by the header plugin (about 0.3 s render-blocking on mobile). Removing it needs a PHP dequeue, which this sandbox gives no route for.
 - In the static copy, forms and checkout are switched off with a note pointing to the live site. Calendly still loads, because it's an external embed.
 - Lighthouse numbers are local lab runs, not field data.
@@ -54,6 +56,7 @@ Home mobile Largest Contentful Paint went from 4.66 s to 4.2 s.
 | [`DESIGN.md`](DESIGN.md) | Design tokens, components, image provenance, third-party fixes, and the finish review |
 | [`trailmark.css`](trailmark.css), [`build_css.py`](build_css.py) | The one stylesheet and its minifier |
 | [`a11y_fixes.html`](a11y_fixes.html) | Script widget that repairs Elementor and header-plugin markup on every page |
+| [`tracking.html`](tracking.html), [`gtm/trailmark_gtm_import.json`](gtm/trailmark_gtm_import.json) | GTM loader + Contact Form 7 dataLayer bridge, and the GTM container (GA4 tag, lead event) as an import file |
 | [`emcp_call.py`](emcp_call.py) | Calls EMCP Tools (Elementor MCP server) from a script: pushes the stylesheet and the a11y script |
 | [`seo.py`](seo.py) | Writes and checks titles and descriptions through Yoast's REST route |
 | [`lighthouse.py`](lighthouse.py) | Local Lighthouse runs, one CSV row per page and strategy |

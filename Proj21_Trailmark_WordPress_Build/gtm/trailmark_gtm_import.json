@@ -1,0 +1,97 @@
+{
+  "exportFormatVersion": 2,
+  "containerVersion": {
+    "accountId": "6380494259",
+    "containerId": "266054631",
+    "container": {
+      "accountId": "6380494259",
+      "containerId": "266054631",
+      "name": "Trailmark demo",
+      "publicId": "GTM-N4K3H9NX",
+      "usageContext": ["WEB"]
+    },
+    "tag": [
+      {
+        "accountId": "6380494259",
+        "containerId": "266054631",
+        "tagId": "1",
+        "name": "Google tag - GA4 G-MJ9C96P299",
+        "type": "googtag",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "tagId", "value": "G-MJ9C96P299" }
+        ],
+        "firingTriggerId": ["2147479573"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      },
+      {
+        "accountId": "6380494259",
+        "containerId": "266054631",
+        "tagId": "2",
+        "name": "GA4 event - generate_lead (Contact Form 7 sent)",
+        "type": "gaawe",
+        "parameter": [
+          { "type": "TEMPLATE", "key": "eventName", "value": "generate_lead" },
+          { "type": "TEMPLATE", "key": "measurementIdOverride", "value": "G-MJ9C96P299" },
+          {
+            "type": "LIST",
+            "key": "eventSettingsTable",
+            "list": [
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "form_id" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{DLV - formId}}" }
+                ]
+              },
+              {
+                "type": "MAP",
+                "map": [
+                  { "type": "TEMPLATE", "key": "parameter", "value": "page_path" },
+                  { "type": "TEMPLATE", "key": "parameterValue", "value": "{{Page Path}}" }
+                ]
+              }
+            ]
+          }
+        ],
+        "firingTriggerId": ["3"],
+        "tagFiringOption": "ONCE_PER_EVENT"
+      }
+    ],
+    "trigger": [
+      {
+        "accountId": "6380494259",
+        "containerId": "266054631",
+        "triggerId": "3",
+        "name": "CE - wpcf7mailsent",
+        "type": "CUSTOM_EVENT",
+        "customEventFilter": [
+          {
+            "type": "EQUALS",
+            "parameter": [
+              { "type": "TEMPLATE", "key": "arg0", "value": "{{_event}}" },
+              { "type": "TEMPLATE", "key": "arg1", "value": "wpcf7mailsent" }
+            ]
+          }
+        ]
+      }
+    ],
+    "variable": [
+      {
+        "accountId": "6380494259",
+        "containerId": "266054631",
+        "variableId": "4",
+        "name": "DLV - formId",
+        "type": "v",
+        "parameter": [
+          { "type": "INTEGER", "key": "dataLayerVersion", "value": "2" },
+          { "type": "BOOLEAN", "key": "setDefaultValue", "value": "false" },
+          { "type": "TEMPLATE", "key": "name", "value": "formId" }
+        ]
+      }
+    ],
+    "builtInVariable": [
+      { "accountId": "6380494259", "containerId": "266054631", "type": "PAGE_PATH", "name": "Page Path" },
+      { "accountId": "6380494259", "containerId": "266054631", "type": "EVENT", "name": "Event" }
+    ]
+  }
+}
