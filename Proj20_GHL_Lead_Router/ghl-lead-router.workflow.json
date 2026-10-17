@@ -669,7 +669,7 @@
       "typeVersion": 4.7,
       "position": [
         1200,
-        -320
+        480
       ],
       "name": "Upsert lead log",
       "credentials": {

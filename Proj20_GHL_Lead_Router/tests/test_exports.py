@@ -136,6 +136,28 @@ class ExportStructure(unittest.TestCase):
         self.assertEqual(params["operation"], "appendOrUpdate")
         self.assertEqual(params["columns"]["matchingColumns"], ["email"])
 
+    def test_the_routing_branch_finishes_before_the_lead_log_runs(self):
+        # executionOrder v1 runs sibling branches top to bottom by canvas y, and
+        # a failed node stops the run. The lead log sits below every routing
+        # node, so a Sheets failure can't block a stage move (seen live: an
+        # expired Sheets OAuth stopped execution 101 before the opportunity
+        # moved); the run still errors, so the shared error workflow alerts.
+        wf = load("ghl-lead-router.workflow.json")
+        self.assertEqual(wf["settings"]["executionOrder"], "v1")
+        nodes = {n["name"]: n for n in wf["nodes"]}
+        routing, todo = set(), ["Look up opportunity by contact"]
+        while todo:
+            name = todo.pop()
+            if name not in routing:
+                routing.add(name)
+                for port in wf["connections"].get(name, {}).get("main", []):
+                    todo += [e["node"] for e in port]
+        self.assertNotIn("Upsert lead log", routing)
+        log_y = nodes["Upsert lead log"]["position"][1]
+        for name in routing:
+            self.assertGreater(log_y, nodes[name]["position"][1], name)
+        self.assertNotIn("onError", nodes["Upsert lead log"])
+
     def test_ghl_write_back_nodes_use_the_shared_templated_auth_credential(self):
         # httpTemplatedCustomAuth, not plain httpHeaderAuth: n8n rejects creating
         # a new plain generic credential on this node (confirmed live via n8n-mcp

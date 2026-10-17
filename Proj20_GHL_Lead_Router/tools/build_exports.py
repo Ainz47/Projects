@@ -291,7 +291,11 @@ def ghl_lead_router():
         if_node("Is cold?", [1920, 240], f"={{{{ {ref('tier')} }}}}",
                 {"type": "string", "operation": "equals"}, "cold"),
         move_stage_node("Move to Cold stage", [2160, 240]),
-        leadlog_node([1200, -320]),
+        # Below every routing node on purpose: executionOrder v1 runs sibling
+        # branches top to bottom, so the CRM stage move always lands before
+        # the reporting write. A Sheets failure still fails the run (and
+        # alerts via the error workflow), it just can't block routing.
+        leadlog_node([1200, 480]),
         if_node("First time hot?", [1920, -320],
                 f"={{{{ (($('{READ_CONTACT_NODE}').item.json.contact || {{}}).tags || []).includes('hot') }}}}",
                 {"type": "boolean", "operation": "false", "singleValue": True}),
