@@ -40,7 +40,7 @@
                 "title": "250g / Whole bean",
                 "sku": "YIRGACHE-250g-WH",
                 "price": "19.00",
-                "inventoryQuantity": 11,
+                "inventoryQuantity": 14,
                 "selectedOptions": [
                   {
                     "name": "Weight",
@@ -57,7 +57,7 @@
                 "title": "250g / Espresso",
                 "sku": "YIRGACHE-250g-ES",
                 "price": "18.00",
-                "inventoryQuantity": 26,
+                "inventoryQuantity": 25,
                 "selectedOptions": [
                   {
                     "name": "Weight",
@@ -192,7 +192,7 @@
                 "title": "250g / Whole bean",
                 "sku": "GUJI-NAT-250g-WH",
                 "price": "20.00",
-                "inventoryQuantity": 18,
+                "inventoryQuantity": 17,
                 "selectedOptions": [
                   {
                     "name": "Weight",
