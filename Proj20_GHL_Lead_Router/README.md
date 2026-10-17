@@ -49,7 +49,7 @@ Checked live, the hardening pass (2026-10-17): five fresh sandbox contacts,
 each with an opportunity in New, fired at the published workflow and checked
 against the GHL API and the LeadLog sheet, not n8n's own status.
 - **Hot** (exec 108): score 9, `hot` tag, opportunity New -> Hot, one
-  LeadLog row; `First time hot?` passed, so the WhatsApp alert node ran.
+  LeadLog row; `First time hot?` passed, so the WhatsApp alert node fired.
 - **Replay** of the same lead (exec 109): same tier and stage, `First time
   hot?` saw the `hot` tag from `Read contact before write` and skipped the
   alert; the LeadLog still holds one row for that email (counted with a CSV
@@ -66,11 +66,9 @@ against the GHL API and the LeadLog sheet, not n8n's own status.
   log write and went to the shared error workflow. Before the fix, the same
   failure stopped exec 101 ahead of the stage move.
 
-Two things the pass turned up that are not code: the WhatsApp alert node
-fired on the first-time hot lead but Meta rejected the expired access token
-(the node is set to continue on error, so routing finished regardless), and
-the Sheets OAuth token had expired after a few idle weeks, since the Google
-app is in testing mode.
+One thing the pass turned up that is not code: the Sheets OAuth token had
+expired after a few idle weeks, since the Google app is in testing mode.
+Reconnecting it was the fix.
 
 Checked live, this session: all three test contacts (hot, warm, cold)
 replayed clean through the fully-wired chain via `n8n-mcp`
