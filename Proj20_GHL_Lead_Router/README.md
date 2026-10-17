@@ -37,11 +37,40 @@ Jump-To condition to a Timeline or Blocker question). Backend and n8n were
 untouched for this phase; it's entirely GHL-sandbox-native.
 
 ## What is verified
-Checked automatically: `backend/tests` (pytest, 14 tests) covers the
-qualification logic's tier boundaries, malformed-output handling, and the
-`/qualify` and `/health` endpoints via `TestClient`. `tests/test_exports.py`
-(unittest, 17 tests) checks the n8n export's structure, wiring, that it
-contains no secrets, and that it matches the generator that built it.
+Checked automatically: `backend/tests` (pytest, 17 tests) covers the
+qualification logic's tier boundaries, malformed-output handling, the
+retry-then-review path when the model call fails, and the `/qualify` and
+`/health` endpoints via `TestClient`. `tests/test_exports.py` (unittest, 24
+tests) checks the n8n export's structure, wiring, retries, the run order of
+routing vs. reporting, that it contains no secrets, and that it matches the
+generator that built it.
+
+Checked live, the hardening pass (2026-10-17): five fresh sandbox contacts,
+each with an opportunity in New, fired at the published workflow and checked
+against the GHL API and the LeadLog sheet, not n8n's own status.
+- **Hot** (exec 108): score 9, `hot` tag, opportunity New -> Hot, one
+  LeadLog row; `First time hot?` passed, so the WhatsApp alert node ran.
+- **Replay** of the same lead (exec 109): same tier and stage, `First time
+  hot?` saw the `hot` tag from `Read contact before write` and skipped the
+  alert; the LeadLog still holds one row for that email (counted with a CSV
+  parser), where the old append-only node had left up to four per lead.
+- **Warm** (exec 107): score 7, opportunity New -> Warm. **Cold** (exec 110):
+  score 1, opportunity New -> Cold.
+- **Forced review** (exec 113): the backend from this commit, run with an
+  invalid model key, retried the call three times and returned
+  `tier: review, score: 0, reason: "model call failed: InvalidArgument"`
+  (logged with its request id). The contact got `needs-review`, no stage
+  move (the opportunity's `lastStageChangeAt` never changed), no alert.
+- **Reporting can't block routing** (exec 105): with the Sheets credential
+  expired, a warm lead still moved New -> Warm, then the run failed on the
+  log write and went to the shared error workflow. Before the fix, the same
+  failure stopped exec 101 ahead of the stage move.
+
+Two things the pass turned up that are not code: the WhatsApp alert node
+fired on the first-time hot lead but Meta rejected the expired access token
+(the node is set to continue on error, so routing finished regardless), and
+the Sheets OAuth token had expired after a few idle weeks, since the Google
+app is in testing mode.
 
 Checked live, this session: all three test contacts (hot, warm, cold)
 replayed clean through the fully-wired chain via `n8n-mcp`
@@ -115,7 +144,7 @@ infrastructure rather than merged workflows:
 - **Shared error alerting**: `settings.errorWorkflow` points at the same
   `Workflow error alert` workflow Proj19 already uses - one failure channel
   across all three, not three separate ones.
-- **Shared reporting**: `Append lead log` writes each qualified GHL lead to a
+- **Shared reporting**: `Upsert lead log` writes each qualified GHL lead to a
   `LeadLog` tab in the same spreadsheet Proj19 writes `StockLog` to. Proj16's
   `Weekly lead summary` workflow reads `Leads`, `StockLog`, and `LeadLog`
   together, so one weekly digest covers leads, stock, and CRM activity.
