@@ -36,8 +36,21 @@ def test_qualify_rejects_a_request_missing_the_required_message_field():
     assert resp.status_code == 422
 
 
-def test_qualify_defaults_safely_when_the_model_returns_garbage(monkeypatch):
+def test_qualify_flags_review_when_the_model_returns_garbage(monkeypatch):
     monkeypatch.setattr(llm_client, "call_gemini", lambda prompt: "not json at all")
     resp = client.post("/qualify", json={"name": "Tom", "email": "tom@example.com", "message": "hi"})
     assert resp.status_code == 200
-    assert resp.json()["tier"] == "cold"
+    assert resp.json()["tier"] == "review"
+
+
+def test_qualify_flags_review_instead_of_erroring_when_the_model_call_keeps_failing(monkeypatch):
+    def boom(prompt):
+        raise ConnectionError("reset")
+
+    monkeypatch.setattr(llm_client, "call_gemini", boom)
+    monkeypatch.setattr("app.main.time.sleep", lambda s: None)
+    resp = client.post("/qualify", json={"name": "Tom", "email": "tom@example.com", "message": "hi"})
+    assert resp.status_code == 200
+    assert resp.json()["tier"] == "review"
+    assert resp.json()["reason"] == "model call failed: ConnectionError"
+    assert resp.headers["X-Request-ID"]

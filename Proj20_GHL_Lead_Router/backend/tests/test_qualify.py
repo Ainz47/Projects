@@ -25,22 +25,23 @@ def test_parse_qualification_extracts_json_wrapped_in_prose():
     assert result == {"score": 9, "tier": "hot", "reason": "solid", "suggested_reply": "reply"}
 
 
-def test_parse_qualification_defaults_to_cold_on_no_json():
+def test_parse_qualification_flags_review_on_no_json():
     result = parse_qualification("no json here")
-    assert result["tier"] == "cold"
-    assert result["score"] == 1
+    assert result["tier"] == "review"
+    assert result["score"] == 0
+    assert result["reason"] == "model returned no JSON"
 
 
-def test_parse_qualification_defaults_to_cold_on_malformed_json():
+def test_parse_qualification_flags_review_on_malformed_json():
     result = parse_qualification("{not valid json")
-    assert result["tier"] == "cold"
-    assert result["score"] == 1
+    assert result["tier"] == "review"
+    assert result["score"] == 0
 
 
-def test_parse_qualification_defaults_to_cold_when_score_is_missing():
+def test_parse_qualification_flags_review_when_score_is_missing():
     result = parse_qualification('{"reason": "no score given", "suggested_reply": ""}')
-    assert result["tier"] == "cold"
-    assert result["score"] == 1
+    assert result["tier"] == "review"
+    assert result["score"] == 0
 
 
 def test_build_prompt_handles_missing_optional_fields_without_crashing():
@@ -60,3 +61,31 @@ def test_qualify_lead_calls_the_injected_llm_and_returns_its_parsed_result():
     assert result == {"score": 6, "tier": "warm", "reason": "ok", "suggested_reply": "thanks"}
     assert len(calls) == 1
     assert "Tom" in calls[0]
+
+
+def test_qualify_lead_retries_a_failing_llm_call_then_succeeds():
+    attempts, waits = [], []
+
+    def flaky_llm(prompt):
+        attempts.append(prompt)
+        if len(attempts) < 3:
+            raise ConnectionError("reset")
+        return '{"score": 8, "reason": "fit", "suggested_reply": "hi"}'
+
+    result = qualify_lead({"name": "Tom", "email": "t@example.com", "message": "hi"}, flaky_llm, sleep=waits.append)
+    assert result["tier"] == "hot"
+    assert len(attempts) == 3
+    assert waits == [1, 2]
+
+
+def test_qualify_lead_flags_review_when_every_llm_attempt_fails():
+    attempts, waits = [], []
+
+    def dead_llm(prompt):
+        attempts.append(prompt)
+        raise TimeoutError("timed out")
+
+    result = qualify_lead({"name": "Tom", "email": "t@example.com", "message": "hi"}, dead_llm, sleep=waits.append)
+    assert result == {"score": 0, "tier": "review", "reason": "model call failed: TimeoutError", "suggested_reply": ""}
+    assert len(attempts) == 3
+    assert waits == [1, 2]

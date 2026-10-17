@@ -1,8 +1,10 @@
 import json
 import re
+import time
 
 HOT_MIN = 8
 WARM_MIN = 5
+LLM_ATTEMPTS = 3
 
 QUALIFY_PROMPT = """You qualify inbound leads for a freelance automation developer. Score the lead from 1 to 10 for how likely it is a real, well-scoped project with a workable budget that deserves a reply today.
 
@@ -41,22 +43,24 @@ def build_prompt(lead):
     )
 
 
-def _fallback(reason):
-    return {"score": 1, "tier": "cold", "reason": reason, "suggested_reply": ""}
+def _needs_review(reason):
+    # The model failed, not the lead: score 0 / "review" keeps it out of the
+    # hot/warm/cold follow-ups until a person looks at it.
+    return {"score": 0, "tier": "review", "reason": reason, "suggested_reply": ""}
 
 
 def parse_qualification(text):
     match = re.search(r"\{.*\}", text or "", re.DOTALL)
     if not match:
-        return _fallback("model returned no JSON")
+        return _needs_review("model returned no JSON")
     try:
         data = json.loads(match.group(0))
     except json.JSONDecodeError:
-        return _fallback("model returned malformed JSON")
+        return _needs_review("model returned malformed JSON")
     try:
         raw = float(data.get("score"))
     except (TypeError, ValueError):
-        return _fallback("model returned no usable score")
+        return _needs_review("model returned no usable score")
     score = min(10, max(1, round(raw)))
     return {
         "score": score,
@@ -66,5 +70,12 @@ def parse_qualification(text):
     }
 
 
-def qualify_lead(lead, llm_call):
-    return parse_qualification(llm_call(build_prompt(lead)))
+def qualify_lead(lead, llm_call, sleep=time.sleep):
+    prompt = build_prompt(lead)
+    for attempt in range(1, LLM_ATTEMPTS + 1):
+        try:
+            return parse_qualification(llm_call(prompt))
+        except Exception as exc:
+            if attempt == LLM_ATTEMPTS:
+                return _needs_review(f"model call failed: {type(exc).__name__}")
+            sleep(attempt)

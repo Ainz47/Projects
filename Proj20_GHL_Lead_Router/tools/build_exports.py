@@ -18,6 +18,13 @@ V = {"webhook": 2, "http": 4.2, "set": 3.4, "if": 2.2, "sheets": 4.7, "whatsapp"
 # goes in at import time, never committed (see NoSecrets' google_doc_id check).
 SHARED_ERROR_WORKFLOW_ID = "BHscSap9QKZQruIu"
 
+# Every HTTP call (backend + GHL) retries on its own before the run is handed
+# to the shared error workflow: Render's free tier can drop the first request
+# after a spin-down (ECONNRESET), and GHL rate-limits bursts. All the GHL
+# writes are set-style, so retrying one can't double-apply it.
+RETRY = {"retryOnFail": True, "maxTries": 3, "waitBetweenTries": 3000}
+BACKEND_TIMEOUT_MS = 60000  # covers a 15-36 s Render cold start
+
 
 def node(name, type_, version, position, parameters, credentials=None, **extra):
     n = {"parameters": parameters, "type": type_, "typeVersion": version,
@@ -65,8 +72,8 @@ def qualify_request_node():
             "company: $json.body.company_name, message: $json.body.customData.message, "
             "budget: $json.body.customData.budget, timeline: $json.body.customData.timeline }) }}"
         ),
-        "options": {"response": {"response": {"responseFormat": "json"}}},
-    })
+        "options": {"response": {"response": {"responseFormat": "json"}}, "timeout": BACKEND_TIMEOUT_MS},
+    }, **RETRY)
 
 
 def merge_result_node():
@@ -129,7 +136,22 @@ def ghl_request_node(name, position, method, url_expr, json_body_expr):
         "sendHeaders": True, "headerParameters": {"parameters": [{"name": "Version", "value": GHL_VERSION}]},
         "sendBody": True, "specifyBody": "json", "jsonBody": json_body_expr,
         "options": {},
-    }, credentials=GHL_CREDENTIAL)
+    }, credentials=GHL_CREDENTIAL, **RETRY)
+
+
+READ_CONTACT_NODE = "Read contact before write"
+
+
+def read_contact_node(position):
+    # Snapshot the contact's tags BEFORE this run writes anything, so a replay
+    # of the same lead can tell "already hot" from "just turned hot" and not
+    # re-send the WhatsApp alert.
+    return node(READ_CONTACT_NODE, "n8n-nodes-base.httpRequest", V["http"], position, {
+        "method": "GET", "url": "=" + GHL_BASE + "/contacts/{{ " + ref("contactId") + " }}",
+        "authentication": "genericCredentialType", "genericAuthType": "httpTemplatedCustomAuth",
+        "sendHeaders": True, "headerParameters": {"parameters": [{"name": "Version", "value": GHL_VERSION}]},
+        "options": {"response": {"response": {"responseFormat": "json"}}},
+    }, credentials=GHL_CREDENTIAL, **RETRY)
 
 
 def write_custom_fields_node(position):
@@ -147,7 +169,10 @@ def write_custom_fields_node(position):
 
 
 def add_tier_tag_node(position):
-    body = f"={{{{ JSON.stringify({{ tags: [{ref('tier')}] }}) }}}}"
+    # "review" means the model failed, not the lead; tag it needs-review so
+    # none of GHL's tag-triggered hot/warm/cold workflows pick it up.
+    tier = ref("tier")
+    body = f"={{{{ JSON.stringify({{ tags: [{tier} === 'review' ? 'needs-review' : {tier}] }}) }}}}"
     return ghl_request_node(
         "Add tier tag", position, "POST",
         "=" + GHL_BASE + "/contacts/{{ " + ref("contactId") + " }}/tags", body,
@@ -177,7 +202,7 @@ def opportunity_lookup_node(position):
             {"name": "location_id", "value": ""},
         ]},
         "options": {"response": {"response": {"responseFormat": "json"}}},
-    }, credentials=GHL_CREDENTIAL)
+    }, credentials=GHL_CREDENTIAL, **RETRY)
 
 
 OPPORTUNITY_LOOKUP_NODE = "Look up opportunity by contact"
@@ -217,12 +242,14 @@ def leadlog_node(position):
          "display": True, "type": "string", "canBeUsedToMatch": True, "removed": False}
         for col in columns
     ]
-    return node("Append lead log", "n8n-nodes-base.googleSheets", V["sheets"], position, {
-        "operation": "append",
+    # appendOrUpdate keyed on email (GHL's own contact key): replaying the same
+    # lead updates its row instead of adding a duplicate.
+    return node("Upsert lead log", "n8n-nodes-base.googleSheets", V["sheets"], position, {
+        "operation": "appendOrUpdate",
         "documentId": {"__rl": True, "mode": "url", "value": ""},
         "sheetName": {"__rl": True, "mode": "name", "value": "LeadLog"},
-        "columns": {"mappingMode": "defineBelow", "value": columns, "matchingColumns": [], "schema": schema},
-        "options": {"useAppend": True},
+        "columns": {"mappingMode": "defineBelow", "value": columns, "matchingColumns": ["email"], "schema": schema},
+        "options": {},
     }, credentials={"googleSheetsOAuth2Api": "Google Sheets account"})
 
 
@@ -251,6 +278,7 @@ def if_node(name, position, left, operator, right=""):
 def ghl_lead_router():
     nodes = [
         webhook_node(), qualify_request_node(), merge_result_node(),
+        read_contact_node([600, 160]),
         write_custom_fields_node([720, 0]),
         add_tier_tag_node([960, 0]),
         opportunity_lookup_node([1200, 0]),
@@ -260,23 +288,31 @@ def ghl_lead_router():
         if_node("Is warm?", [1680, 160], f"={{{{ {ref('tier')} }}}}",
                 {"type": "string", "operation": "equals"}, "warm"),
         move_stage_node("Move to Warm stage", [1920, 80]),
-        move_stage_node("Move to Cold stage", [1920, 240]),
+        if_node("Is cold?", [1920, 240], f"={{{{ {ref('tier')} }}}}",
+                {"type": "string", "operation": "equals"}, "cold"),
+        move_stage_node("Move to Cold stage", [2160, 240]),
         leadlog_node([1200, -320]),
-        whatsapp_hot_alert_node([1920, -320]),
+        if_node("First time hot?", [1920, -320],
+                f"={{{{ (($('{READ_CONTACT_NODE}').item.json.contact || {{}}).tags || []).includes('hot') }}}}",
+                {"type": "boolean", "operation": "false", "singleValue": True}),
+        whatsapp_hot_alert_node([2160, -320]),
     ]
     edges = [
         ("GHL lead webhook", "Call backend /qualify", 0),
         ("Call backend /qualify", "Merge qualification onto lead", 0),
-        ("Merge qualification onto lead", "Write score/reason/reply to GHL", 0),
+        ("Merge qualification onto lead", "Read contact before write", 0),
+        ("Read contact before write", "Write score/reason/reply to GHL", 0),
         ("Write score/reason/reply to GHL", "Add tier tag", 0),
         ("Add tier tag", "Look up opportunity by contact", 0),
-        ("Add tier tag", "Append lead log", 0),
+        ("Add tier tag", "Upsert lead log", 0),
         ("Look up opportunity by contact", "Is hot?", 0),
         ("Is hot?", "Move to Hot stage", 0),
-        ("Is hot?", "WhatsApp hot lead alert", 0),
+        ("Is hot?", "First time hot?", 0),
+        ("First time hot?", "WhatsApp hot lead alert", 0),
         ("Is hot?", "Is warm?", 1),
         ("Is warm?", "Move to Warm stage", 0),
-        ("Is warm?", "Move to Cold stage", 1),
+        ("Is warm?", "Is cold?", 1),
+        ("Is cold?", "Move to Cold stage", 0),
     ]
     return workflow("GHL lead router", nodes, edges,
                      extra_settings={"errorWorkflow": SHARED_ERROR_WORKFLOW_ID})

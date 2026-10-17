@@ -1,10 +1,17 @@
+import json
+import logging
+import time
+import uuid
 from typing import Optional
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Response
 from pydantic import BaseModel
 
 from . import llm_client
 from .qualify import qualify_lead
+
+logging.basicConfig(level=logging.INFO, format="%(message)s")
+log = logging.getLogger("qualify")
 
 app = FastAPI(title="Proj20 GHL Lead Qualifier")
 
@@ -31,5 +38,16 @@ def health():
 
 
 @app.post("/qualify", response_model=QualificationResponse)
-def qualify(lead: LeadRequest):
-    return qualify_lead(lead.model_dump(), llm_client.call_gemini)
+def qualify(lead: LeadRequest, response: Response):
+    request_id = uuid.uuid4().hex[:12]
+    started = time.monotonic()
+    result = qualify_lead(lead.model_dump(), llm_client.call_gemini, sleep=lambda s: time.sleep(s))
+    log.info(json.dumps({
+        "request_id": request_id,
+        "tier": result["tier"],
+        "score": result["score"],
+        "review_reason": result["reason"] if result["tier"] == "review" else None,
+        "ms": round((time.monotonic() - started) * 1000),
+    }))
+    response.headers["X-Request-ID"] = request_id
+    return result

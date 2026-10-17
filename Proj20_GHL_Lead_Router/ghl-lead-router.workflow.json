@@ -29,7 +29,8 @@
             "response": {
               "responseFormat": "json"
             }
-          }
+          },
+          "timeout": 60000
         }
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -38,7 +39,10 @@
         240,
         0
       ],
-      "name": "Call backend /qualify"
+      "name": "Call backend /qualify",
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -132,6 +136,46 @@
     },
     {
       "parameters": {
+        "method": "GET",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Merge qualification onto lead').item.json.contactId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        600,
+        160
+      ],
+      "name": "Read contact before write",
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "GHL Private Integration Token"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
         "method": "PUT",
         "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Merge qualification onto lead').item.json.contactId }}",
         "authentication": "genericCredentialType",
@@ -162,7 +206,10 @@
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -181,7 +228,7 @@
         },
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ tags: [$('Merge qualification onto lead').item.json.tier] }) }}",
+        "jsonBody": "={{ JSON.stringify({ tags: [$('Merge qualification onto lead').item.json.tier === 'review' ? 'needs-review' : $('Merge qualification onto lead').item.json.tier] }) }}",
         "options": {}
       },
       "type": "n8n-nodes-base.httpRequest",
@@ -196,7 +243,10 @@
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -246,7 +296,10 @@
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -312,7 +365,10 @@
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -378,7 +434,42 @@
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Is cold?-cond",
+              "leftValue": "={{ $('Merge qualification onto lead').item.json.tier }}",
+              "rightValue": "cold",
+              "operator": {
+                "type": "string",
+                "operation": "equals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        240
+      ],
+      "name": "Is cold?"
     },
     {
       "parameters": {
@@ -403,7 +494,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1920,
+        2160,
         240
       ],
       "name": "Move to Cold stage",
@@ -412,11 +503,14 @@
           "id": "REPLACE_IN_UI",
           "name": "GHL Private Integration Token"
         }
-      }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
     },
     {
       "parameters": {
-        "operation": "append",
+        "operation": "appendOrUpdate",
         "documentId": {
           "__rl": true,
           "mode": "url",
@@ -443,7 +537,9 @@
             "reason": "={{ $('Merge qualification onto lead').item.json.reason }}",
             "suggested_reply": "={{ $('Merge qualification onto lead').item.json.suggested_reply }}"
           },
-          "matchingColumns": [],
+          "matchingColumns": [
+            "email"
+          ],
           "schema": [
             {
               "id": "timestamp",
@@ -567,9 +663,7 @@
             }
           ]
         },
-        "options": {
-          "useAppend": true
-        }
+        "options": {}
       },
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
@@ -577,13 +671,46 @@
         1200,
         -320
       ],
-      "name": "Append lead log",
+      "name": "Upsert lead log",
       "credentials": {
         "googleSheetsOAuth2Api": {
           "id": "REPLACE_IN_UI",
           "name": "Google Sheets account"
         }
       }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "First time hot?-cond",
+              "leftValue": "={{ (($('Read contact before write').item.json.contact || {}).tags || []).includes('hot') }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "false",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1920,
+        -320
+      ],
+      "name": "First time hot?"
     },
     {
       "parameters": {
@@ -595,7 +722,7 @@
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1.1,
       "position": [
-        1920,
+        2160,
         -320
       ],
       "name": "WhatsApp hot lead alert",
@@ -635,6 +762,17 @@
       "main": [
         [
           {
+            "node": "Read contact before write",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read contact before write": {
+      "main": [
+        [
+          {
             "node": "Write score/reason/reply to GHL",
             "type": "main",
             "index": 0
@@ -662,7 +800,7 @@
             "index": 0
           },
           {
-            "node": "Append lead log",
+            "node": "Upsert lead log",
             "type": "main",
             "index": 0
           }
@@ -689,7 +827,7 @@
             "index": 0
           },
           {
-            "node": "WhatsApp hot lead alert",
+            "node": "First time hot?",
             "type": "main",
             "index": 0
           }
@@ -697,6 +835,17 @@
         [
           {
             "node": "Is warm?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "First time hot?": {
+      "main": [
+        [
+          {
+            "node": "WhatsApp hot lead alert",
             "type": "main",
             "index": 0
           }
@@ -712,6 +861,17 @@
             "index": 0
           }
         ],
+        [
+          {
+            "node": "Is cold?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Is cold?": {
+      "main": [
         [
           {
             "node": "Move to Cold stage",

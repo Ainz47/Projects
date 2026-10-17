@@ -68,6 +68,10 @@ class ExportStructure(unittest.TestCase):
         conn = wf["connections"]
         self.assertEqual(
             [e["node"] for e in conn["Merge qualification onto lead"]["main"][0]],
+            ["Read contact before write"],
+        )
+        self.assertEqual(
+            [e["node"] for e in conn["Read contact before write"]["main"][0]],
             ["Write score/reason/reply to GHL"],
         )
         self.assertEqual(
@@ -76,7 +80,7 @@ class ExportStructure(unittest.TestCase):
         )
         self.assertEqual(
             [e["node"] for e in conn["Add tier tag"]["main"][0]],
-            ["Look up opportunity by contact", "Append lead log"],
+            ["Look up opportunity by contact", "Upsert lead log"],
         )
         self.assertEqual(
             [e["node"] for e in conn["Look up opportunity by contact"]["main"][0]], ["Is hot?"],
@@ -85,18 +89,60 @@ class ExportStructure(unittest.TestCase):
     def test_the_tier_branch_moves_the_opportunity_to_the_matching_stage(self):
         wf = load("ghl-lead-router.workflow.json")
         conn = wf["connections"]
-        self.assertEqual([e["node"] for e in conn["Is hot?"]["main"][0]], ["Move to Hot stage", "WhatsApp hot lead alert"])
+        self.assertEqual([e["node"] for e in conn["Is hot?"]["main"][0]], ["Move to Hot stage", "First time hot?"])
         self.assertEqual([e["node"] for e in conn["Is hot?"]["main"][1]], ["Is warm?"])
         self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][0]], ["Move to Warm stage"])
-        self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][1]], ["Move to Cold stage"])
+        self.assertEqual([e["node"] for e in conn["Is warm?"]["main"][1]], ["Is cold?"])
+        self.assertEqual([e["node"] for e in conn["Is cold?"]["main"][0]], ["Move to Cold stage"])
+        # a "review" lead (the model failed, not the lead) falls out of Is cold?'s
+        # false port with nowhere to go: its opportunity stays in the New stage
+        self.assertEqual(len(conn["Is cold?"]["main"]), 1)
+
+    def test_a_review_lead_is_tagged_needs_review_not_with_the_raw_tier(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        body = nodes["Add tier tag"]["parameters"]["jsonBody"]
+        self.assertIn("'review'", body)
+        self.assertIn("'needs-review'", body)
+
+    def test_every_http_node_retries_with_a_wait_between_tries(self):
+        for n in load("ghl-lead-router.workflow.json")["nodes"]:
+            if n["type"] == HTTP:
+                self.assertIs(n.get("retryOnFail"), True, n["name"])
+                self.assertEqual(n.get("maxTries"), 3, n["name"])
+                self.assertGreaterEqual(n.get("waitBetweenTries", 0), 1000, n["name"])
+
+    def test_the_backend_call_allows_for_a_render_cold_start(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        self.assertEqual(nodes["Call backend /qualify"]["parameters"]["options"]["timeout"], 60000)
+
+    def test_the_contact_is_read_from_ghl_before_anything_is_written(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        read = nodes["Read contact before write"]
+        self.assertEqual(read["parameters"]["method"], "GET")
+        self.assertIn("/contacts/", read["parameters"]["url"])
+        self.assertIn("Merge qualification onto lead", read["parameters"]["url"])
+
+    def test_the_whatsapp_alert_only_fires_the_first_time_a_contact_turns_hot(self):
+        wf = load("ghl-lead-router.workflow.json")
+        nodes = {n["name"]: n for n in wf["nodes"]}
+        self.assertEqual([e["node"] for e in wf["connections"]["First time hot?"]["main"][0]], ["WhatsApp hot lead alert"])
+        cond = nodes["First time hot?"]["parameters"]["conditions"]["conditions"][0]
+        self.assertIn("Read contact before write", cond["leftValue"])
+        self.assertIn("'hot'", cond["leftValue"])
+
+    def test_the_lead_log_upserts_by_email_so_a_replay_does_not_add_a_second_row(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        params = nodes["Upsert lead log"]["parameters"]
+        self.assertEqual(params["operation"], "appendOrUpdate")
+        self.assertEqual(params["columns"]["matchingColumns"], ["email"])
 
     def test_ghl_write_back_nodes_use_the_shared_templated_auth_credential(self):
         # httpTemplatedCustomAuth, not plain httpHeaderAuth: n8n rejects creating
         # a new plain generic credential on this node (confirmed live via n8n-mcp
         # validation against all 5 of these nodes).
         nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
-        for name in ["Write score/reason/reply to GHL", "Add tier tag", "Look up opportunity by contact",
-                     "Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
+        for name in ["Read contact before write", "Write score/reason/reply to GHL", "Add tier tag",
+                     "Look up opportunity by contact", "Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
             node = nodes[name]
             self.assertEqual(node["parameters"]["genericAuthType"], "httpTemplatedCustomAuth")
             self.assertEqual(node["credentials"]["httpTemplatedCustomAuth"]["name"], "GHL Private Integration Token")
@@ -145,13 +191,13 @@ class CrossProjectLinks(unittest.TestCase):
         # Same convention as Proj16's sheets_node(): the document ID names a real
         # account's spreadsheet, so it's filled in at import time, never committed.
         nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
-        params = nodes["Append lead log"]["parameters"]
+        params = nodes["Upsert lead log"]["parameters"]
         self.assertEqual(params["documentId"]["value"], "")
         self.assertEqual(params["sheetName"]["value"], "LeadLog")
 
     def test_the_leadlog_columns_match_proj16s_leads_sheet_shape(self):
         nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
-        columns = nodes["Append lead log"]["parameters"]["columns"]["value"]
+        columns = nodes["Upsert lead log"]["parameters"]["columns"]["value"]
         expected = {"timestamp", "name", "email", "company", "message", "budget",
                     "timeline", "status", "tier", "score", "reason", "suggested_reply"}
         self.assertEqual(set(columns), expected)
