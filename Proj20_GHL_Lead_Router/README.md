@@ -7,7 +7,9 @@ then GHL's own workflow branches by tier.
 
 ```
 GHL funnel -> contact + opportunity created -> GHL workflow webhook
-      -> n8n: Call backend /qualify -> merge tier/score/reason/reply
+      -> n8n: read the contact, fingerprint the inquiry
+         (same fingerprint as the one stored on the contact = a replay: stop)
+      -> Call backend /qualify (X-API-Key) -> merge tier/score/reason/reply
       -> n8n writes back to GHL -> GHL workflow branches by tag
             hot  -> Email (score/reason from the write-back)
             warm -> templated nurture email (auto-sent, not personalized)
@@ -37,13 +39,31 @@ Jump-To condition to a Timeline or Blocker question). Backend and n8n were
 untouched for this phase; it's entirely GHL-sandbox-native.
 
 ## What is verified
-Checked automatically: `backend/tests` (pytest, 17 tests) covers the
+Checked automatically: `backend/tests` (pytest, 21 tests) covers the
 qualification logic's tier boundaries, malformed-output handling, the
-retry-then-review path when the model call fails, and the `/qualify` and
-`/health` endpoints via `TestClient`. `tests/test_exports.py` (unittest, 24
-tests) checks the n8n export's structure, wiring, retries, the run order of
-routing vs. reporting, that it contains no secrets, and that it matches the
-generator that built it.
+retry-then-review path when the model call fails, the API key check (no key,
+wrong key, key unset on the server), and the `/qualify` and `/health`
+endpoints via `TestClient`. `tests/test_exports.py` (unittest, 30 tests)
+checks the n8n export's structure, wiring, retries, the replay guard and the
+order it writes in, tier-tag clearing, the run order of routing vs.
+reporting, that it contains no secrets, and that it matches the generator
+that built it.
+
+Checked live, the replay and auth pass (2026-10-18): one fresh sandbox
+contact with an opportunity in New, fired at the published workflow and
+checked against the GHL API.
+- **Auth**: the deployed backend answers 401 with no key or a wrong key,
+  200 with the right one; `/health` stays open for Render's health check.
+- **Hot** (exec 116): score 9, tags exactly `["hot"]`, opportunity
+  New -> Hot, and the inquiry fingerprint stored in `lead_qualified_hash`.
+- **Replay** of the same payload (exec 117): stopped at `New inquiry?`. No
+  model call, and the contact's `dateUpdated` did not move.
+- **New inquiry** from the same contact (exec 118): scored again (warm, 6),
+  the `hot` tag removed, tags exactly `["warm"]`, opportunity Hot -> Warm.
+- The first run (exec 114) failed before any write: `/qualify` still read
+  its input from `$json`, which after the replay check is the fingerprint,
+  not the webhook body. It now reads the webhook node by name, and a test
+  pins that.
 
 Checked live, the hardening pass (2026-10-17): five fresh sandbox contacts,
 each with an opportunity in New, fired at the published workflow and checked
@@ -124,11 +144,16 @@ hot-lead notification.
 
 ## Set up
 1. Backend: `cd backend && py -m pip install -r requirements.txt`, set
-   `GEMINI_API_KEY`, run `py -m uvicorn app.main:app --reload` (or deploy,
-   e.g. to Render).
+   `GEMINI_API_KEY` and `QUALIFY_API_KEY` (any long random string; with it
+   unset, `/qualify` refuses every call), run
+   `py -m uvicorn app.main:app --reload` (or deploy, e.g. to Render).
 2. n8n: import `ghl-lead-router.workflow.json`, paste the running backend's
-   `/qualify` URL into the `Call backend /qualify` node.
-3. GHL: follow `docs/ghl-build-steps.md`.
+   `/qualify` URL into the `Call backend /qualify` node, and create its
+   `Proj20 qualify API key` credential (Simplified Custom Auth, template
+   `{"headers":{"X-API-Key":"{{api_key}}"}}`, the key as `api_key`).
+3. GHL: follow `docs/ghl-build-steps.md`, plus a `lead_qualified_hash`
+   text field on contacts; its id goes in `New inquiry?` and
+   `Mark inquiry routed`.
 
 ## Rebuilding the export
 `tools/build_exports.py` generates `ghl-lead-router.workflow.json`. Never
@@ -154,6 +179,23 @@ infrastructure rather than merged workflows:
 The spreadsheet ID and error-workflow ID are filled in at import time (or
 already resolve automatically inside the one shared local n8n instance) -
 never committed, same convention as every other credential/ID in this repo.
+
+## At 10x the volume
+What breaks first, in order, and what would change:
+- **Render's free tier.** One instance that sleeps after 15 idle minutes.
+  A paid always-on instance, then more than one behind its load balancer;
+  the backend keeps no state, so it scales out as is.
+- **The model call inside the request.** n8n waits up to 60 s per lead. At
+  volume the webhook would only queue the lead (a queue such as Redis or
+  SQS), workers would call the model with a concurrency cap matching the
+  Gemini quota, and the write-back would run when the result lands.
+- **GHL's API rate limit.** Every lead costs about seven GHL calls. Spread
+  them through the same queue with backoff on 429, and drop the separate
+  opportunity lookup once the webhook's own `opportunityId` can be trusted.
+- **n8n on one machine.** Move it to a hosted instance in queue mode with
+  its own workers, so one slow lead doesn't hold up the rest.
+- **The lead log in Google Sheets.** Fine for a weekly digest, not for
+  thousands of rows a day; it would move to a database table.
 
 ## Known limits
 - The lead's message goes into the prompt, so someone can try to talk the
