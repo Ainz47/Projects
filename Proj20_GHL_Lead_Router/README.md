@@ -6,7 +6,7 @@ the result back into GHL: a tag, custom fields, and a pipeline stage move,
 then GHL's own workflow branches by tier.
 
 ```
-GHL funnel -> contact + opportunity created -> GHL workflow webhook
+GHL funnel (Survey) -> "From Survey" workflow: opportunity in New + webhook
       -> n8n: read the contact, fingerprint the inquiry
          (same fingerprint as the one stored on the contact = a replay: stop)
       -> Call backend /qualify (X-API-Key) -> merge tier/score/reason/reply
@@ -20,7 +20,8 @@ GHL funnel -> contact + opportunity created -> GHL workflow webhook
 Built, deployed, and verified end to end against a live GHL sandbox. The
 backend runs on Render (`https://projects-f8p2.onrender.com`); the n8n
 workflow (`27AgIzoreHN8ssGK`) is published and wired to the sandbox's `From
-Form` webhook through a Cloudflare tunnel exposing the local n8n instance.
+Survey` (the live funnel) and `From Form` webhooks through a Cloudflare tunnel
+exposing the local n8n instance.
 Three real GHL contacts (hot/warm/cold) were run through the full chain -
 webhook -> qualify -> tag -> custom fields -> opportunity stage move -> GHL's
 own tag-triggered workflows firing - and confirmed via the GHL API and CRM
@@ -39,8 +40,9 @@ Jump-To condition to a Timeline or Blocker question). Backend and n8n were
 untouched for this phase; it's entirely GHL-sandbox-native.
 
 ## What is verified
-Checked automatically: `backend/tests` (pytest, 21 tests) covers the
-qualification logic's tier boundaries, malformed-output handling, the
+Checked automatically: `backend/tests` (pytest, 23 tests) covers the
+qualification logic's tier boundaries, the survey's blocker answer reaching
+the prompt, malformed-output handling, the
 retry-then-review path when the model call fails, the API key check (no key,
 wrong key, key unset on the server), and the `/qualify` and `/health`
 endpoints via `TestClient`. `tests/test_exports.py` (unittest, 30 tests)
@@ -48,6 +50,20 @@ checks the n8n export's structure, wiring, retries, the replay guard and the
 order it writes in, tier-tag clearing, the run order of routing vs.
 reporting, that it contains no secrets, and that it matches the generator
 that built it.
+
+Checked live, funnel to router (2026-10-18): the two-page Survey funnel had
+never reached the router. `From Form` only triggers on the old Form, and its
+webhook didn't send the survey's blocker answer. Fixed with a `From Survey`
+workflow (Survey Submitted trigger, same opportunity + webhook actions), a
+`blocker` key in both webhooks, and `blocker` in the backend prompt and the
+inquiry fingerprint. One real submission through the funnel's preview page
+("Under $5,000", so the Blocker slide) was checked against the GHL API:
+- n8n exec 124 received the blocker text; the model scored it warm, 7, with
+  a reason that weighs the blocker against the budget.
+- The contact (source `Survey 0`) has tags exactly `["warm"]`, score,
+  reason, reply and `lead_qualified_hash` stored, and its opportunity moved
+  New -> Warm about 10 s after submit. GHL's Warm drip sent its first email
+  to the test inbox.
 
 Checked live, the replay and auth pass (2026-10-18): one fresh sandbox
 contact with an opportunity in New, fired at the published workflow and
@@ -153,7 +169,9 @@ hot-lead notification.
    `{"headers":{"X-API-Key":"{{api_key}}"}}`, the key as `api_key`).
 3. GHL: follow `docs/ghl-build-steps.md`, plus a `lead_qualified_hash`
    text field on contacts; its id goes in `New inquiry?` and
-   `Mark inquiry routed`.
+   `Mark inquiry routed`. Point a Survey Submitted workflow at the same
+   webhook (Custom Data as in `From Form`, plus `blocker` =
+   `{{contact.inquiry_blocker}}`).
 
 ## Rebuilding the export
 `tools/build_exports.py` generates `ghl-lead-router.workflow.json`. Never
