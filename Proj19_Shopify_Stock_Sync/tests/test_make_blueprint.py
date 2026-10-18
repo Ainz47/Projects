@@ -55,6 +55,62 @@ class MakeBlueprintTests(unittest.TestCase):
             "module 8 should retry automatically on failure (builtin:Break)",
         )
 
+    def _flow(self):
+        return json.loads(FILE.read_text(encoding="utf-8"))["flow"]
+
+    def test_the_webhook_is_hmac_verified_before_any_work(self):
+        # Shopify signs the raw body (base64 HMAC-SHA256, app secret). The webhook
+        # runs in JSON pass-through so 1.value is the raw string; the secret comes
+        # from the data store (module 10), and only a matching signature reaches
+        # the Parse JSON step (module 11) that everything else reads from.
+        flow = self._flow()
+        self.assertEqual([m["id"] for m in flow[:3]], [1, 10, 11])
+        secret = flow[1]
+        self.assertEqual(secret["module"], "datastore:GetRecord")
+        self.assertEqual(secret["mapper"]["key"], "shopify_webhook_secret")
+        parse = flow[2]
+        self.assertEqual(parse["module"], "json:ParseJSON")
+        self.assertEqual(parse["mapper"]["json"], "{{1.value}}")
+        check = json.dumps(parse["filter"])
+        self.assertIn('sha256(1.value; \\"base64\\"; 10.value)', check)
+        self.assertIn("x-shopify-hmac-sha256", check)
+
+    def test_line_items_come_from_the_verified_body(self):
+        feeder = next(m for m in self._flow() if m["id"] == 2)
+        self.assertEqual(feeder["mapper"]["array"], "{{11.line_items}}")
+
+    def test_stock_is_picked_by_exact_sku_not_the_first_search_hit(self):
+        # sku:"X" is a loose Shopify search; nodes[1] could be another variant.
+        text = FILE.read_text(encoding="utf-8")
+        self.assertNotIn("nodes[1]", text)
+        update = next(m for m in self._flow() if m["id"] == 5)
+        self.assertIn('"sku"; 2.sku', update["mapper"]["record"]["fldOKzR4V97mX3pj2"])
+        # exactly one variant with that SKU, or no write (missing or ambiguous)
+        self.assertIn("length(map(", json.dumps(update["filter"]))
+
+    def test_the_catalog_refresh_is_dispatched_once_per_order(self):
+        # Option A: aggregate the changed line items, dispatch once if any changed.
+        ids = [m["id"] for m in self._flow()]
+        agg = next(m for m in self._flow() if m["id"] == 12)
+        self.assertEqual(agg["module"], "builtin:BasicAggregator")
+        self.assertEqual(agg["parameters"]["feeder"], 2)
+        self.assertLess(ids.index(6), ids.index(12))
+        self.assertLess(ids.index(12), ids.index(7))
+        token = next(m for m in self._flow() if m["id"] == 7)
+        self.assertIn("length(12.array)", json.dumps(token["filter"]))
+
+    def test_modules_carry_the_defaults_make_requires_at_run_time(self):
+        # A blueprint import drops any parameter the export left out, and Make
+        # then fails the module with BundleValidationError (seen live 2026-10-18
+        # on both data store lookups and on the GitHub dispatch call).
+        flow = {m["id"]: m for m in self._flow()}
+        for mid in (7, 10):
+            self.assertIn("returnWrapped", flow[mid]["mapper"], f"module {mid}")
+        for key in ("serializeUrl", "shareCookies", "rejectUnauthorized", "followRedirect",
+                    "useQuerystring", "gzip", "useMtls"):
+            self.assertIn(key, flow[8]["mapper"], f"module 8 needs {key}")
+        self.assertTrue(flow[8]["mapper"]["rejectUnauthorized"], "TLS verification must stay on")
+
     def test_no_secrets_anywhere_in_the_export(self):
         text = FILE.read_text(encoding="utf-8")
         for label, pattern in SECRET_PATTERNS.items():
