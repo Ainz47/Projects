@@ -2,6 +2,8 @@
 
 When an order exists in the owner's Shopify development store (`jhurald05`), this sets the matching Airtable catalog row's `Stock` to Shopify's current stock for the ordered SKUs, and rebuilds the public storefront page ([Proj18](../Proj18_Coffee_Storefront/)) through the existing `refresh-catalog` GitHub Actions workflow. Two writers do this: an n8n workflow that polls every 5 minutes (the core, Plan 1), and a Make scenario triggered by a Shopify webhook that reacts within seconds (the fast path, Plan 2). Either alone keeps Airtable and the storefront correct; both running at once is redundant by design, not a race, since every write is Shopify's current absolute stock.
 
+**Walkthrough video:** [architecture, failure handling and the live tests, slide by slide](https://drive.google.com/file/d/14EXVujAeACjYdeFiyBNKRSowS0WGoOjU/view)
+
 Plan 2 (this README's second half) also adds a thank-you email for the order's own address (allow-listed, sent once, tagged), a `StockLog` sheet both writers append to, and a fourth line in Proj16's weekly summary reporting stock activity from that sheet. Both plans are built and verified live against the dev store.
 
 ## What it does

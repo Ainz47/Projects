@@ -263,7 +263,7 @@ An n8n workflow that polls a Shopify development store for new orders every 5 mi
 **Stack:** n8n · Shopify Admin GraphQL · Airtable API · GitHub Actions · JavaScript · Python  
 **Highlights:** cursor-based polling that only advances after every step succeeds, so a failure anywhere redoes the same work next tick instead of silently skipping it; idempotency and failure-injection both checked live, not just in unit tests; this is the n8n core only (Plan 1); Make, a thank-you email and a `StockLog` sheet are Plan 2, not built.
 
-[→ View project](Proj19_Shopify_Stock_Sync/)
+[→ View project](Proj19_Shopify_Stock_Sync/) · [→ Watch the walkthrough](https://drive.google.com/file/d/14EXVujAeACjYdeFiyBNKRSowS0WGoOjU/view)
 
 ---
 
@@ -274,7 +274,7 @@ A FastAPI backend scores inbound leads from a GoHighLevel (GHL) funnel with an L
 **Stack:** Python · FastAPI · n8n · GoHighLevel (GHL) · Gemini  
 **Highlights:** Live-verified against a real GHL sandbox across both phases via the GHL API and a real inbox, not just execution logs; 7 real bugs found and fixed along the way, including GHL sending an empty `opportunityId` for an opportunity that already existed (fixed by having the workflow resolve it via GHL's own API instead of trusting the webhook field) and a re-branch that changed a contact's tag without moving the CRM's pipeline stage (fixed with a Find/Update Opportunity step, verified live watching a real stage move).
 
-[→ View project](Proj20_GHL_Lead_Router/)
+[→ View project](Proj20_GHL_Lead_Router/) · [→ Watch the walkthrough](https://drive.google.com/file/d/1AS-D9x4JyWVsEDsPT01QjONwbYDKQszz/view)
 
 ---
 

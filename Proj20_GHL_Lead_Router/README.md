@@ -5,6 +5,8 @@ an LLM, and an n8n workflow glues GHL's webhook to that backend and writes
 the result back into GHL: a tag, custom fields, and a pipeline stage move,
 then GHL's own workflow branches by tier.
 
+**Walkthrough video:** [architecture, failure handling and the live tests, slide by slide](https://drive.google.com/file/d/1AS-D9x4JyWVsEDsPT01QjONwbYDKQszz/view)
+
 ```
 GHL funnel (Survey) -> "From Survey" workflow: opportunity in New + webhook
       -> n8n: read the contact, fingerprint the inquiry
