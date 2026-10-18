@@ -16,7 +16,7 @@ Pick the row that matches what you are hiring for.
 |---|---|
 | Web scraping, data extraction, anti-bot handling | [Proj1](#1-schooljobs), [Proj2](#2-shopeehijacker), [Proj9](#9-geodata-ai-ingestion-engine) |
 | Backend APIs and webhooks | [Proj6](#6-cloud-report-engine), [Proj7](#7-fastapi-etl-alerts), [Proj13](#13-astorga-flood-watch) |
-| Workflow automation in n8n | [Proj16](#16-n8n-lead-capture), [Proj19](#19-shopify-order-to-stock-sync) |
+| Workflow automation in n8n and Make | [Proj16](#16-n8n-lead-capture), [Proj19](#19-shopify-order-to-stock-sync) |
 | GoHighLevel (GHL) automation, CRM workflows and funnels | [Proj20](#20-ghl-lead-qualifier--router) |
 | Email deliverability (SPF, DKIM, DMARC) | [Proj17](#17-email-deliverability-checker) |
 | Data engineering (dbt, orchestration, IaC) | [Proj8](#8-arxiv-pipeline) |
@@ -24,7 +24,7 @@ Pick the row that matches what you are hiring for.
 | AI and LLM automation | [Proj12](#12-ai-lead-generator), [Proj9](#9-geodata-ai-ingestion-engine), [Proj15](#15-claude-code-tooling), [Proj16](#16-n8n-lead-capture) |
 | Claude Code skills, hooks and guardrails | [Proj15](#15-claude-code-tooling) |
 | Frontend, offline-first and sync | [Proj14](#14-schedule-pwa), [Proj18](#18-dynamic-coffee-storefront), [storefront case study](case-studies/storefront-spa-port.md) |
-| Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md), [Proj18](#18-dynamic-coffee-storefront) (data shapes and export code, not a live store), [Proj19](#19-shopify-order-to-stock-sync) (Admin API order polling, verified live against a real dev store) |
+| Shopify | [jewelry store case study](case-studies/jewelry-store-seo.md), [Proj18](#18-dynamic-coffee-storefront) (data shapes and export code, not a live store), [Proj19](#19-shopify-order-to-stock-sync) (Admin API order polling plus a signed order webhook into Make, verified live against a real dev store) |
 | Lead generation and email automation | [Proj12](#12-ai-lead-generator), [lead pipeline case study](case-studies/multi-state-lead-pipeline.md), [Proj16](#16-n8n-lead-capture), [Proj17](#17-email-deliverability-checker), [Proj20](#20-ghl-lead-qualifier--router) |
 | Embedded and IoT | [Proj4](#4-smartparkingiot), [Proj13](#13-astorga-flood-watch) |
 
@@ -258,10 +258,10 @@ A React storefront for a made-up coffee shop: search and filters that live in th
 
 ## 19. Shopify Order to Stock Sync
 
-An n8n workflow that polls a Shopify development store for new orders every 5 minutes, sets each ordered SKU's Airtable stock to Shopify's current number (absolute, not subtracted, so re-reads or overlapping ticks can't double-count), and dispatches Proj18's storefront rebuild through GitHub Actions when anything changed. Verified with a live run against a real dev store, including two real bugs found and fixed mid-run: an Airtable batch update that needed `PATCH` not `POST`, and a credential-matching bug that misrouted a token between two same-type n8n credentials.
+Two writers keep a Shopify development store's stock in step with Airtable and the public storefront. An n8n workflow polls for new orders every 5 minutes and re-creates the Shopify webhook if it ever goes missing; a Make scenario reacts to that webhook within seconds, after checking Shopify's HMAC signature. Both set each SKU's Airtable stock to Shopify's current number (absolute, not subtracted), so a re-read, an overlapping tick or both writers firing on the same order can't double-count, and either one dispatches Proj18's storefront rebuild through GitHub Actions when the page is behind. Every change lands in a shared `StockLog` sheet with which writer made it, and a thank-you email goes out once per order (tagged before sending, allow-listed).
 
-**Stack:** n8n · Shopify Admin GraphQL · Airtable API · GitHub Actions · JavaScript · Python  
-**Highlights:** cursor-based polling that only advances after every step succeeds, so a failure anywhere redoes the same work next tick instead of silently skipping it; idempotency and failure-injection both checked live, not just in unit tests; this is the n8n core only (Plan 1); Make, a thank-you email and a `StockLog` sheet are Plan 2, not built.
+**Stack:** n8n · Make · Shopify Admin GraphQL and webhooks · Airtable API · GitHub Actions · Google Sheets · JavaScript · Python  
+**Highlights:** the cursor only advances after every step succeeds, so a failure anywhere redoes the same work next tick instead of silently skipping it; 83 JavaScript and 22 Python tests run in CI; verified live against a real dev store, including failure injection (a bad credential fails the tick with no cursor move and no partial email) and three real bugs caught mid-run: an Airtable batch update that needed `PATCH` not `POST`, a credential mix-up that sent an Airtable token to GitHub, and GitHub serving the storefront snapshot as a non-JSON type so every SKU read as stale.
 
 [→ View project](Proj19_Shopify_Stock_Sync/) · [→ Watch the walkthrough](https://drive.google.com/file/d/14EXVujAeACjYdeFiyBNKRSowS0WGoOjU/view)
 
