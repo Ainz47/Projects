@@ -119,6 +119,16 @@ class ExportStructure(unittest.TestCase):
                 self.assertEqual(n.get("maxTries"), 3, n["name"])
                 self.assertGreaterEqual(n.get("waitBetweenTries", 0), 1000, n["name"])
 
+    def test_the_backend_call_reads_the_lead_from_the_webhook_node_by_name(self):
+        # It sits behind the fingerprint/replay check, so its $json is the Set
+        # node's output, not the webhook body (seen live: exec 114 failed with
+        # "JSON Body is not valid JSON" when it still read $json.body).
+        body = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}["Call backend /qualify"]["parameters"]["jsonBody"]
+        self.assertNotIn("$json", body)
+        for field in ["name", "email", "message", "budget", "timeline"]:
+            self.assertIn(f"$('GHL lead webhook').item.json.body.customData.{field}", body)
+        self.assertIn("$('GHL lead webhook').item.json.body.company_name", body)
+
     def test_the_backend_call_allows_for_a_render_cold_start(self):
         nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
         self.assertEqual(nodes["Call backend /qualify"]["parameters"]["options"]["timeout"], 60000)

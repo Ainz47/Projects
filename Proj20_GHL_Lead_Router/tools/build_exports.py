@@ -91,15 +91,16 @@ def qualify_request_node():
     # section); company isn't in customData at all, it's GHL's own top-level
     # body.company_name. Confirmed against a real live execution payload
     # (execution 87) - $json.name etc. at this node is always undefined.
+    # Read from the webhook node by name: this node sits behind the replay
+    # check, so its own $json is the fingerprint, not the webhook body.
+    fields = ", ".join(f"{f}: {webhook_field('customData.' + f)}" for f in ["name", "email"])
+    rest = ", ".join(f"{f}: {webhook_field('customData.' + f)}" for f in ["message", "budget", "timeline"])
+    body = f"={{{{ JSON.stringify({{ {fields}, company: {webhook_field('company_name')}, {rest} }}) }}}}"
     return node("Call backend /qualify", "n8n-nodes-base.httpRequest", V["http"], [720, 0], {
         "method": "POST", "url": "",
         "authentication": "genericCredentialType", "genericAuthType": "httpTemplatedCustomAuth",
         "sendBody": True, "specifyBody": "json",
-        "jsonBody": (
-            "={{ JSON.stringify({ name: $json.body.customData.name, email: $json.body.customData.email, "
-            "company: $json.body.company_name, message: $json.body.customData.message, "
-            "budget: $json.body.customData.budget, timeline: $json.body.customData.timeline }) }}"
-        ),
+        "jsonBody": body,
         "options": {"response": {"response": {"responseFormat": "json"}}, "timeout": BACKEND_TIMEOUT_MS},
     }, credentials=QUALIFY_CREDENTIAL, **RETRY)
 
