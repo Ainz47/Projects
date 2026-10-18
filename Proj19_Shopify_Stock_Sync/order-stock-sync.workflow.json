@@ -319,7 +319,13 @@
       "parameters": {
         "method": "GET",
         "url": "https://api.github.com/repos/Ainz47/Projects/contents/Proj18_Coffee_Storefront/data/catalog.export.json?ref=main",
-        "options": {},
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        },
         "authentication": "genericCredentialType",
         "genericAuthType": "httpHeaderAuth",
         "sendHeaders": true,

@@ -82,8 +82,9 @@ def if_node(name, position, left):
     })
 
 
-def http_node(name, position, url, *, method="POST", cred_type=None, cred_name=None, headers=None, json_body=None, **extra):
-    parameters = {"method": method, "url": url, "options": {}}
+def http_node(name, position, url, *, method="POST", cred_type=None, cred_name=None, headers=None, json_body=None,
+              options=None, **extra):
+    parameters = {"method": method, "url": url, "options": options or {}}
     if cred_type:
         parameters["authentication"] = "genericCredentialType"
         parameters["genericAuthType"] = cred_type
@@ -176,7 +177,10 @@ def order_stock_sync():
         # Rebuild check, every tick that saw SKUs: the published snapshot against what Airtable now holds.
         http_node("Published catalog", [3360, -120], SNAPSHOT_URL, method="GET",
                   cred_type="httpHeaderAuth", cred_name="GitHub Actions token",
-                  headers={**GITHUB_HEADERS, "Accept": "application/vnd.github.raw+json"}, executeOnce=True),
+                  headers={**GITHUB_HEADERS, "Accept": "application/vnd.github.raw+json"},
+                  # The raw media type is not served as application/json: left on auto, n8n hands Plan rebuild the
+                  # file as a string and every synced SKU reads as stale (live exec 119).
+                  options={"response": {"response": {"responseFormat": "json"}}}, executeOnce=True),
         http_node("Recent rebuilds", [3600, -120], GITHUB_RUNS_URL, method="GET",
                   cred_type="httpHeaderAuth", cred_name="GitHub Actions token",
                   headers=GITHUB_HEADERS, executeOnce=True),

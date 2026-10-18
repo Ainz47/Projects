@@ -138,6 +138,9 @@ class ExportTests(unittest.TestCase):
         catalog = nodes["Published catalog"]["parameters"]
         self.assertIn("/contents/Proj18_Coffee_Storefront/data/catalog.export.json", catalog["url"])
         self.assertIn("ref=main", catalog["url"])
+        # GitHub's raw media type is not served as application/json, so n8n's auto format hands Plan rebuild a
+        # string in json.data and every synced SKU reads as stale (live exec 119, 2026-10-18).
+        self.assertEqual(catalog["options"].get("response", {}).get("response", {}).get("responseFormat"), "json")
         self.assertIn("/actions/workflows/refresh-catalog.yml/runs", nodes["Recent rebuilds"]["parameters"]["url"])
         code = nodes["Plan rebuild"]["parameters"]["jsCode"]
         for needle in ("planRebuild(", "publishedStock(", "$('Plan updates')", "workflow_runs"):
