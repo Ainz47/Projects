@@ -27,6 +27,10 @@ SHOPIFY_URL = f"https://{SHOP}.myshopify.com/admin/api/{API_VERSION}/graphql.jso
 TOKEN_URL = f"https://{SHOP}.myshopify.com/admin/oauth/access_token"
 AIRTABLE_URL = f"https://api.airtable.com/v0/{BASE_ID}/Variants"
 GITHUB_URL = f"https://api.github.com/repos/{REPO}/actions/workflows/{WORKFLOW_FILE}/dispatches"
+GITHUB_RUNS_URL = f"https://api.github.com/repos/{REPO}/actions/workflows/{WORKFLOW_FILE}/runs?per_page=10"
+# What the live storefront was built from: refresh-catalog commits this snapshot to main.
+SNAPSHOT_URL = f"https://api.github.com/repos/{REPO}/contents/Proj18_Coffee_Storefront/data/catalog.export.json?ref=main"
+GITHUB_HEADERS = {"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"}
 
 
 def js(*modules, tail):
@@ -163,17 +167,30 @@ def order_stock_sync():
         http_node("Airtable update", [2640, -240], AIRTABLE_URL, method="PATCH",
                   cred_type="httpHeaderAuth", cred_name="Airtable token",
                   json_body="={{ JSON.stringify({ records: $json.records }) }}"),
-        http_node("Dispatch refresh", [2880, -240], GITHUB_URL,
-                  cred_type="httpHeaderAuth", cred_name="GitHub Actions token",
-                  headers={"Accept": "application/vnd.github+json", "X-GitHub-Api-Version": "2022-11-28"},
-                  json_body='={{ JSON.stringify({ ref: "main" }) }}', executeOnce=True),
-        code_node("Expand stock log rows", [2640, -480], js("collect_skus.js", "stock_log_rows.js", tail=(
+        code_node("Expand stock log rows", [2880, -240], js("collect_skus.js", "stock_log_rows.js", tail=(
             "const { updates } = $('Plan updates').first().json;\n"
             "const orders = $('Shopify orders').first().json.data.orders.nodes;\n"
             "const rows = stockLogRows(updates, skuOrderNames(orders), 'n8n', new Date().toISOString());\n"
             "return rows.map((row) => ({ json: row }));"))),
-        sheets_node("Append stock log", [2880, -480], "append", STOCK_LOG_SHEET_NAME),
-        code_node("Advance cursor", [3120, 0], js("next_cursor.js", tail=(
+        sheets_node("Append stock log", [3120, -240], "append", STOCK_LOG_SHEET_NAME),
+        # Rebuild check, every tick that saw SKUs: the published snapshot against what Airtable now holds.
+        http_node("Published catalog", [3360, -120], SNAPSHOT_URL, method="GET",
+                  cred_type="httpHeaderAuth", cred_name="GitHub Actions token",
+                  headers={**GITHUB_HEADERS, "Accept": "application/vnd.github.raw+json"}, executeOnce=True),
+        http_node("Recent rebuilds", [3600, -120], GITHUB_RUNS_URL, method="GET",
+                  cred_type="httpHeaderAuth", cred_name="GitHub Actions token",
+                  headers=GITHUB_HEADERS, executeOnce=True),
+        code_node("Plan rebuild", [3840, -120], js("plan_rebuild.js", tail=(
+            "const { synced } = $('Plan updates').first().json;\n"
+            "const published = publishedStock($('Published catalog').first().json);\n"
+            "const runs = $('Recent rebuilds').first().json.workflow_runs ?? [];\n"
+            "return [{ json: planRebuild(synced, published, runs) }];"))),
+        if_node("Rebuild owed?", [4080, -120], "={{ $json.dispatch }}"),
+        http_node("Dispatch refresh", [4320, -240], GITHUB_URL,
+                  cred_type="httpHeaderAuth", cred_name="GitHub Actions token",
+                  headers=GITHUB_HEADERS,
+                  json_body='={{ JSON.stringify({ ref: "main" }) }}', executeOnce=True),
+        code_node("Advance cursor", [4560, 0], js("next_cursor.js", tail=(
             "const orders = $('Shopify orders').first().json.data.orders.nodes;\n"
             "const store = $getWorkflowStaticData('global');\n"
             "store.cursor = nextCursor(store.cursor ?? null, orders, Date.now());\n"
@@ -235,11 +252,13 @@ def order_stock_sync():
         ("Any SKUs?", "Shopify stock", 0), ("Any SKUs?", "Advance cursor", 1),
         ("Shopify stock", "Airtable rows", 0), ("Airtable rows", "Plan updates", 0),
         ("Plan updates", "Any updates?", 0),
-        ("Any updates?", "Chunk updates", 0), ("Any updates?", "Expand stock log rows", 0),
-        ("Any updates?", "Advance cursor", 1),
-        ("Chunk updates", "Airtable update", 0), ("Airtable update", "Dispatch refresh", 0),
+        ("Any updates?", "Chunk updates", 0), ("Any updates?", "Published catalog", 1),
+        ("Chunk updates", "Airtable update", 0), ("Airtable update", "Expand stock log rows", 0),
+        ("Expand stock log rows", "Append stock log", 0), ("Append stock log", "Published catalog", 0),
+        ("Published catalog", "Recent rebuilds", 0), ("Recent rebuilds", "Plan rebuild", 0),
+        ("Plan rebuild", "Rebuild owed?", 0),
+        ("Rebuild owed?", "Dispatch refresh", 0), ("Rebuild owed?", "Advance cursor", 1),
         ("Dispatch refresh", "Advance cursor", 0),
-        ("Expand stock log rows", "Append stock log", 0), ("Append stock log", "Advance cursor", 0),
         ("Shopify token", "Plan webhook check", 0), ("Plan webhook check", "List webhooks", 0),
         ("List webhooks", "Plan webhook ensure", 0), ("Plan webhook ensure", "Needs webhook?", 0),
         ("Needs webhook?", "Plan webhook create", 0), ("Needs webhook?", "Advance cursor", 1),

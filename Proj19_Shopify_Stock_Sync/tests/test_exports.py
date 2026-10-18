@@ -58,6 +58,8 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(nodes["Airtable update"]["parameters"]["method"], "PATCH")
         for name in ("Shopify token", "Shopify orders", "Shopify stock", "Airtable rows", "Dispatch refresh"):
             self.assertEqual(nodes[name]["parameters"]["method"], "POST", name)
+        for name in ("Published catalog", "Recent rebuilds"):
+            self.assertEqual(nodes[name]["parameters"]["method"], "GET", name)
 
     def test_wiring(self):
         w = load()
@@ -69,12 +71,16 @@ class ExportTests(unittest.TestCase):
         self.assertEqual(targets(w, "Any SKUs?", 1), ["Advance cursor"])
         for a, b in [("Shopify stock", "Airtable rows"), ("Airtable rows", "Plan updates"), ("Plan updates", "Any updates?")]:
             self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
-        self.assertCountEqual(targets(w, "Any updates?", 0), ["Chunk updates", "Expand stock log rows"])
-        self.assertEqual(targets(w, "Any updates?", 1), ["Advance cursor"])
-        for a, b in [("Chunk updates", "Airtable update"), ("Airtable update", "Dispatch refresh")]:
+        self.assertEqual(targets(w, "Any updates?", 0), ["Chunk updates"])
+        self.assertEqual(targets(w, "Any updates?", 1), ["Published catalog"])
+        # Airtable first, then the log: StockLog only records a change Airtable accepted.
+        for a, b in [("Chunk updates", "Airtable update"), ("Airtable update", "Expand stock log rows"),
+                     ("Expand stock log rows", "Append stock log"), ("Append stock log", "Published catalog"),
+                     ("Published catalog", "Recent rebuilds"), ("Recent rebuilds", "Plan rebuild"),
+                     ("Plan rebuild", "Rebuild owed?"), ("Dispatch refresh", "Advance cursor")]:
             self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
-        for a, b in [("Expand stock log rows", "Append stock log"), ("Dispatch refresh", "Advance cursor"), ("Append stock log", "Advance cursor")]:
-            self.assertEqual(targets(w, a, 0), [b], f"{a} -> {b}")
+        self.assertEqual(targets(w, "Rebuild owed?", 0), ["Dispatch refresh"])
+        self.assertEqual(targets(w, "Rebuild owed?", 1), ["Advance cursor"])
 
         self.assertCountEqual(targets(w, "Shopify token", 0), ["Shopify orders", "Plan webhook check"])
         for a, b in [("Plan webhook check", "List webhooks"), ("List webhooks", "Plan webhook ensure"),
@@ -117,14 +123,33 @@ class ExportTests(unittest.TestCase):
 
     def test_once_only_nodes(self):
         nodes = by_name(load())
-        self.assertTrue(nodes["Dispatch refresh"].get("executeOnce"))
-        self.assertTrue(nodes["Advance cursor"].get("executeOnce"))
+        for name in ("Published catalog", "Recent rebuilds", "Dispatch refresh", "Advance cursor"):
+            self.assertTrue(nodes[name].get("executeOnce"), name)
+
+    def test_the_rebuild_is_decided_from_the_published_snapshot_not_from_this_ticks_writes(self):
+        # Seen in the wiring: Airtable written, dispatch failed, and the retry tick found
+        # nothing left to update, so the dispatch never ran again. The only way to the
+        # dispatch now is through Plan rebuild, which a quiet tick reaches too.
+        w = load()
+        into_dispatch = [s for s, conn in w["connections"].items()
+                         for port in conn["main"] for e in port if e["node"] == "Dispatch refresh"]
+        self.assertEqual(into_dispatch, ["Rebuild owed?"])
+        nodes = by_name(w)
+        catalog = nodes["Published catalog"]["parameters"]
+        self.assertIn("/contents/Proj18_Coffee_Storefront/data/catalog.export.json", catalog["url"])
+        self.assertIn("ref=main", catalog["url"])
+        self.assertIn("/actions/workflows/refresh-catalog.yml/runs", nodes["Recent rebuilds"]["parameters"]["url"])
+        code = nodes["Plan rebuild"]["parameters"]["jsCode"]
+        for needle in ("planRebuild(", "publishedStock(", "$('Plan updates')", "workflow_runs"):
+            self.assertIn(needle, code)
 
     def test_http_nodes_use_named_credentials_and_no_inline_secrets(self):
         nodes = by_name(load())
         self.assertIn("httpCustomAuth", nodes["Shopify token"]["credentials"])
-        for name in ("Airtable rows", "Airtable update", "Dispatch refresh"):
+        for name in ("Airtable rows", "Airtable update", "Dispatch refresh", "Published catalog", "Recent rebuilds"):
             self.assertIn("httpHeaderAuth", nodes[name]["credentials"], name)
+        for name in ("Dispatch refresh", "Published catalog", "Recent rebuilds"):
+            self.assertEqual(nodes[name]["credentials"]["httpHeaderAuth"]["name"], "GitHub Actions token", name)
         text = (ROOT / FILE).read_text(encoding="utf-8")
         self.assertNotIn("client_secret", text)
         self.assertIn("appXXXXXXXXXXXXXX", text)  # the Airtable base id is a placeholder until import

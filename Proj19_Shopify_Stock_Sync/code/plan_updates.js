@@ -7,7 +7,8 @@ function planUpdates(skus, shopifyStock, airtableRows) {
     if (bySku.has(row.sku)) duplicated.add(row.sku);
     else bySku.set(row.sku, row);
   }
-  const result = { updates: [], skipped: [], rejected: [], unchanged: 0 };
+  // synced: every SKU whose Airtable stock equals Shopify's once this plan is applied (plan_rebuild.js reads it)
+  const result = { updates: [], skipped: [], rejected: [], unchanged: 0, synced: {} };
   for (const sku of skus ?? []) {
     if (duplicated.has(sku)) {
       result.rejected.push({ sku, reason: 'duplicate SKU in Airtable' });
@@ -27,8 +28,10 @@ function planUpdates(skus, shopifyStock, airtableRows) {
       result.rejected.push({ sku, reason: 'Shopify stock is not a whole number of 0 or more' });
     } else if (row.stock === stock) {
       result.unchanged += 1;
+      result.synced[sku] = stock;
     } else {
       result.updates.push({ recordId: row.id, sku, oldStock: row.stock ?? null, newStock: stock });
+      result.synced[sku] = stock;
     }
   }
   return result;

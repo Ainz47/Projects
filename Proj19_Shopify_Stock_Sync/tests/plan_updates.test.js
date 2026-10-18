@@ -64,7 +64,7 @@ test('results follow the order of the SKUs given', () => {
 });
 
 test('no SKUs and no rows plan nothing', () => {
-  assert.deepEqual(planUpdates(undefined, undefined, undefined), { updates: [], skipped: [], rejected: [], unchanged: 0 });
+  assert.deepEqual(planUpdates(undefined, undefined, undefined), { updates: [], skipped: [], rejected: [], unchanged: 0, synced: {} });
 });
 
 test('updates are chunked for Airtable, which takes at most 10 records a request', () => {
@@ -72,4 +72,9 @@ test('updates are chunked for Airtable, which takes at most 10 records a request
   const chunks = chunkUpdates(many, 10);
   assert.deepEqual(chunks.map((c) => c.length), [10, 10, 3]);
   assert.deepEqual(chunkUpdates([], 10), []);
+});
+
+test('synced maps every SKU Airtable now holds to its stock, written or already matching, and nothing else', () => {
+  const r = planUpdates(['A-1', 'B-2', 'NO-ROW', 'GONE'], { 'A-1': 7, 'B-2': 4, 'NO-ROW': 3 }, rows);
+  assert.deepEqual(r.synced, { 'A-1': 7, 'B-2': 4 });
 });
