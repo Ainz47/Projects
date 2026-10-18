@@ -125,7 +125,7 @@ class ExportStructure(unittest.TestCase):
         # "JSON Body is not valid JSON" when it still read $json.body).
         body = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}["Call backend /qualify"]["parameters"]["jsonBody"]
         self.assertNotIn("$json", body)
-        for field in ["name", "email", "message", "budget", "timeline"]:
+        for field in ["name", "email", "message", "budget", "timeline", "blocker"]:
             self.assertIn(f"$('GHL lead webhook').item.json.body.customData.{field}", body)
         self.assertIn("$('GHL lead webhook').item.json.body.company_name", body)
 
@@ -159,7 +159,7 @@ class ExportStructure(unittest.TestCase):
         nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
         [assignment] = nodes["Fingerprint inquiry"]["parameters"]["assignments"]["assignments"]
         self.assertEqual(assignment["name"], "lead_hash")
-        for field in ["budget", "timeline", "message"]:
+        for field in ["budget", "timeline", "blocker", "message"]:
             self.assertIn(f"customData.{field}", assignment["value"])
         self.assertIn(".hash('sha256')", assignment["value"])
 

@@ -25,6 +25,7 @@ class LeadRequest(BaseModel):
     company: Optional[str] = None
     budget: Optional[str] = None
     timeline: Optional[str] = None
+    blocker: Optional[str] = None
 
 
 class QualificationResponse(BaseModel):

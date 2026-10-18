@@ -22,6 +22,7 @@ Name: {name}
 Company: {company}
 Budget: {budget}
 Timeline: {timeline}
+Blocker: {blocker}
 Message: {message}"""
 
 
@@ -39,6 +40,7 @@ def build_prompt(lead):
         company=lead.get("company") or "not given",
         budget=lead.get("budget") or "not given",
         timeline=lead.get("timeline") or "not given",
+        blocker=lead.get("blocker") or "not given",
         message=lead.get("message", ""),
     )
 

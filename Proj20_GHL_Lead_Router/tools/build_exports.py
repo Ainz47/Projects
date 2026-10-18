@@ -70,8 +70,9 @@ def webhook_field(path):
 def fingerprint_node(position):
     # A content fingerprint of the inquiry itself. GHL's webhook carries no
     # stable submission id, so the payload is the idempotency key: the same
-    # budget/timeline/message is a replay, anything else is a new inquiry.
-    parts = ", ".join(webhook_field(f"customData.{f}") for f in ["budget", "timeline", "message"])
+    # budget/timeline/blocker/message is a replay, anything else is a new
+    # inquiry. The survey asks for a timeline OR a blocker, by budget.
+    parts = ", ".join(webhook_field(f"customData.{f}") for f in ["budget", "timeline", "blocker", "message"])
     value = f"={{{{ [{parts}].map(v => v || '').join('|').hash('sha256') }}}}"
     return node(FINGERPRINT_NODE, "n8n-nodes-base.set", V["set"], position, {
         "assignments": {"assignments": [{"id": "lead_hash", "name": "lead_hash", "value": value, "type": "string"}]},
@@ -94,7 +95,7 @@ def qualify_request_node():
     # Read from the webhook node by name: this node sits behind the replay
     # check, so its own $json is the fingerprint, not the webhook body.
     fields = ", ".join(f"{f}: {webhook_field('customData.' + f)}" for f in ["name", "email"])
-    rest = ", ".join(f"{f}: {webhook_field('customData.' + f)}" for f in ["message", "budget", "timeline"])
+    rest = ", ".join(f"{f}: {webhook_field('customData.' + f)}" for f in ["message", "budget", "timeline", "blocker"])
     body = f"={{{{ JSON.stringify({{ {fields}, company: {webhook_field('company_name')}, {rest} }}) }}}}"
     return node("Call backend /qualify", "n8n-nodes-base.httpRequest", V["http"], [720, 0], {
         "method": "POST", "url": "",

@@ -64,7 +64,7 @@
             {
               "id": "lead_hash",
               "name": "lead_hash",
-              "value": "={{ [$('GHL lead webhook').item.json.body.customData.budget, $('GHL lead webhook').item.json.body.customData.timeline, $('GHL lead webhook').item.json.body.customData.message].map(v => v || '').join('|').hash('sha256') }}",
+              "value": "={{ [$('GHL lead webhook').item.json.body.customData.budget, $('GHL lead webhook').item.json.body.customData.timeline, $('GHL lead webhook').item.json.body.customData.blocker, $('GHL lead webhook').item.json.body.customData.message].map(v => v || '').join('|').hash('sha256') }}",
               "type": "string"
             }
           ]
@@ -119,7 +119,7 @@
         "genericAuthType": "httpTemplatedCustomAuth",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={{ JSON.stringify({ name: $('GHL lead webhook').item.json.body.customData.name, email: $('GHL lead webhook').item.json.body.customData.email, company: $('GHL lead webhook').item.json.body.company_name, message: $('GHL lead webhook').item.json.body.customData.message, budget: $('GHL lead webhook').item.json.body.customData.budget, timeline: $('GHL lead webhook').item.json.body.customData.timeline }) }}",
+        "jsonBody": "={{ JSON.stringify({ name: $('GHL lead webhook').item.json.body.customData.name, email: $('GHL lead webhook').item.json.body.customData.email, company: $('GHL lead webhook').item.json.body.company_name, message: $('GHL lead webhook').item.json.body.customData.message, budget: $('GHL lead webhook').item.json.body.customData.budget, timeline: $('GHL lead webhook').item.json.body.customData.timeline, blocker: $('GHL lead webhook').item.json.body.customData.blocker }) }}",
         "options": {
           "response": {
             "response": {

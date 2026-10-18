@@ -63,6 +63,16 @@ def test_qualify_accepts_missing_optional_fields(monkeypatch):
     assert resp.json()["tier"] == "cold"
 
 
+def test_qualify_passes_the_blocker_to_the_model(monkeypatch):
+    prompts = []
+    monkeypatch.setattr(llm_client, "call_gemini",
+                        lambda prompt: prompts.append(prompt) or '{"score": 6, "reason": "r", "suggested_reply": "s"}')
+    resp = client.post("/qualify", json={"name": "Tom", "email": "tom@example.com", "message": "hi",
+                                         "budget": "Under $5,000", "blocker": "No time to set it up"})
+    assert resp.status_code == 200
+    assert "Blocker: No time to set it up" in prompts[0]
+
+
 def test_qualify_rejects_a_request_missing_the_required_message_field():
     resp = client.post("/qualify", json={"name": "Tom", "email": "tom@example.com"})
     assert resp.status_code == 422

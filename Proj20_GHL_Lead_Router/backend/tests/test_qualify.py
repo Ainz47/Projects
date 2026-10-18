@@ -50,6 +50,13 @@ def test_build_prompt_handles_missing_optional_fields_without_crashing():
     assert "not given" in prompt
 
 
+def test_build_prompt_includes_the_blocker_from_the_survey_branch():
+    # The funnel's "Under $5,000" answer asks for a blocker instead of a timeline.
+    prompt = build_prompt({"name": "Tom", "message": "hi", "budget": "Under $5,000",
+                           "blocker": "Nobody on the team owns follow-ups"})
+    assert "Blocker: Nobody on the team owns follow-ups" in prompt
+
+
 def test_qualify_lead_calls_the_injected_llm_and_returns_its_parsed_result():
     calls = []
 
