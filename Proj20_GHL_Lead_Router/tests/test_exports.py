@@ -57,7 +57,16 @@ class ExportStructure(unittest.TestCase):
         wf = load("ghl-lead-router.workflow.json")
         conn = wf["connections"]
         self.assertEqual(
-            [e["node"] for e in conn["GHL lead webhook"]["main"][0]], ["Call backend /qualify"],
+            [e["node"] for e in conn["GHL lead webhook"]["main"][0]], ["Read contact before write"],
+        )
+        self.assertEqual(
+            [e["node"] for e in conn["Read contact before write"]["main"][0]], ["Fingerprint inquiry"],
+        )
+        self.assertEqual(
+            [e["node"] for e in conn["Fingerprint inquiry"]["main"][0]], ["New inquiry?"],
+        )
+        self.assertEqual(
+            [e["node"] for e in conn["New inquiry?"]["main"][0]], ["Call backend /qualify"],
         )
         self.assertEqual(
             [e["node"] for e in conn["Call backend /qualify"]["main"][0]], ["Merge qualification onto lead"],
@@ -68,16 +77,15 @@ class ExportStructure(unittest.TestCase):
         conn = wf["connections"]
         self.assertEqual(
             [e["node"] for e in conn["Merge qualification onto lead"]["main"][0]],
-            ["Read contact before write"],
-        )
-        self.assertEqual(
-            [e["node"] for e in conn["Read contact before write"]["main"][0]],
             ["Write score/reason/reply to GHL"],
         )
         self.assertEqual(
             [e["node"] for e in conn["Write score/reason/reply to GHL"]["main"][0]],
-            ["Add tier tag"],
+            ["Has a tier?"],
         )
+        self.assertEqual([e["node"] for e in conn["Has a tier?"]["main"][0]], ["Clear other tier tags"])
+        self.assertEqual([e["node"] for e in conn["Has a tier?"]["main"][1]], ["Add tier tag"])
+        self.assertEqual([e["node"] for e in conn["Clear other tier tags"]["main"][0]], ["Add tier tag"])
         self.assertEqual(
             [e["node"] for e in conn["Add tier tag"]["main"][0]],
             ["Look up opportunity by contact", "Upsert lead log"],
@@ -120,7 +128,64 @@ class ExportStructure(unittest.TestCase):
         read = nodes["Read contact before write"]
         self.assertEqual(read["parameters"]["method"], "GET")
         self.assertIn("/contacts/", read["parameters"]["url"])
-        self.assertIn("Merge qualification onto lead", read["parameters"]["url"])
+        # it runs before the model is called, so it reads the id off the webhook
+        self.assertIn("GHL lead webhook", read["parameters"]["url"])
+
+    def test_a_replay_of_the_same_inquiry_stops_before_the_model_or_any_write(self):
+        # GHL can re-send the same form webhook; re-scoring it could land in a
+        # different tier and flip the stage. Same content fingerprint as the
+        # one stored on the contact = already routed, so nothing runs.
+        wf = load("ghl-lead-router.workflow.json")
+        nodes = {n["name"]: n for n in wf["nodes"]}
+        new_inquiry = wf["connections"]["New inquiry?"]["main"]
+        self.assertEqual(len(new_inquiry), 1)
+        cond = nodes["New inquiry?"]["parameters"]["conditions"]["conditions"][0]
+        self.assertIn("Read contact before write", cond["leftValue"])
+        self.assertIn("customFields", cond["leftValue"])
+        self.assertIn("Fingerprint inquiry", cond["rightValue"])
+        self.assertEqual(cond["operator"]["operation"], "notEquals")
+
+    def test_the_fingerprint_hashes_the_inquiry_content_from_the_webhook(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        [assignment] = nodes["Fingerprint inquiry"]["parameters"]["assignments"]["assignments"]
+        self.assertEqual(assignment["name"], "lead_hash")
+        for field in ["budget", "timeline", "message"]:
+            self.assertIn(f"customData.{field}", assignment["value"])
+        self.assertIn(".hash('sha256')", assignment["value"])
+
+    def test_the_fingerprint_is_stored_only_after_a_stage_move_succeeds(self):
+        # Marking done last, like Proj19's cursor: a run that fails midway
+        # leaves no fingerprint, so the replay redoes the work. A review lead
+        # never reaches it either, so replaying one calls the model again.
+        wf = load("ghl-lead-router.workflow.json")
+        conn = wf["connections"]
+        for name in ["Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
+            self.assertEqual([e["node"] for e in conn[name]["main"][0]], ["Mark inquiry routed"], name)
+        nodes = {n["name"]: n for n in wf["nodes"]}
+        mark = nodes["Mark inquiry routed"]
+        self.assertEqual(mark["parameters"]["method"], "PUT")
+        self.assertIn("Fingerprint inquiry", mark["parameters"]["jsonBody"])
+        self.assertEqual(mark["parameters"]["jsonBody"].count("id: ''"), 1)
+
+    def test_a_scored_lead_drops_its_other_tier_tags_so_only_one_tier_drip_fires(self):
+        nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
+        clear = nodes["Clear other tier tags"]
+        self.assertEqual(clear["parameters"]["method"], "DELETE")
+        self.assertIn("/tags", clear["parameters"]["url"])
+        body = clear["parameters"]["jsonBody"]
+        for tag in ["'hot'", "'warm'", "'cold'", "'needs-review'"]:
+            self.assertIn(tag, body)
+        self.assertIn("filter", body)
+        cond = nodes["Has a tier?"]["parameters"]["conditions"]["conditions"][0]
+        self.assertEqual(cond["rightValue"], "review")
+        self.assertEqual(cond["operator"]["operation"], "notEquals")
+
+    def test_the_backend_call_sends_its_api_key_from_a_named_credential(self):
+        node = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}["Call backend /qualify"]
+        self.assertEqual(node["parameters"]["authentication"], "genericCredentialType")
+        self.assertEqual(node["parameters"]["genericAuthType"], "httpTemplatedCustomAuth")
+        self.assertEqual(node["credentials"]["httpTemplatedCustomAuth"],
+                         {"id": build_exports.PLACEHOLDER_ID, "name": "Proj20 qualify API key"})
 
     def test_the_whatsapp_alert_only_fires_the_first_time_a_contact_turns_hot(self):
         wf = load("ghl-lead-router.workflow.json")
@@ -163,8 +228,9 @@ class ExportStructure(unittest.TestCase):
         # a new plain generic credential on this node (confirmed live via n8n-mcp
         # validation against all 5 of these nodes).
         nodes = {n["name"]: n for n in load("ghl-lead-router.workflow.json")["nodes"]}
-        for name in ["Read contact before write", "Write score/reason/reply to GHL", "Add tier tag",
-                     "Look up opportunity by contact", "Move to Hot stage", "Move to Warm stage", "Move to Cold stage"]:
+        for name in ["Read contact before write", "Write score/reason/reply to GHL", "Clear other tier tags",
+                     "Add tier tag", "Look up opportunity by contact", "Move to Hot stage", "Move to Warm stage",
+                     "Move to Cold stage", "Mark inquiry routed"]:
             node = nodes[name]
             self.assertEqual(node["parameters"]["genericAuthType"], "httpTemplatedCustomAuth")
             self.assertEqual(node["credentials"]["httpTemplatedCustomAuth"]["name"], "GHL Private Integration Token")

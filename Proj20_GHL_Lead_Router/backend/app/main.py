@@ -1,10 +1,12 @@
+import hmac
 import json
 import logging
+import os
 import time
 import uuid
 from typing import Optional
 
-from fastapi import FastAPI, Response
+from fastapi import Depends, FastAPI, Header, HTTPException, Response
 from pydantic import BaseModel
 
 from . import llm_client
@@ -32,12 +34,23 @@ class QualificationResponse(BaseModel):
     suggested_reply: str
 
 
+def require_api_key(x_api_key: Optional[str] = Header(None)):
+    # Fails closed: with QUALIFY_API_KEY unset on the server, every caller is
+    # refused rather than the endpoint quietly going public. compare_digest
+    # keeps the check constant-time.
+    expected = os.environ.get("QUALIFY_API_KEY", "")
+    if not expected:
+        log.warning(json.dumps({"auth": "QUALIFY_API_KEY not set, refusing"}))
+    if not expected or not x_api_key or not hmac.compare_digest(x_api_key, expected):
+        raise HTTPException(status_code=401, detail="invalid or missing X-API-Key")
+
+
 @app.get("/health")
 def health():
     return {"status": "ok"}
 
 
-@app.post("/qualify", response_model=QualificationResponse)
+@app.post("/qualify", response_model=QualificationResponse, dependencies=[Depends(require_api_key)])
 def qualify(lead: LeadRequest, response: Response):
     request_id = uuid.uuid4().hex[:12]
     started = time.monotonic()

@@ -59,21 +59,49 @@ def webhook_node():
     }, webhookId="ghl-lead-router")
 
 
+WEBHOOK_NODE = "GHL lead webhook"
+FINGERPRINT_NODE = "Fingerprint inquiry"
+
+
+def webhook_field(path):
+    return f"$('{WEBHOOK_NODE}').item.json.body.{path}"
+
+
+def fingerprint_node(position):
+    # A content fingerprint of the inquiry itself. GHL's webhook carries no
+    # stable submission id, so the payload is the idempotency key: the same
+    # budget/timeline/message is a replay, anything else is a new inquiry.
+    parts = ", ".join(webhook_field(f"customData.{f}") for f in ["budget", "timeline", "message"])
+    value = f"={{{{ [{parts}].map(v => v || '').join('|').hash('sha256') }}}}"
+    return node(FINGERPRINT_NODE, "n8n-nodes-base.set", V["set"], position, {
+        "assignments": {"assignments": [{"id": "lead_hash", "name": "lead_hash", "value": value, "type": "string"}]},
+        "options": {},
+    })
+
+
+# The backend refuses any call without its X-API-Key. Templated custom auth
+# for the same reason as GHL_CREDENTIAL below; template:
+# {"headers":{"X-API-Key":"{{api_key}}"}}.
+QUALIFY_CREDENTIAL = {"httpTemplatedCustomAuth": "Proj20 qualify API key"}
+
+
 def qualify_request_node():
     # GHL's webhook body nests the mapped custom-data fields under
     # body.customData (see the GHL workflow's Webhook action "Custom Data"
     # section); company isn't in customData at all, it's GHL's own top-level
     # body.company_name. Confirmed against a real live execution payload
     # (execution 87) - $json.name etc. at this node is always undefined.
-    return node("Call backend /qualify", "n8n-nodes-base.httpRequest", V["http"], [240, 0], {
-        "method": "POST", "url": "", "sendBody": True, "specifyBody": "json",
+    return node("Call backend /qualify", "n8n-nodes-base.httpRequest", V["http"], [720, 0], {
+        "method": "POST", "url": "",
+        "authentication": "genericCredentialType", "genericAuthType": "httpTemplatedCustomAuth",
+        "sendBody": True, "specifyBody": "json",
         "jsonBody": (
             "={{ JSON.stringify({ name: $json.body.customData.name, email: $json.body.customData.email, "
             "company: $json.body.company_name, message: $json.body.customData.message, "
             "budget: $json.body.customData.budget, timeline: $json.body.customData.timeline }) }}"
         ),
         "options": {"response": {"response": {"responseFormat": "json"}}, "timeout": BACKEND_TIMEOUT_MS},
-    }, **RETRY)
+    }, credentials=QUALIFY_CREDENTIAL, **RETRY)
 
 
 def merge_result_node():
@@ -100,7 +128,7 @@ def merge_result_node():
     text_fields = ["tier", "reason", "suggested_reply"]
     assignments += [{"id": f, "name": f, "value": f"={{{{ $json.{f} }}}}", "type": "string"} for f in text_fields]
     assignments.append({"id": "score", "name": "score", "value": "={{ $json.score }}", "type": "number"})
-    return node("Merge qualification onto lead", "n8n-nodes-base.set", V["set"], [480, 0], {
+    return node("Merge qualification onto lead", "n8n-nodes-base.set", V["set"], [960, 0], {
         "assignments": {"assignments": assignments},
         "options": {"includeOtherFields": True},
     })
@@ -143,11 +171,12 @@ READ_CONTACT_NODE = "Read contact before write"
 
 
 def read_contact_node(position):
-    # Snapshot the contact's tags BEFORE this run writes anything, so a replay
-    # of the same lead can tell "already hot" from "just turned hot" and not
-    # re-send the WhatsApp alert.
+    # Snapshot the contact BEFORE this run writes anything, and before the
+    # model is called: its stored fingerprint decides whether this is a
+    # replay at all, and its tags tell "already hot" from "just turned hot"
+    # so the WhatsApp alert isn't re-sent.
     return node(READ_CONTACT_NODE, "n8n-nodes-base.httpRequest", V["http"], position, {
-        "method": "GET", "url": "=" + GHL_BASE + "/contacts/{{ " + ref("contactId") + " }}",
+        "method": "GET", "url": "=" + GHL_BASE + "/contacts/{{ " + webhook_field("customData.contactId") + " }}",
         "authentication": "genericCredentialType", "genericAuthType": "httpTemplatedCustomAuth",
         "sendHeaders": True, "headerParameters": {"parameters": [{"name": "Version", "value": GHL_VERSION}]},
         "options": {"response": {"response": {"responseFormat": "json"}}},
@@ -165,6 +194,22 @@ def write_custom_fields_node(position):
     return ghl_request_node(
         "Write score/reason/reply to GHL", position, "PUT",
         "=" + GHL_BASE + "/contacts/{{ " + ref("contactId") + " }}", body,
+    )
+
+
+TIER_TAGS = ["hot", "warm", "cold", "needs-review"]
+
+
+def clear_other_tier_tags_node(position):
+    # A new inquiry can move a lead to a different tier. GHL's tag endpoint
+    # only adds, so without this a hot-then-warm lead would carry both tags
+    # and both tag-triggered drips would fire. Only runs for a scored lead:
+    # a review lead's real tier is unknown, so its old tag stays.
+    tags = "[" + ", ".join(f"'{t}'" for t in TIER_TAGS) + "]"
+    body = f"={{{{ JSON.stringify({{ tags: {tags}.filter(t => t !== {ref('tier')}) }}) }}}}"
+    return ghl_request_node(
+        "Clear other tier tags", position, "DELETE",
+        "=" + GHL_BASE + "/contacts/{{ " + ref("contactId") + " }}/tags", body,
     )
 
 
@@ -218,6 +263,27 @@ def move_stage_node(name, position):
         name, position, "PUT",
         "=" + GHL_BASE + "/opportunities/{{ " + ref_opportunity() + " }}", body,
     )
+
+
+def mark_routed_node(position):
+    # Written last, after the stage move, like Proj19's cursor: a run that
+    # fails before this point stores no fingerprint, so a replay redoes it.
+    body = (
+        "={{ JSON.stringify({ customFields: ["
+        f"{{ id: '', fieldValue: $('{FINGERPRINT_NODE}').item.json.lead_hash }} "
+        "] }) }}"
+    )
+    return ghl_request_node(
+        "Mark inquiry routed", position, "PUT",
+        "=" + GHL_BASE + "/contacts/{{ " + ref("contactId") + " }}", body,
+    )
+
+
+def stored_fingerprint():
+    # The contact's lead_hash custom field; its id is filled in at import,
+    # same as the score/reason/reply field ids.
+    return (f"($('{READ_CONTACT_NODE}').item.json.contact.customFields || [])"
+            ".find(f => f.id === '')")
 
 
 def leadlog_node(position):
@@ -277,36 +343,52 @@ def if_node(name, position, left, operator, right=""):
 
 def ghl_lead_router():
     nodes = [
-        webhook_node(), qualify_request_node(), merge_result_node(),
-        read_contact_node([600, 160]),
-        write_custom_fields_node([720, 0]),
-        add_tier_tag_node([960, 0]),
-        opportunity_lookup_node([1200, 0]),
-        if_node("Is hot?", [1440, 0], f"={{{{ {ref('tier')} }}}}",
+        webhook_node(),
+        read_contact_node([240, 0]),
+        fingerprint_node([480, 0]),
+        if_node("New inquiry?", [600, 0],
+                f"={{{{ ({stored_fingerprint()} || {{}}).value || '' }}}}",
+                {"type": "string", "operation": "notEquals"},
+                f"={{{{ $('{FINGERPRINT_NODE}').item.json.lead_hash }}}}"),
+        qualify_request_node(), merge_result_node(),
+        write_custom_fields_node([1200, 0]),
+        if_node("Has a tier?", [1440, 0], f"={{{{ {ref('tier')} }}}}",
+                {"type": "string", "operation": "notEquals"}, "review"),
+        clear_other_tier_tags_node([1680, -80]),
+        add_tier_tag_node([1920, 0]),
+        opportunity_lookup_node([2160, 0]),
+        if_node("Is hot?", [2400, 0], f"={{{{ {ref('tier')} }}}}",
                 {"type": "string", "operation": "equals"}, "hot"),
-        move_stage_node("Move to Hot stage", [1680, -160]),
-        if_node("Is warm?", [1680, 160], f"={{{{ {ref('tier')} }}}}",
+        move_stage_node("Move to Hot stage", [2640, -160]),
+        if_node("Is warm?", [2640, 160], f"={{{{ {ref('tier')} }}}}",
                 {"type": "string", "operation": "equals"}, "warm"),
-        move_stage_node("Move to Warm stage", [1920, 80]),
-        if_node("Is cold?", [1920, 240], f"={{{{ {ref('tier')} }}}}",
+        move_stage_node("Move to Warm stage", [2880, 80]),
+        if_node("Is cold?", [2880, 240], f"={{{{ {ref('tier')} }}}}",
                 {"type": "string", "operation": "equals"}, "cold"),
-        move_stage_node("Move to Cold stage", [2160, 240]),
+        move_stage_node("Move to Cold stage", [3120, 240]),
+        mark_routed_node([3360, 0]),
         # Below every routing node on purpose: executionOrder v1 runs sibling
         # branches top to bottom, so the CRM stage move always lands before
         # the reporting write. A Sheets failure still fails the run (and
         # alerts via the error workflow), it just can't block routing.
-        leadlog_node([1200, 480]),
-        if_node("First time hot?", [1920, -320],
+        leadlog_node([2160, 480]),
+        if_node("First time hot?", [2880, -320],
                 f"={{{{ (($('{READ_CONTACT_NODE}').item.json.contact || {{}}).tags || []).includes('hot') }}}}",
                 {"type": "boolean", "operation": "false", "singleValue": True}),
-        whatsapp_hot_alert_node([2160, -320]),
+        whatsapp_hot_alert_node([3120, -320]),
     ]
     edges = [
-        ("GHL lead webhook", "Call backend /qualify", 0),
+        ("GHL lead webhook", "Read contact before write", 0),
+        ("Read contact before write", "Fingerprint inquiry", 0),
+        ("Fingerprint inquiry", "New inquiry?", 0),
+        # New inquiry?'s false port (a replay) is left unwired: nothing runs
+        ("New inquiry?", "Call backend /qualify", 0),
         ("Call backend /qualify", "Merge qualification onto lead", 0),
-        ("Merge qualification onto lead", "Read contact before write", 0),
-        ("Read contact before write", "Write score/reason/reply to GHL", 0),
-        ("Write score/reason/reply to GHL", "Add tier tag", 0),
+        ("Merge qualification onto lead", "Write score/reason/reply to GHL", 0),
+        ("Write score/reason/reply to GHL", "Has a tier?", 0),
+        ("Has a tier?", "Clear other tier tags", 0),
+        ("Has a tier?", "Add tier tag", 1),
+        ("Clear other tier tags", "Add tier tag", 0),
         ("Add tier tag", "Look up opportunity by contact", 0),
         ("Add tier tag", "Upsert lead log", 0),
         ("Look up opportunity by contact", "Is hot?", 0),
@@ -317,6 +399,9 @@ def ghl_lead_router():
         ("Is warm?", "Move to Warm stage", 0),
         ("Is warm?", "Is cold?", 1),
         ("Is cold?", "Move to Cold stage", 0),
+        ("Move to Hot stage", "Mark inquiry routed", 0),
+        ("Move to Warm stage", "Mark inquiry routed", 0),
+        ("Move to Cold stage", "Mark inquiry routed", 0),
     ]
     return workflow("GHL lead router", nodes, edges,
                      extra_settings={"errorWorkflow": SHARED_ERROR_WORKFLOW_ID})

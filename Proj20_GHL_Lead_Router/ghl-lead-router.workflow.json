@@ -19,8 +19,104 @@
     },
     {
       "parameters": {
+        "method": "GET",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('GHL lead webhook').item.json.body.customData.contactId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "options": {
+          "response": {
+            "response": {
+              "responseFormat": "json"
+            }
+          }
+        }
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        240,
+        0
+      ],
+      "name": "Read contact before write",
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "GHL Private Integration Token"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "lead_hash",
+              "name": "lead_hash",
+              "value": "={{ [$('GHL lead webhook').item.json.body.customData.budget, $('GHL lead webhook').item.json.body.customData.timeline, $('GHL lead webhook').item.json.body.customData.message].map(v => v || '').join('|').hash('sha256') }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [
+        480,
+        0
+      ],
+      "name": "Fingerprint inquiry"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "New inquiry?-cond",
+              "leftValue": "={{ (($('Read contact before write').item.json.contact.customFields || []).find(f => f.id === '') || {}).value || '' }}",
+              "rightValue": "={{ $('Fingerprint inquiry').item.json.lead_hash }}",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        600,
+        0
+      ],
+      "name": "New inquiry?"
+    },
+    {
+      "parameters": {
         "method": "POST",
         "url": "",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
         "sendBody": true,
         "specifyBody": "json",
         "jsonBody": "={{ JSON.stringify({ name: $json.body.customData.name, email: $json.body.customData.email, company: $json.body.company_name, message: $json.body.customData.message, budget: $json.body.customData.budget, timeline: $json.body.customData.timeline }) }}",
@@ -36,10 +132,16 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        240,
+        720,
         0
       ],
       "name": "Call backend /qualify",
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "Proj20 qualify API key"
+        }
+      },
       "retryOnFail": true,
       "maxTries": 3,
       "waitBetweenTries": 3000
@@ -129,50 +231,10 @@
       "type": "n8n-nodes-base.set",
       "typeVersion": 3.4,
       "position": [
-        480,
+        960,
         0
       ],
       "name": "Merge qualification onto lead"
-    },
-    {
-      "parameters": {
-        "method": "GET",
-        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Merge qualification onto lead').item.json.contactId }}",
-        "authentication": "genericCredentialType",
-        "genericAuthType": "httpTemplatedCustomAuth",
-        "sendHeaders": true,
-        "headerParameters": {
-          "parameters": [
-            {
-              "name": "Version",
-              "value": "2021-07-28"
-            }
-          ]
-        },
-        "options": {
-          "response": {
-            "response": {
-              "responseFormat": "json"
-            }
-          }
-        }
-      },
-      "type": "n8n-nodes-base.httpRequest",
-      "typeVersion": 4.2,
-      "position": [
-        600,
-        160
-      ],
-      "name": "Read contact before write",
-      "credentials": {
-        "httpTemplatedCustomAuth": {
-          "id": "REPLACE_IN_UI",
-          "name": "GHL Private Integration Token"
-        }
-      },
-      "retryOnFail": true,
-      "maxTries": 3,
-      "waitBetweenTries": 3000
     },
     {
       "parameters": {
@@ -197,10 +259,79 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        720,
+        1200,
         0
       ],
       "name": "Write score/reason/reply to GHL",
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "GHL Private Integration Token"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "Has a tier?-cond",
+              "leftValue": "={{ $('Merge qualification onto lead').item.json.tier }}",
+              "rightValue": "review",
+              "operator": {
+                "type": "string",
+                "operation": "notEquals"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        1440,
+        0
+      ],
+      "name": "Has a tier?"
+    },
+    {
+      "parameters": {
+        "method": "DELETE",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Merge qualification onto lead').item.json.contactId }}/tags",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ tags: ['hot', 'warm', 'cold', 'needs-review'].filter(t => t !== $('Merge qualification onto lead').item.json.tier) }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1680,
+        -80
+      ],
+      "name": "Clear other tier tags",
       "credentials": {
         "httpTemplatedCustomAuth": {
           "id": "REPLACE_IN_UI",
@@ -234,7 +365,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        960,
+        1920,
         0
       ],
       "name": "Add tier tag",
@@ -287,7 +418,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1200,
+        2160,
         0
       ],
       "name": "Look up opportunity by contact",
@@ -328,7 +459,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1440,
+        2400,
         0
       ],
       "name": "Is hot?"
@@ -356,7 +487,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1680,
+        2640,
         -160
       ],
       "name": "Move to Hot stage",
@@ -397,7 +528,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1680,
+        2640,
         160
       ],
       "name": "Is warm?"
@@ -425,7 +556,7 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        1920,
+        2880,
         80
       ],
       "name": "Move to Warm stage",
@@ -466,7 +597,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1920,
+        2880,
         240
       ],
       "name": "Is cold?"
@@ -494,10 +625,47 @@
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
-        2160,
+        3120,
         240
       ],
       "name": "Move to Cold stage",
+      "credentials": {
+        "httpTemplatedCustomAuth": {
+          "id": "REPLACE_IN_UI",
+          "name": "GHL Private Integration Token"
+        }
+      },
+      "retryOnFail": true,
+      "maxTries": 3,
+      "waitBetweenTries": 3000
+    },
+    {
+      "parameters": {
+        "method": "PUT",
+        "url": "=https://services.leadconnectorhq.com/contacts/{{ $('Merge qualification onto lead').item.json.contactId }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpTemplatedCustomAuth",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Version",
+              "value": "2021-07-28"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ customFields: [{ id: '', fieldValue: $('Fingerprint inquiry').item.json.lead_hash } ] }) }}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        3360,
+        0
+      ],
+      "name": "Mark inquiry routed",
       "credentials": {
         "httpTemplatedCustomAuth": {
           "id": "REPLACE_IN_UI",
@@ -668,7 +836,7 @@
       "type": "n8n-nodes-base.googleSheets",
       "typeVersion": 4.7,
       "position": [
-        1200,
+        2160,
         480
       ],
       "name": "Upsert lead log",
@@ -707,7 +875,7 @@
       "type": "n8n-nodes-base.if",
       "typeVersion": 2.2,
       "position": [
-        1920,
+        2880,
         -320
       ],
       "name": "First time hot?"
@@ -722,7 +890,7 @@
       "type": "n8n-nodes-base.whatsApp",
       "typeVersion": 1.1,
       "position": [
-        2160,
+        3120,
         -320
       ],
       "name": "WhatsApp hot lead alert",
@@ -737,6 +905,39 @@
   ],
   "connections": {
     "GHL lead webhook": {
+      "main": [
+        [
+          {
+            "node": "Read contact before write",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Read contact before write": {
+      "main": [
+        [
+          {
+            "node": "Fingerprint inquiry",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Fingerprint inquiry": {
+      "main": [
+        [
+          {
+            "node": "New inquiry?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "New inquiry?": {
       "main": [
         [
           {
@@ -762,17 +963,6 @@
       "main": [
         [
           {
-            "node": "Read contact before write",
-            "type": "main",
-            "index": 0
-          }
-        ]
-      ]
-    },
-    "Read contact before write": {
-      "main": [
-        [
-          {
             "node": "Write score/reason/reply to GHL",
             "type": "main",
             "index": 0
@@ -781,6 +971,35 @@
       ]
     },
     "Write score/reason/reply to GHL": {
+      "main": [
+        [
+          {
+            "node": "Has a tier?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Has a tier?": {
+      "main": [
+        [
+          {
+            "node": "Clear other tier tags",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Add tier tag",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Clear other tier tags": {
       "main": [
         [
           {
@@ -875,6 +1094,39 @@
         [
           {
             "node": "Move to Cold stage",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move to Hot stage": {
+      "main": [
+        [
+          {
+            "node": "Mark inquiry routed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move to Warm stage": {
+      "main": [
+        [
+          {
+            "node": "Mark inquiry routed",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move to Cold stage": {
+      "main": [
+        [
+          {
+            "node": "Mark inquiry routed",
             "type": "main",
             "index": 0
           }
