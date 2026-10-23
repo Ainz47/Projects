@@ -36,7 +36,7 @@ Pick the row that matches what you are hiring for.
 |---|---------|--------|-------|
 | 1 | [SchoolJobs](#1-schooljobs) | Web Scraping | Python, Playwright, SQLite |
 | 2 | [Shopee Search Capture](#2-shopee-search-capture) | E-commerce Scraping | Python, Playwright CDP, SQLite |
-| 3 | [PDFExtractor](#3-pdfextractor) | Document Processing | Python, pdfplumber, SQLite |
+| 3 | [PDFExtractor](#3-pdfextractor) | Document Discovery | Python, Playwright |
 | 4 | [SmartParkingIoT](#4-smartparkingiot) | IoT / Embedded | C++, ESP32, LoRa, Blynk |
 | 5 | [WordPress ACF REST API](#5-wordpress-acf-rest-api) | CMS Integration | Python, WordPress REST API |
 | 6 | [Cloud Report Engine](#6-cloud-report-engine) | PDF Generation | Python, FastAPI, Supabase, WeasyPrint |
@@ -82,10 +82,9 @@ E-commerce scraper that attaches to an existing, logged-in Chrome window via Chr
 
 ## 3. PDFExtractor
 
-Automated pipeline that discovers procurement PDFs on school district websites and extracts structured fields (budget approvals, bid deadlines) using pdfplumber and regex, all in-memory, no disk writes.
+A Playwright script that opens a page in headless Chromium and collects every link to a PDF, pointed at a school district page. It is the discovery step of a planned PDF-to-database pipeline; the download, text extraction and SQLite steps were never built (see the project README).
 
-**Stack:** Python · Playwright · pdfplumber · SQLite  
-**Highlights:** Three-layer architecture (discovery → ingestion → extraction); fully in-memory byte-stream processing, so it is cloud-ready for AWS Lambda or a CI runner.
+**Stack:** Python · Playwright
 
 [→ View project](Proj3_PDFExtractor/)
 
